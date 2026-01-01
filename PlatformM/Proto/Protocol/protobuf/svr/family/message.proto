@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package pbsfamily;
+
+import "protobuf/api/family/family-comm.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsfamily";
+option java_package = "com.family.biz.proto";
+
+// FamilyEventMessage 家族事件相关kafka消息
+message FamilyEventMessage {
+  comm.api.family.FamilyEventType event_type = 1; // 事件类型
+  comm.api.family.FamilyBaseInfo base_info = 2; // 家族基础信息
+  int64 from_user_id = 3; // 操作者ID
+  int64 to_user_id = 4; // 目标用户ID
+  comm.api.family.FamilyRoleType family_role = 5; // 角色
+  comm.api.family.JoinPermissionType join_permission = 6; // 加入权限
+  string group_id = 10; // 群聊ID
+  int64 room_id = 11;   // 家族房ID
+  map<string, string> extra = 100; // 扩展参数,预留透传
+}

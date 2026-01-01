@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package pbsmall;
+
+import "protobuf/api/mall/mall.proto";
+import "protobuf/api/revenue/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsmall";
+
+// 订单动作消息
+// topic: social-mall-order-action-{anm}
+message OrderActionMessage {
+    OrderAction order_action = 1;               // 时间类型
+	int64 timestamp = 2;                        // 发生时间
+	int64 order_id = 3;                          // 订单id
+	string order_no = 4;                        // 订单号
+	int64 uid = 10;                             // 购买人
+	string did = 11;                            // 购买设备
+	int64 to_uid = 12;                           // 收货人
+	int64 goods_id = 20;                        // 商品id
+    comm.api.mall.Goods goods = 21;             // 商品快照
+	pbrevenue.CurrencyType currency_type = 30;  // 货币类型
+	int64 price = 31;                           // 单价
+	int64 quantity = 32;                        // 数量
+	int64 amount = 34;                          // 总金额
+}
+
+// 订单动作
+enum OrderAction {
+    ORDER_ACTION_NONE = 0;
+	ORDER_ACTION_CREATE = 10;         // 订单创建
+	ORDER_ACTION_PAY = 20;            // 订单支付
+	ORDER_ACTION_CANCEL = 30;         // 订单取消
+	ORDER_ACTION_REFUND = 40;         // 订单退款
+	ORDER_ACTION_GOODS_DELIVER = 50;   // 订单商品发货
+	ORDER_ACTION_GOODS_RETURN = 60;    // 订单商品退回
+}

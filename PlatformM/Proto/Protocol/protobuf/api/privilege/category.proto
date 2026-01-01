@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package api.privilege;
+
+import "protobuf/api/privilege/enum.proto";
+
+
+option java_package = "com.entertain.sns.api.privilege";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbprivilegev1";
+
+// ServiceName: privilege-api
+service CategoryApi {
+  // 商城分类列表
+  rpc ListCategory(ListCategoryReq) returns (ListCategoryRsp);
+}
+
+// 商品分类
+message Category {
+  int64 id = 1; //分类ID
+  CategoryAlias alias = 2; // 分类
+  string name = 3;  //分类名称
+  string icon = 4;  //分类图标
+  int64 parent_id = 5; //父类ID
+}
+
+message ListCategoryReq {
+  CategoryAlias category_alias = 1; // 一级分类标识
+}
+
+message ListCategoryRsp {
+  repeated Category categories = 1; //商品分类列表
+}

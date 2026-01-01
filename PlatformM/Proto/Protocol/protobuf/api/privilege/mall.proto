@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package api.privilege;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/revenue/common.proto";
+import "protobuf/api/privilege/enum.proto";
+
+option java_package = "com.entertain.sns.api.privilege";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbprivilegev1";
+
+// ServiceName: privilege-api
+service MallApi {
+  // 商城商品列表
+  rpc ListMallGoods(ListMallGoodsReq) returns (ListMallGoodsRsp);
+
+  // 购买商品
+  rpc BuyGoods(BuyGoodsReq) returns (BuyGoodsRsp);
+}
+
+message MallGoodsPrice {
+  int64 period_secs = 10; //商品周期-秒
+  string period_text = 11;  //商品周期展示 例如： 30 days
+  pbrevenue.CurrencyType currency_type = 12; //货币类型
+  int64 price = 13;  //原价
+  int64 discount_price = 14; //折扣价
+}
+
+// 商城商品
+message MallGoods {
+  int64 id = 1; //商品ID
+  int64 category_id = 2; //商品分类ID
+  int64 sub_category_id = 3; //子类ID
+  CategoryAlias category_alias = 4; //商品一级分类标识
+  CategoryAlias sub_category_alias = 5; //商品二级分类标识
+  string name = 6;  //商品名称
+  string thumb = 7; //商品缩略图
+  string image = 8; //商品图片
+  string media_type = 9; //多媒体类型
+  string media_url = 10; //多媒体地址
+  string brief = 11; //商品描述
+  repeated MallGoodsPrice prices = 12; //商品价格列表
+}
+
+// 商城商品列表请求
+message ListMallGoodsReq {
+  scommon.Page page = 1;
+  GoodsScene scene = 2; // 商品场景
+  int64 category_id = 10;  //分类ID, 优先使用分类ID, 分类ID为空使用分类alias
+  int64 sub_category_id = 11; //子类ID
+  CategoryAlias category_alias = 12;  //分类标识
+  CategoryAlias sub_category_alias = 13; //二级分类标识
+}
+
+// 商城商品列表响应
+message ListMallGoodsRsp {
+  scommon.Page page = 1;
+  repeated MallGoods goods = 10; //商品列表
+}
+
+// 购买请求
+message BuyGoodsReq {
+  int64 goods_id = 1; //商品ID
+  int64 num = 2;  //购买数量
+  pbrevenue.CurrencyType currency_type = 3; //货币类型
+  int64 amount = 4; //支付金额
+  map<string, string> extra_context = 5; // 用于业务透传
+}
+
+// 购买响应
+message BuyGoodsRsp {
+  int64 bag_id = 1;  //背包ID
+}

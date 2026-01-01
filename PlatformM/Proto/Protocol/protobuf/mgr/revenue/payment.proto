@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package mgr.pbrevenue;
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmrevenue";
+
+import "protobuf/api/pay/common.proto";
+
+// smicro:spath=gitit.cc/social/components-service/social-revenue/payment/internal/handlermgr
+
+// 支付方式管理
+service PaymentMgr {
+  // 获取服务端支持的所有支付方式
+  rpc ListPayment(ListPaymentReq) returns (ListPaymentRsp);
+  // 同步支付方式配置
+  rpc SyncPaymentConfig(SyncPaymentConfigReq) returns (SyncPaymentConfigRsp);
+  // 保存支付方式配置
+  rpc SavePaymentConfig(SavePaymentConfigReq) returns (SavePaymentConfigRsp);
+  // 获取支付方式配置
+  rpc ListPaymentConfig(ListPaymentConfigReq) returns (ListPaymentConfigRsp);
+}
+
+// 支付方式服务端配置，对于每个业务都是一致的
+message Payment {
+  string payment_code = 1;              // 支付方式code，营收中台定义的唯一标识
+  pbspay.PaymentType payment_type = 2;  // 支付方式枚举
+  string name = 21;                     // 默认名称，例如: Apple Pay
+}
+
+// 支付方式业务配置
+message PaymentConfig {
+  string payment_code = 1;              // 支付方式code，营收中台定义的唯一标识
+  string oms_name = 2;                  // OMS展示名称
+  int32 weight = 5;                     // 展示权重，值越大排序越靠前
+  bool published = 11;                  // 是否上线
+  pbspay.I18NString name = 21;          // 多语言名称，不配则使用服务端配置的默认值
+  pbspay.I18NString image = 22;         // 多语言图片，因为需要用到业务域名，服务端不提供默认图
+  pbspay.I18NString icon = 23;          // 多语言角标，因为需要用到业务域名，服务端不提供默认图
+}
+
+
+
+// 背景：原先是OMS维护了一个支付code列表，然而服务端其实也需要维护一份，用来映射名称和图片等，双端都要维护就会相当混乱
+// 因此统一交给服务端来维护，OMS通过该接口获取支付code列表
+message ListPaymentReq {
+}
+
+message ListPaymentRsp {
+  repeated Payment payments = 10;       // 支付方式列表
+}
+
+
+
+// 背景：服务端维护的支付code列表是所有业务共用的，可能会有几十个支付code，然而一些业务当下只需要支持几个code，那么业务不想要的也展示出来就不太友好
+// 当业务需要配置一个当前还不在列表中的支付code时，通过该接口将所有支付code都初始化一份默认配置（不会上线），业务去修改对应配置并上线
+message SyncPaymentConfigReq {
+}
+
+message SyncPaymentConfigRsp {
+}
+
+
+
+message SavePaymentConfigReq {
+  PaymentConfig config = 11;            // 配置
+}
+
+message SavePaymentConfigRsp{
+}
+
+
+
+message ListPaymentConfigReq {
+  Filter filter = 10;                   // 筛选项
+
+  // 筛选项
+  message Filter {
+    repeated bool published = 1;        // 是否发布
+  }
+}
+
+message ListPaymentConfigRsp{
+  repeated PaymentConfig configs = 10;  // 配置列表
+}

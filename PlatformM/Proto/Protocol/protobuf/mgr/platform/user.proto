@@ -1,0 +1,51 @@
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/user/handlermgr/user.go
+syntax = "proto3";
+
+package comm.mgr.platform.user;
+
+option go_package = "gitit.cc/social/components-service/social-platform/proto/pbmgruser";
+
+service CommonUser {
+  rpc BatchGetUserInfo(BatchGetUserInfoReq) returns (BatchGetUserInfoRsp) {}
+}
+
+message BatchGetUserInfoReq {
+  repeated int64 uids = 1;
+  repeated string show_uids = 2;
+}
+
+message BatchGetUserInfoRsp {
+  repeated UserInfo users = 1;
+}
+
+enum UserStatus {
+  USER_STATUS_NONE = 0; // 无意义
+  USER_STATUS_NORMAL = 1; // 正常
+  USER_STATUS_ABNORMAL = 2; // 异常, 封禁/注销
+}
+
+enum UserGender {
+  USER_GENDER_NONE = 0; // 无意义
+  USER_GENDER_MALE = 1; // 男
+  USER_GENDER_FEMALE = 2; // 女
+}
+
+message UserInfo {
+  int64 uid = 1;
+  string show_uid = 2;
+  string nickname = 3;
+  string avatar = 4;
+  UserGender gender = 5;
+  string room_id = 6;
+  bool online = 7;
+  UserStatus status = 8;
+  int64 registered_at = 9;
+  string did = 10;          // 注册时的 did
+  string country = 11;      // 国家简码
+  string mobile = 13;       // 手机号
+  string email = 14;        // 邮箱
+  int64 wealth_level = 15;  // 财富等级
+  int64 wealth_value = 16;  // 财富值
+  int64 charm_level = 17;   // 魅力等级
+  int64 charm_value = 19;   // 魅力值
+}

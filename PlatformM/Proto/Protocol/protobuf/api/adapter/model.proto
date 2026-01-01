@@ -1,0 +1,195 @@
+syntax = "proto3";
+
+package comm.api.adapter;
+
+import "protobuf/api/sconfig/options.proto";
+import "protobuf/api/common/common-net.proto";
+import "protobuf/api/account/account.proto";
+
+option java_package = "com.entertain.sns.comm.api.adapter";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbadapter";
+option swift_prefix="CommApiAdapter";
+
+// 家族角色类型
+enum FamilyRoleType {
+  FAMILY_ROLE_TYPE_NONE = 0;            // 非家族成员
+  FAMILY_ROLE_TYPE_PATRIARCH = 1;       // 家族长
+  FAMILY_ROLE_TYPE_VICE_PATRIARCH = 2;  // 副家族长
+  FAMILY_ROLE_TYPE_ELDER = 3;           // 长老, 对应echo 的大佬
+  FAMILY_ROLE_TYPE_ADMIN = 4;           // 管理员
+  FAMILY_ROLE_TYPE_MASS = 99;           // 普通成员
+}
+
+enum RoomStatus {
+  ROOM_STATUS_NONE = 0;
+  ROOM_STATUS_LIVING = 1; // 直播中
+  ROOM_STATUS_CLOSE = 2;  // 下播中
+  ROOM_STATUS_BAN = 3;    // 封禁
+}
+
+enum FollowErrCode {
+  FOLLOW_ERR_CODE_NONE = 0;
+  FOLLOW_ERR_CODE_BLOCKED = 1;      // 被对方拉黑
+  FOLLOW_ERR_CODE_REACH_LIMIT = 2;  // 到达关注人数上限
+  FOLLOW_ERR_CODE_RISK = 3;         // 被风控了
+  FOLLOW_ERR_CODE_BLOCK_BY_SELF = 4;// 主动拉黑
+  FOLLOW_ERR_CODE_OTHER = 100;      // 其他错误
+}
+
+enum RewardSourceType {
+  REWARD_SOURCE_TYPE_NONE = 0;
+  REWARD_SOURCE_TYPE_RANK = 1;        // 榜单
+  REWARD_SOURCE_TYPE_TASK = 2;        // 任务
+  REWARD_SOURCE_TYPE_LOTTERY = 3;     // 抽奖
+  REWARD_SOURCE_TYPE_PRIZEPOOL = 4;   // 奖池
+  REWARD_SOURCE_TYPE_POINTS_EXCHANGE = 5;   // 积分兑换
+}
+
+/*
+  因为不同业务的货币叫法不一致, 但概念是相通的:
+  Playmate:
+    结算: 钻石-diamond
+    消费: 星币-star
+    币商: 星票-ticket
+    美分: 美分-usd
+
+  Lucky:
+    结算: 积分-point
+    消费: 金币-coin
+    币商: -
+    美分: -
+
+  Echo:
+    结算: 钻石-diamond
+    消费: 金币-coin
+    币商: 金票-ticket
+    美分: 美分-usd
+
+  HalaMe:
+    结算: 宝石-gems
+    消费: 钻石-diamond
+    币商: 金票-ticket
+    美分: 美分-usd
+
+  Carne:
+    经营货币：coin
+
+  darling:
+    结算：金币
+    消费：金币
+
+  dating:
+    结算：金币
+    消费：宝石
+    促活：银豆
+
+  nova：
+    消费：钻石
+    第二消费货币：金币
+
+  所以公会中台对货币进行以下抽象, 让业务各自去对应自己的货币类型.
+ */
+enum Currency {
+  CURRENCY_NONE = 0;
+  CURRENCY_SETTLEMENT = 1;   // 结算货币
+  CURRENCY_CONSUMPTION = 2;  // 消费货币
+  CURRENCY_COIN_AGENCY = 3;  // 币商货币
+  CURRENCY_DOLLAR_CENT = 4;  // 美分货币
+  CURRENCY_COIN_OPERATING = 5;  // 经营货币
+  CURRENCY_POINT = 6;        // 积分货币，一般是做任务获得的积分，目前只有dating 用
+  CURRENCY_ACTIVE = 7;       // 促活货币，目前只有dating 用
+  CURRENCY_SECONDARY_CONSUMPTION = 12;  // 第二消费货币
+  CURRENCY_SECONDARY_SETTLEMENT = 13;  // 第二结算货币， 目前只有dating 用来做用户收益结算
+}
+
+// 房间标签模式
+enum RoomTagStyle {
+  ROOM_TAG_TYPE_NONE = 0;
+  ROOM_TAG_TYPE_ICON = 10;      // 仅展示图标
+  ROOM_TAG_TYPE_ICON_NAME = 20; // 展示图标 + 名字
+}
+
+// 房间标签
+message RoomTag {
+  int64 id = 1;                 // 标签
+  RoomTagStyle style = 2;       // 房间标签模式
+  int32 weight = 3;             // 标签权重, 如果一个房间有多个标签时按权重从高到低排序和剔除显示不下的.
+
+  string name = 20;             // 标签名称内容
+  string icon = 30;             // 标签图标
+}
+
+
+// 主体类型
+enum SubjectType {
+  SUBJECT_TYPE_NONE = 0;          // 无意义
+  SUBJECT_TYPE_USER = 10;         // 用户
+}
+
+// 用户状态
+enum UserStatus {
+  USER_STATUS_NONE = 0;     // 无状态
+  USER_STATUS_NORMAL = 1;   // 正常
+  USER_STATUS_BAN = 2;      // 封禁
+  USER_STATUS_FROZEN = 3;   // 冻结
+  USER_STATUS_WITHDRAW = 4; // 注销（注销冷静期过后更新为删除）
+  USER_STATUS_DELETE = 5;   // 删除
+}
+
+// 用户信息, 这个是基础用户信息, 里面应当只包含通用的静态的用户信息, 而用户的某些状态或者其他动态的信息通过拓展字段来实现.
+// 拓展信息分两种: 
+// 1. 业务拓展信息 biz_ext, 这种是中台透传业务特有的用户信息, 通常情况下中台的接口需要提供一个 int32 数组类型的参数字段用于接收客户端需要的业务拓展用户信息类型, 
+//    并且查询业务拓展用户信息时带给业务后端, 最后将返回值透传给客户端. 业务需要定义一个唯一的 <UserInfoExt 结构体> 和 <业务拓展用户信息类型枚举> 来对应 UserInfoExt 的字段.
+// 2. 场景拓展信息 scene_ext, 例如活动中台的榜单页面返回用户是否已关注这种用 scene_ext 来承接, 客户端/前端需要用对应的结构体来解析.
+message UserInfo {
+  int64 uid = 1;                            // uid
+  string show_uid = 2;                      // show_uid
+  string nickname = 3;                      // 昵称
+  string avatar = 4;                        // 头像
+  int64 registered_at = 5;                  // 注册时间
+  scommon.Gender gender = 6;                // 性别
+  pbaccount.CountryInfo country_info = 7;   // 国家信息
+  UserStatus status = 20;                   // 用户状态
+  string birthday = 30;                     // 生日 yyyy-MM-dd
+  int32 age = 31;                           // 年龄
+  string introduction = 40;                 // 个人介绍
+  string city = 50;                         // 城市
+  string language = 100;                    // 语言码
+  bytes biz_ext = 110;                      // 业务拓展信息, 用于透传业务拓展信息,
+  bytes scene_ext = 111;                    // 场景拓展信息, 用于中台针对不同场景拓展的用户信息.
+}
+
+
+// 榜单奖励目标类型
+enum RankRewardTargetType {
+  RANK_REWARD_TARGET_TYPE_NONE = 0;
+  RANK_REWARD_TARGET_TYPE_USER = 1 [(sconfig.schema.enum) = {name: "User"}];                         // 用户
+  RANK_REWARD_TARGET_TYPE_USER_RESOURCE = 2 [(sconfig.schema.enum) = {name: "UserResource"}];        // 用户资源
+  RANK_REWARD_TARGET_TYPE_FAMILY = 5 [(sconfig.schema.enum) = {name: "Family"}];                     // 家族
+  RANK_REWARD_TARGET_TYPE_FAMILY_RESOURCE = 6 [(sconfig.schema.enum) = {name: "FamilyResource"}];    // 家族资源
+  RANK_REWARD_TARGET_TYPE_ROOM = 7 [(sconfig.schema.enum) = {name: "Room"}];                         // 房间
+}
+
+// Yes or No, 有些场景直接用 bool 类型无法表达"不限制"这个选项, 所以加上这个枚举.
+enum YoN {
+  YON_NONE = 0; // 未指定/不限制
+  YON_YES = 1;  // 是
+  YON_NO = 2;   // 否
+}
+
+// 用户身份
+enum UserIdentity {
+  USER_IDENTITY_NONE = 0;             // 不存在
+  USER_IDENTITY_USER = 10;            // 用户
+  USER_IDENTITY_ANCHOR = 20;          // 主播
+  
+  USER_IDENTITY_UNCLASSIFIED = 100;   // 未分类, 即用户存在但身份不在上述已定义的之中.
+}
+
+// ID类型
+enum IDType {
+  ID_TYPE_NONE = 0;
+  ID_TYPE_UID = 10;     // 用户ID
+  ID_TYPE_RID = 20;     // 房间ID
+  ID_TYPE_FID = 30;     // 家族ID
+}

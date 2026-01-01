@@ -1,0 +1,48 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/search/handler/
+syntax = "proto3";
+
+package api.astrorise.voiceroom;
+
+import "protobuf/api/common/common.proto";
+import "api/platform/voiceroom/comm.proto";
+import "protobuf/api/privilege/v2/bag.proto";
+import "protobuf/api/adapter/model.proto";
+
+option java_package="com.entertain.sns.api.gene";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbsearch";
+
+// 搜索服务
+// serviceName: astrorise-voiceroom
+service Search {
+
+  // 搜索用户
+  rpc SearchUser(SearchUserReq) returns (SearchUserRsp);
+
+  // 搜索房间
+  rpc SearchRoom(SearchRoomReq) returns (SearchRoomRsp);
+}
+
+// 搜索用户
+message SearchUserReq {
+  scommon.Page page = 1;  // 分页参数
+  string keyword = 10;    // 搜索关键字
+  repeated UserInfoExtField user_info_ext_fields = 30; // 业务拓展信息(UserInfo.biz_ext)需要的字段
+}
+// 搜索用户
+message SearchUserRsp {
+  scommon.Page page = 1;                  // 分页参数
+  repeated comm.api.adapter.UserInfo users = 10;  // 用户列表
+  map<int64, api.privilege.v2.UsingPrivilege> user_privileges = 20; // 用户的权益
+}
+
+// 搜索房间
+message SearchRoomReq {
+  scommon.Page page = 1;  // 分页参数
+  string keyword = 10;    // 搜索关键字
+}
+// 搜索房间
+message SearchRoomRsp {
+  scommon.Page page = 1;                  // 分页参数
+  repeated api.astrorise.voiceroom.RoomInfo rooms = 10;  // 房间列表
+}
+

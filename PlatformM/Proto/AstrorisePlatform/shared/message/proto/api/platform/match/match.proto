@@ -1,0 +1,191 @@
+syntax = "proto3";
+
+package api.astrorise.platform.match;
+
+import "protobuf/api/common/common.proto";
+
+// smicro:spath=gitit.cc/social/astrorise/arplatform/s_match/biz/match/handler
+
+option go_package = "gitit.cc/social/astrorise/arprotobuf/gencode/api/match/pbmatch";
+
+// ********************************接口******************************
+
+service Match {
+  // 队伍个人
+  rpc CreateTeam (CreateTeamReq) returns (CreateTeamRsp);
+  rpc JoinTeam (JoinTeamReq) returns (JoinTeamRsp);
+  rpc ChangeSeatState (ChangeSeatStateReq) returns (ChangeSeatStateRsp);
+  rpc SwapSeat (SwapSeatReq) returns (SwapSeatRsp);
+  rpc ConfirmSwapping (ConfirmSwappingReq) returns (ConfirmSwappingRsp);
+  // 队伍队长操作
+  rpc EnableTalking (EnableTalkingReq) returns (EnableTalkingRsp);
+  rpc KickMember (KickMemberReq) returns (KickMemberRsp);
+  rpc TransferLeader (TransferLeaderReq) returns (TransferLeaderRsp);
+  // 匹配
+  rpc QuickMatch (QuickMatchReq) returns (QuickMatchRsp);
+}
+
+// ********************************枚举******************************
+
+enum MatchSeatState {
+  SEAT_STATE_NORMAL = 0; // 普通状态
+  SEAT_STATE_READY = 1; // 已准备
+}
+
+// *******************************结构体******************************
+
+message TeamMemberInfo {
+  int64 uid = 1; // 用户编号
+  int32 rank = 2; // 段位
+  int32 seat_id = 3; // 所处匹配座位编号
+  MatchSeatState state = 4; // 匹配作为状态
+}
+
+message TeamInfo {
+  int32 game_id = 1;
+  int32 id = 2; // 队伍编号
+  int32 match_id = 3; // 匹配编号
+  int64 leader_uid = 4; // 队长编号
+  repeated TeamMemberInfo members = 5; // 队伍成员
+  int64 start_match_ms = 6; // 开始匹配时间；该值大于0时表示匹配中
+}
+
+// ******************************************************************
+
+// 创建一个队伍
+message CreateTeamReq {
+  int32 game_id = 1; // 游戏编号
+  int32 match_id = 2; // 匹配编号
+}
+
+message CreateTeamRsp {
+  int32 err_code = 1;
+  int32 game_id = 2; // 游戏编号
+  TeamInfo team_info = 3; // 队伍信息
+}
+
+// 加入指定队伍
+message JoinTeamReq {
+  int32 game_id = 1;
+  int32 team_id = 2;
+}
+
+message JoinTeamRsp {
+  int32 err_code = 1;
+  int32 game_id = 2; // 游戏编号
+  TeamInfo team_info = 3;
+}
+
+// 修改座位状态，准备与否
+message ChangeSeatStateReq {
+  int32 game_id = 1;
+  MatchSeatState seat_state = 2;
+}
+
+message ChangeSeatStateRsp {
+  int32 err_code = 1;
+  int32 game_id = 2; // 游戏编号
+  MatchSeatState seat_state = 3;
+}
+
+// 交换座位
+message SwapSeatReq {
+  int32 game_id = 1;
+  int32 seat_id = 2; // 要交换的座位编号
+}
+
+message SwapSeatRsp {
+  int32 err_code = 1;
+  int32 game_id = 2;
+  int32 seat_id = 3; // 要交换的座位编号
+  int64 confirm_time_ms = 4; // 确认超时时间；如果目标座位有人，需要等待其确认
+}
+
+message NotifySwapSeat {
+  int32 game_id = 1;
+  int32 source_seat_id = 2; // 发起换位置的源座位编号
+  int64 confirm_time_ms = 3; // 确认超时时间；需要在该时间之前完成确认
+}
+
+// 确认交换座位信息
+message ConfirmSwappingReq {
+  int32 game_id = 1;
+  int32 source_seatId = 2; // 发起交换人的源座位编号
+  bool accept_or_not = 3; // 同意与否
+}
+
+message ConfirmSwappingRsp {
+  int32 err_code = 1;
+  int32 game_id = 2;
+  int32 old_seat_id = 3; // 老座位编号
+  int32 seat_id = 4; // 新座位编号s
+}
+
+// （队长）恢复语音聊天
+message EnableTalkingReq {
+  int32 game_id = 1;
+  int64 member_id = 2; // 成员编号
+  bool enable_or_not = 3; // 开启/禁止语音聊天
+}
+
+message EnableTalkingRsp {
+  int32 err_code = 1;
+  int32 game_id = 2;
+  int64 member_id = 3; // 成员编号
+  bool enable_or_not = 4; // 开启/禁止语音聊天
+}
+
+// （队长）踢成员出队伍
+message KickMemberReq {
+  int32 game_id = 1;
+  int64 member_id = 2; // 成员编号
+}
+
+message KickMemberRsp {
+  int32 err_code = 1;
+  int32 game_id = 2;
+  int64 member_id = 3; // 成员编号
+}
+
+// （队长）转移队长
+message TransferLeaderReq {
+  int32 game_id = 1;
+  int64 member_id = 2; // 成员编号
+}
+
+message TransferLeaderRsp {
+  int32 err_code = 1;
+  int32 game_id = 2;
+  int64 member_id = 3; // 成员编号
+}
+
+// 通知最新队伍信息
+message NotifyTeamInfo {
+  int64 s_time_ms = 1; // 服务器时间
+  TeamInfo team = 2; // 队伍信息
+}
+
+// 快速匹配
+message QuickMatchReq {
+  int32 game_id = 2; // 游戏编号
+}
+
+message QuickMatchRsp {
+  int32 err_code = 1;
+  int64 s_time_ms = 2; // 服务器时间
+  int32 game_id = 3;
+  int64 match_end_time_ms = 4; // 匹配结束时间
+}
+
+// 游戏匹配成功
+message NotifyMatchGame {
+  int64 s_time_ms = 1; // 服务器时间
+  int32 game_id = 2; // 游戏编号
+  int64 room_id = 3; // 匹配到的房间编号
+}
+
+ message Notify {
+  NotifyTeamInfo team_info = 1;
+  NotifyMatchGame match_game = 2;
+  NotifySwapSeat swap_seat = 3;
+}

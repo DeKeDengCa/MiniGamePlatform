@@ -1,0 +1,407 @@
+syntax = "proto3";
+
+// social-activity
+package comm.svr.activity;
+
+import "protobuf/svr/adapter/wallet.proto";
+import "protobuf/svr/adapter/relation.proto";
+import "protobuf/svr/activity/common.proto";
+import "protobuf/api/adapter/model.proto";
+import "protobuf/api/activity/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsactivity";
+
+// 业务商品消息  topic: social-goods-message
+message GoodsMessage {
+  string anm = 1;                   // anm
+  string sub_anm = 2;               // 业务子代号
+  string seq = 3;                   // 消息幂等ID，保证每个消息唯一
+  string scene = 4;                 // 场景，业务定义
+  string scene_id = 5;              // 对应场景的id，如在房间赠送，则是房间id，个人送礼，则是用户id
+  int64 receiver_uid = 10;          // 接受者 uid
+  comm.api.activity.GoodsInfo goods_info = 11;        // 商品信息
+  int32 goods_num = 12;             // 商品数量
+
+  string sid = 100;            // 分服，服ID
+}
+
+// SendGiftMessage 业务送礼消息 topic: social-send-gift
+message SendGiftMessage {
+  string anm = 1;                   // anm
+  string sub_anm = 99;              // 业务子代号
+  string seq = 2;                   // 消息幂等ID，保证每个消息唯一
+  string scene = 3;                 // 场景，业务定义
+  string scene_id = 4;              // 对应场景的id，如在房间赠送，则是房间id，个人送礼，则是用户id
+  int64 sender_uid = 5;             // 赠送者 uid
+  repeated int64 receiver_uids = 6; // 接收者 uid
+  RoomInfo room_info = 7;           // 房间信息
+  GiftInfo gift_info = 8;           // 礼物信息，送出去的礼物信息
+  int32 gift_num = 9;               // 礼物数量
+  int64 ctime = 10;                 // 送礼时间
+  repeated GiftInfo rec_gift_info = 11; // 收礼人实际收到的礼物信息，比如盲盒A，开出的礼物 B、C，这里是B、C
+  map<string, int32> rec_gift_num_map = 12; // 收礼人实际收到的礼物数量，gift_id：数量
+  string room_pk_mode = 13; // 房间pk 模式，房内1v1: 1v1, 房内多人：multi, 跨房多人: cross_room_multi
+  string play_mode = 14;     // 玩法，业务自定义
+
+  string sid = 100;            // 分服，服ID
+}
+
+message RoomInfo {
+  int64 room_id = 1;          // 房间号
+  string room_type = 2;       // 非必须，房间类型，业务自定义
+  string region = 3;          // 房间地区编码，可以按房主来，业务自行界定
+  string cou = 4;             // 房主国家编码，可以按房主来，业务自行界定
+  int64 owner_uid = 5;        // 房主uid
+  string room_mode = 6;       // 房间模式，业务自定义
+}
+
+message GiftInfo {
+  string gift_id = 1;           // 礼物ID
+  string gift_type = 2;         // 礼物类型
+  int64 spend_amount = 3;       // [废弃不用]消耗价值，例如：金币，每个业务币种不同，按业务定义的消耗币种来定义
+  int64 income_amount = 4;      // [废弃不用]收益价值，例如：钻石、宝石，每个业务币种不同，按业务定义的消耗币种来定义
+  int64 spend_total_amount = 5; // 消耗总价值，例如：金币，每个业务币种不同，按业务定义的消耗币种来定义，已经乘以数量的价值
+  int64 income_total_amount = 6;// 收益总价值，例如：钻石、宝石，每个业务币种不同，按业务定义的消耗币种来定义，已经乘以数量的价值
+  pbsadapter.Currency spend_currency = 7;  // 消耗币种
+  pbsadapter.Currency income_currency = 8; // 收益币种
+  repeated string sub_category_ids = 9;     // 礼物所在的子分类id
+  bool is_backpack_gift = 10;               // 是否背包礼物
+  int64 origin_spend_total_amount = 11;     // 原礼物总价值，背包礼物用，有些业务的背包礼物送出去消耗为0，但是礼物原来的价值不为0
+  pbsadapter.Currency origin_spend_currency = 12;  // 原礼物消耗币种，背包礼物用
+}
+
+// GameMessage 游戏消息
+message GameMessage {
+  string anm = 1;// anm
+  string sub_anm = 99; // 业务子代号
+  string seq = 2;// 消息幂等ID，保证每个消息唯一
+  string scene = 3;// 场景，业务定义
+  RoomInfo room_info = 4;// 房间信息
+  string game_code = 5;// 游戏code(唯一)
+  int64 uid = 6;// 用户id
+  int64 spend_amount = 7;// 消耗价值
+  int64 income_amount = 8;// 收益价值
+  pbsadapter.Currency spend_currency = 9;// 消耗币种
+  pbsadapter.Currency income_currency = 10;// 收益币种
+  int64 timestamp = 11;// 时间戳
+  GameMessageType message_type = 12;//事件类型
+  string round_id = 13;// 每局游戏的id
+
+  string sid = 100;            // 分服，服ID
+}
+
+enum GameMessageType {
+  GAME_MESSAGE_TYPE_CONSUME = 0;          // 默认类型，消费
+  GAME_MESSAGE_TYPE_START = 1;            // 游戏开启
+  GAME_MESSAGE_TYPE_END = 2;              // 游戏结束
+  GAME_MESSAGE_TYPE_ANCHOR_PROFIT = 3;    // 主播分成，目前只有dating用
+}
+
+// BatchGameMessage 批量游戏消息   topic: social-game
+message BatchGameMessage{
+  repeated GameMessage list = 1;
+}
+
+// 用户关注流水消息 topic: social-user-follow
+message UserFollowMessage {
+  string anm = 10;
+  string sub_anm = 99; // 业务子代号
+  int64 uid = 11;// 用户id
+  string target_id = 12;// 被关注用户id 或者 房间id， string通用点
+  FollowTargetType type = 13;// 关注类型
+  string source = 14;// 关注来源，这个业务定
+  int64 timestamp = 15;// 关注时间
+  bool first = 16; // 是否是首次关注
+
+  string sid = 100;            // 分服，服ID
+}
+
+enum FollowTargetType {
+  FOLLOW_TARGET_TYPE_UNKNOWN = 0;
+  FOLLOW_TARGET_TYPE_USER = 1;
+  FOLLOW_TARGET_TYPE_ROOM = 2;
+}
+
+// 用户直播事件 topic: social-user-live
+message UserLiveMessage {
+  string anm = 10;
+  string sub_anm = 99; // 业务子代号
+  int64 uid = 11;// 用户id
+  int64 room_id = 12;// 房间id
+  LiveEventType type = 13;
+  int64 timestamp = 14;// 事件发生事件
+  string room_type = 15;// 房间类型，user、family
+  string room_mod = 16;// 房间模式，pk、跨房pk 之类的
+  RoomMemberRole role = 17;
+  string extra = 18;// 额外信息，json字符串，心跳类型：UserLiveHeartbeatExtra
+  int64 room_owner_uid = 19;        // 房主uid
+
+  string sid = 100;            // 分服，服ID
+}
+
+enum LiveEventType {
+  LIVE_EVENT_TYPE_UNKNOWN = 0;
+  LIVE_EVENT_TYPE_START = 1;// 开播
+  LIVE_EVENT_TYPE_END = 2;// 直播结束
+  LIVE_EVENT_TYPE_MIC_ON = 3;// 上麦
+  LIVE_EVENT_TYPE_MIC_OFF = 4;// 下麦
+  LIVE_EVENT_TYPE_LIVE_HEARTBEAT = 5;// 开播心跳打点，算时长用
+  LIVE_EVENT_TYPE_MIC_HEARTBEAT = 6;// 在麦心跳打点，算时长用， extra 用 UserMicHeartbeatExtra
+  LIVE_EVENT_TYPE_IN_ROOM_HEARTBEAT = 7;// 用户在房间心跳打点，算时长用
+}
+
+message UserLiveHeartbeatExtra {
+  int64 duration = 10; // 时长，秒
+  bool  open_mic = 11; // 是否开麦
+  repeated int64 in_room_uid = 12; // 在房uid
+}
+
+message UserOnMicHeartbeatExtra {
+  int64 duration = 10; // 时长，秒
+  bool  open_mic = 11; // 是否开麦
+  string mic_seq = 12; // 上麦序号，用来区分计算每次累计上麦时长
+  repeated int64 on_mic_uid = 13; // 在麦uid
+}
+
+enum RoomMemberRole {
+  ROOM_MEMBER_ROLE_UNKNOWN = 0;
+  ROOM_MEMBER_ROLE_NORMAL = 1;// 普通成员
+  ROOM_MEMBER_ROLE_MANAGER = 2;// 房管
+  ROOM_MEMBER_ROLE_OWNER = 3;// 房主
+}
+
+// 业务事件，有些事件是业务特有的，通过这个消息传递 topic: social-biz-event
+message BizEventMessage {
+  string anm = 10;
+  string sub_anm = 99; // 业务子代号
+  BizEventType event_type = 11;
+  int64 ctime = 12;
+  string extra = 13; // 额外信息，json字符串，每个类型的定义看下方
+  string seqId = 14; // 消息幂等ID，保证每个消息唯一
+
+  string sid = 100;            // 分服，服ID
+}
+
+enum BizEventType {
+  BIZ_EVENT_TYPE_NONE = 0;
+  BIZ_EVENT_TYPE_ROOM_ACTIVITY_SETTLE = 1;  // ahchat 房间活动结算
+  BIZ_EVENT_TYPE_VISIT_ACT_PAGE = 2;        // 进入活动页面打点，目前不需要业务上报
+  BIZ_EVENT_TYPE_ROOM_ACTIVITY = 3;         // 房间活跃度统计
+  BIZ_EVENT_TYPE_PRIVATE_MESSAGE = 4;       // 私聊消息
+  BIZ_EVENT_TYPE_LIVE_PROFIT = 5;           // 直播收益
+  BIZ_EVENT_TYPE_USER_PROFIT = 6;           // 用户收益
+  BIZ_EVENT_TYPE_LINK_MIC_SETTLE = 7;       // lucky 主播付费连麦结算消息
+  BIZ_EVENT_TYPE_USER_CONSUME = 8;          // 用户消耗
+  BIZ_EVENT_TYPE_PK_EVENT = 9;              // pk 消息
+  BIZ_EVENT_TYPE_ROOM_PROFIT = 10;          // 房间收益
+  BIZ_EVENT_TYPE_LOTTERY = 11;              // 抽奖消息，extra 对应BizEventLotteryExtra
+
+  BIZ_EVENT_TYPE_COMMON_RANK = 100;       // 通用榜单，extra对应BizEventCommonRankExtra
+  BIZ_EVENT_TYPE_COMMON_TASK = 101;       // 通用任务，extra对应BizEventCommonTaskExtra
+}
+
+message BizEventLotteryExtra {
+  int64 lottery_id = 10;              // 抽奖id
+  int64 times = 11;                   // 抽奖次数
+  int64 uid = 12;                     // 用户id
+}
+
+enum PKEventType {
+  PK_EVENT_TYPE_UNKNOWN = 0;
+  PK_EVENT_TYPE_START = 1;
+  PK_EVENT_TYPE_END = 2;
+}
+
+message PKPlayer {
+  string id = 10;   // cp pk 使用 , 分割两个uid
+  int64 score = 11; // 比分
+  comm.api.activity.PKEntityResult result = 12; // 贡献者不需要这个
+  repeated PKPlayer contribute_list = 13;       // 贡献者列表，收礼用户 -> 分数
+  map<int32, int64> currency_map = 14;           // pbadapter.Currency -> 值
+}
+
+message BizEventPKEventExtra {
+  string pk_id = 10;              // pkID
+  repeated int64 room_ids = 11;   // pk所在房间id,跨房pk就是多个,后续废弃
+  int64 start_time = 12;          // 开始时间, 秒
+  int64 end_time = 13;            // 结束时间, 秒
+  PKEventType type = 14;          // 消息类型
+  string pk_mode = 15;            // pk模式
+  repeated PKPlayer players = 16; // 玩家信息
+  comm.api.activity.SubjectType subject_type = 17; // pk主体类型
+  repeated RoomInfo room_info = 18;                // 房间信息
+  repeated int64 opener_uids = 19;                 // 开启pk的用户uid，跨房则双方都传
+}
+
+message BizEventCommonRankExtra {
+  string member = 10;
+  int64 score = 11; // 增加的分数
+  // 自定义过滤条件,
+  // 符合该条件的榜单才会加进度，对应榜单表中配置字段「filter_expression」
+  // 拿上面的UserLiveMessage举例，可以约定表达式：
+  //    event == "room_heartbeat" && (room_type in ["user", "family"] || uid == room_owner_uid)
+  //    那么filters可以命中表达式的有：
+  //      {"event":"room_heartbeat", “room_type”:"user", “uid”:123, “room_owner_uid”:567}
+  //      {"event":"room_heartbeat", “room_type”:"family", “uid”:123, “room_owner_uid”:567}
+  //      {"event":"room_heartbeat", “room_type”:"live", “uid”:123, “room_owner_uid”:123}
+  //    以下情况不会命中：
+  //      {"event":"room_heartbeat"}                    room_type/uid/room_owner_uid参数未传递
+  //      {"event":"room_heartbeat", “room_type”:123}   room_type参数类型错误，应该是字符串类型
+  // 可用函数：
+  //    uniqBy 周期内去重
+  //    specialGift 指定礼物id
+  //        example： specialGift(123), 如果123 在config.SpecialGifts 里面，则通过
+  map<string, string> filters = 12;
+}
+
+
+message BizEventCommonTaskExtra {
+  string member = 10;
+  int64 score = 11; // 增加的分数
+  // 自定义过滤条件,
+  // 符合该条件的榜单才会加进度，对应榜单表中配置字段「filter_expression」
+  // 拿上面的UserLiveMessage举例，可以约定表达式：
+  //    event == "room_heartbeat" && (room_type in ["user", "family"] || uid == room_owner_uid)
+  //    那么filters可以命中表达式的有：
+  //      {"event":"room_heartbeat", “room_type”:"user", “uid”:123, “room_owner_uid”:567}
+  //      {"event":"room_heartbeat", “room_type”:"family", “uid”:123, “room_owner_uid”:567}
+  //      {"event":"room_heartbeat", “room_type”:"live", “uid”:123, “room_owner_uid”:123}
+  //    以下情况不会命中：
+  //      {"event":"room_heartbeat"}                    room_type/uid/room_owner_uid参数未传递
+  //      {"event":"room_heartbeat", “room_type”:123}   room_type参数类型错误，应该是字符串类型
+  map<string, string> filters = 12;
+}
+
+message BizEventVisitActPageExtra {
+  int64 uid = 11;
+  int64 activity_id = 12;
+}
+
+// BIZ_EVENT_TYPE_ROOM_ACTIVITY_SETTLE 的extra 定义
+message BizEventRoomActivitySettleExtra {
+  int64 room_id = 10;
+  int64 uid = 11;
+  int64 total_amount = 12;  // 活动期间的流水
+  int64 remind_num = 13;    // 订阅人数
+  repeated int64 event_tag_id = 14;  // 活动标签id
+}
+
+// BIZ_EVENT_TYPE_ROOM_ACTIVITY 的extra 定义
+message BizEventRoomActivityExtra {
+  int64 room_id = 1;
+  int64 score = 2; // 增加的分数
+  int64 uid = 3;
+}
+
+// BIZ_EVENT_TYPE_PRIVATE_MESSAGE 的extra 定义
+message BizEventPrivateMessageExtra {
+  int64 sender_id = 1; // 发送者 uid
+  int64 receiver_id = 2; // 接收者 uid
+  pbsadapter.Relation relation = 3; // 关系枚举
+}
+
+// BIZ_EVENT_TYPE_LIVE_PROFIT 的extra 定义
+message BizEventLiveProfitExtra {
+  int64 uid = 1;      // 收益用户
+  int64 amount = 2;   // 收益数额
+  string scene = 3;   // 场景，用于过滤
+}
+
+// BIZ_EVENT_TYPE_USER_PROFIT 的extra 定义
+message BizEventUserProfitExtra {
+  int64 uid = 1;      // 收益用户
+  int64 amount = 2;   // 收益数额
+  pbsadapter.Currency currency = 3;// 币种
+  string scene = 4;   // 场景，业务自己定义
+  map<int64, int64> contributeMap = 5; // uid -> 贡献值
+  string play_mode = 6; // 玩法，业务自定义
+  RoomInfo room_info = 10;   // 房间信息,房间内产生的收益才有
+}
+
+// BIZ_EVENT_TYPE_ROOM_PROFIT 的extra 定义
+message BizEventRoomProfitExtra {
+  RoomInfo roomInfo = 10;
+  int64 amount = 11;   // 消耗数额
+  pbsadapter.Currency currency = 12;// 币种
+  string scene = 13;   // 场景，业务自己定义
+  string room_pk_mode = 14;// 房间pk 模式，房内1v1: 1v1, 房内多人：multi, 跨房多人: cross_room_multi
+}
+
+// BIZ_EVENT_TYPE_USER_CONSUME 的extra 定义
+message BizEventUserConsumeExtra {
+  int64 uid = 1;      // 消耗用户
+  int64 amount = 2;   // 消耗数额
+  pbsadapter.Currency currency = 3;// 币种
+  string scene = 4;    // 场景，业务自己定义
+  string play_mode = 5; // 玩法，业务自定义
+  RoomInfo room_info = 10;   // 房间信息,房间内产生的消费才有
+}
+
+// BIZ_EVENT_TYPE_LINK_MIC_SETTLE 的extra 定义
+message BizEventLinkMicSettleExtra {
+  int64 uid = 1;        // 用户
+  int64 duration = 2;   // 时长
+}
+
+// 加任务进度的消息
+// 多数时候我们是从「业务功能」的角度出发，比如：送礼，那么如果业务推一个送礼的消息，中台也许会用来控制进榜单、做任务
+// 该消息从「中台功能」的角度出发，业务明确是接入中台的任务功能，而中台不关心是什么业务功能
+// topic: social-do-task
+message DoTaskMessage {
+  // 业务代号
+  string anm = 10;
+  // 业务子代号
+  string sub_anm = 99; // 业务子代号
+  // 要增加进度的成员
+  int64 member = 11;
+  // 要增加的进度
+  int64 progress = 12;
+  // 自定义过滤条件
+  // 符合该条件的任务才会加进度，对应任务表中配置字段「filter_expression」
+  // 拿上面的UserLiveMessage举例，可以约定表达式：
+  //    event == "room_heartbeat" && (room_type in ["user", "family"] || uid == room_owner_uid)
+  //    那么filters可以命中表达式的有：
+  //      {"event":"room_heartbeat", “room_type”:"user", “uid”:123, “room_owner_uid”:567}
+  //      {"event":"room_heartbeat", “room_type”:"family", “uid”:123, “room_owner_uid”:567}
+  //      {"event":"room_heartbeat", “room_type”:"live", “uid”:123, “room_owner_uid”:123}
+  //    以下情况不会命中：
+  //      {"event":"room_heartbeat"}                    room_type/uid/room_owner_uid参数未传递
+  //      {"event":"room_heartbeat", “room_type”:123}   room_type参数类型错误，应该是字符串类型
+  map<string, Any> filters = 13;
+
+  string sid = 100;            // 分服，服ID
+}
+
+// 用户心跳消息
+// topic: social-user-heartbeat
+message UserHeartbeatMessage {
+  string anm = 10;              // 业务代号
+  string sub_anm = 99;          // 业务子代号
+  int64 uid = 11;               // 用户id
+  UserHeartbeatType type = 12;  // 心跳类型
+  int64 seconds = 13;           // 时长秒数
+
+  string sid = 100;            // 分服，服ID
+}
+
+enum UserHeartbeatType {
+  USER_HEARTBEAT_TYPE_UNKNOWN = 0;
+  USER_HEARTBEAT_TYPE_ONLINE = 1;  // 在线时长心跳，业务自己定义怎么才算在线
+}
+
+// 榜单操作消息
+// topic: social-rank-operation
+message RankOperationMessage {
+  string anm = 10;                                  // anm
+  string sub_anm = 99;                              // 业务子代号
+  string subject_id = 11;                           // 用户id or 房间id or 其他
+  comm.api.adapter.SubjectType subject_type = 12;   // 类型
+  RankOperation op_type = 13;                       // 操作类型
+
+  string sid = 100;            // 分服，服ID
+}
+
+enum RankOperation {
+  RANK_OPERATION_UNKNOWN = 0;
+  RANK_OPERATION_REMOVE = 10; // 从榜单移除
+}

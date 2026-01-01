@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package comm.svr.platform.activation;
+
+option java_package = "com.activation.proto";
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/appfeature/handlersvr
+option go_package = "gitit.cc/social/protobuf/gencode/svr/platform/pbsactivation";
+
+
+// 执行 sproto -spath gitit.cc/social/components-service/xxxx  feature_callback.proto
+
+// 业务后端实现，业务角度来判断是否为审核模式。只有在c端调用的时候才会触发
+service FeaturesCallback {
+  rpc JudgeAuditModeCallback(JudgeAuditModeCallbackReq) returns (JudgeAuditModeCallbackRsp);
+
+  // 根据请求参数判断是否为审核人员
+  rpc CheckReviewer(CheckReviewerReq) returns (CheckReviewerRsp);
+}
+
+message JudgeAuditModeCallbackReq{
+  string cha = 10;                     // 渠道（如 google-play）
+  string rel = 11;                     // 线上包/线下包标识（如 rel=apk 表示线下包，rel=gp 表示线上包）
+  int64 verc = 12;                     // 版本号（全数字，没有点的，如 1002372833）
+  string pkg = 13;                     // 包名（如 com.boloji.pro）
+  int64 uid = 14;                      // 用户uid（如 574263745）
+  string did = 15;                     // 设置id
+  string ext = 16;                     // json 串，由业务端协调定义，中台透传
+}
+
+message JudgeAuditModeCallbackRsp{
+  bool audit_toggle = 10;           // 是否为审核模式
+}
+
+// AppReviewStatus 定义判断结果的枚举
+enum AppReviewStatus {
+  APP_REVIEW_STATUS_NONE = 0; // 未知状态，通常作为默认值，或者在无法确定时使用。
+  APP_REVIEW_STATUS_NOT_REVIEWER = 1; // 明确不是审核人员。
+  // APP_REVIEW_STATUS_POSSIBLY_REVIEWER = 2; // 可能是审核人员，需要进一步判断。 --暂不支持这种情况
+  // APP_REVIEW_STATUS_DEFINITELY_REVIEWER = 3; // 明确是审核人员。--暂不支持这种情况
+}
+
+message CheckReviewerReq {
+  int64 uid = 1; // 用户ID（如:574263745）
+}
+
+message CheckReviewerRsp {
+  AppReviewStatus status = 1; // 判断结果的状态
+  string reason = 2; // 提供判断结果的理由或详细说明（可选）
+}

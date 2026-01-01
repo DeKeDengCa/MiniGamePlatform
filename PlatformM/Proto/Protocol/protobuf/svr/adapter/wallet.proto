@@ -1,0 +1,260 @@
+syntax = "proto3";
+
+package pbsadapter;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsadapter";
+option java_package = "com.common.biz.wallet";
+
+service CommonWallet {
+  // 批量获取用户余额
+  rpc GetBalance(GetBalanceReq) returns (GetBalanceRsp) {}
+  // 余额冻结
+  rpc FreezeBalance(FreezeBalanceReq) returns (FreezeBalanceRsp) {}
+  // 余额冻结
+  rpc UnfreezeBalance(UnfreezeBalanceReq) returns (UnfreezeBalanceRsp) {}
+  // 扣减余额
+  rpc DeductBalance(DeductBalanceReq) returns (DeductBalanceRsp) {}
+  // 增加余额
+  rpc AddBalance(AddBalanceReq) returns (AddBalanceRsp) {}
+  // 余额转账
+  rpc TransferBalance(TransferBalanceReq) returns (TransferBalanceRsp) {}
+  // 余额退款
+  rpc RefundBalance(RefundBalanceReq) returns (RefundBalanceRsp) {}
+}
+
+/*
+  @Deprecated，即将废弃，使用api下面的
+  因为不同业务的货币叫法不一致, 但概念是相通的:
+  Playmate:
+    结算: 钻石-diamond
+    消费: 星币-star
+    币商: 星票-ticket
+    美分: 美分-usd
+
+  Lucky:
+    结算: 积分-point
+    消费: 金币-coin
+    币商: -
+    美分: -
+
+  Echo:
+    结算: 钻石-diamond
+    消费: 金币-coin
+    币商: 金票-ticket
+    美分: 美分-usd
+
+  HalaMe:
+    结算: 宝石-gems
+    消费: 钻石-diamond
+    币商: 金票-ticket
+    美分: 美分-usd
+
+  Carne:
+    经营货币：coin
+
+  darling:
+    结算：金币
+    消费：金币
+
+  dating:
+    结算：金币
+    消费：宝石
+
+  nova：
+    消费：钻石
+    第二消费货币：金币
+
+  所以公会中台对货币进行以下抽象, 让业务各自去对应自己的货币类型.
+ */
+enum Currency {
+  CURRENCY_NONE = 0;
+  CURRENCY_SETTLEMENT = 1;   // 结算货币
+  CURRENCY_CONSUMPTION = 2;  // 消费货币
+  CURRENCY_COIN_AGENCY = 3;  // 币商货币
+  CURRENCY_DOLLAR_CENT = 4;  // 美分货币
+  CURRENCY_COIN_OPERATING = 5;  // 经营货币
+  CURRENCY_POINT = 6;           // 积分货币，一般是做任务获得的积分，目前只有dating 用
+  CURRENCY_ACTIVE = 7;          // 促活货币，目前只有dating 用
+  CURRENCY_SECONDARY_CONSUMPTION = 12;  // 第二消费货币
+  CURRENCY_SECONDARY_SETTLEMENT = 13;  // 第二结算货币， 目前只有dating 用来做用户收益结算
+}
+
+message UserBalance {
+  int64 uid = 1;
+  Currency currency = 2;
+  int64 amount = 3; // 余额
+  bool frozen = 4; // 已冻结
+  int64 free_amount = 5; // 免费额度
+  int64 charge_amount = 6; // 付费额度
+}
+
+message GetBalanceReq {
+  repeated int64 uids = 1;
+  repeated Currency currencies = 2;
+}
+
+message GetBalanceRsp {
+  repeated UserBalance balances = 1;
+}
+
+// 操作结果
+message OperateResult {
+  int64 uid = 1;
+  Currency currency = 2;
+  int32 err_code = 3; // 错误码, 0 表示成功.
+  string err_msg = 4; // 错误信息
+}
+
+// 冻结场景, 
+enum FreezeScene {
+  FREEZE_SCENE_NONE = 0;
+  FREEZE_SCENE_ORDER_REFUND = 10; // 用户的充值订单退款, 需要冻结账户并追回损失.
+  FREEZE_SCENE_ADMIN = 20;        // 运营在 oms 手动冻结.
+}
+
+message FreezeBalanceReq {
+  repeated int64 uids = 1;
+  repeated Currency currencies = 2;
+  string scene = 3; // 冻结场景, 使用 FreezeScene 枚举的字符串形式
+  int64 startTime = 4; // 起始时间
+  int64 endTime = 5; // 结束时间
+}
+
+message FreezeBalanceRsp {
+  repeated OperateResult results = 1;
+}
+
+message UnfreezeBalanceReq {
+  repeated int64 uids = 1;
+  repeated Currency currencies = 2;
+  string scene = 3; // 冻结场景, 使用 FreezeScene 枚举的字符串形式
+}
+
+message UnfreezeBalanceRsp {
+  repeated OperateResult results = 1;
+}
+
+// 余额扣除优先级
+enum DeductPriority {
+  DEDUCT_PRIORITY_NONE = 0;         // 按照默认优先级
+  DEDUCT_PRIORITY_PAID_FIRST = 10;  // 付费余额优先
+  DEDUCT_PRIORITY_FREE_FIRST = 20;  // 免费余额优先
+}
+
+// 扣除余额
+message Deduction {
+  // 以下字段是请求方填充
+  string seq_id = 1;                    // 幂等ID
+  int64 uid = 2;                        // 扣除用户UID
+  Currency currency = 3;                // 扣除货币类型
+  int64 amount = 4;                     // 扣除总额
+  map<string, string> context = 12;     // 透传信息
+  bool allow_partial = 13;              // 是否允许余额不足时尽量扣款
+  bool ignore_frozen = 15;              // 即便账户已冻结也照样扣除
+  DeductPriority deduct_priority = 16;  // 余额扣除优先级
+  string origin_business_type = 17;     // 业务类型, 中台只做存储
+
+  // 以下字段是响应方填充
+  int64 error_code = 5;                 // 返回时才需要, 0: 表示成功  -1: 表示曾经成功过  x: 均为失败
+  string error_message = 6;             // 返回时才需要, 错误消息.
+  int64 free_balance = 7;               // 扣除后账户剩余免费数
+  int64 charge_balance = 8;             // 扣除后庄户剩余付费数
+  int64 balance = 9;                    // 扣除后账户总额
+  int64 free_amount = 10;               // 扣除的免费货币总额
+  int64 charge_amount = 11;             // 扣除的付费货币总额
+  int64 deducted_amount = 14;           // 实际扣除金额
+}
+
+// 批量扣减用户的多个币种余额
+message DeductBalanceReq {
+  repeated Deduction deductions = 10;
+  string reason = 11; // 扣减原因
+}
+
+// 批量扣减用户的多个币种余额
+message DeductBalanceRsp {
+  repeated Deduction deductions = 10;
+}
+
+// 增加余额场景
+enum AdditionScene {
+  ADDITION_SCENE_NONE = 0;
+  ADDITION_SCENE_COIN_AGENCY_RETAIL = 10; // 币商售卖货币给用户
+}
+
+// 增加余额
+message Addition {
+  // 以下字段是请求方填充
+  string seq_id = 1;                  // 幂等ID
+  int64 uid = 2;                      // 增加用户UID
+  Currency currency = 3;              // 增加货币类型
+  int64 amount = 4;                   // 增加总额
+  bool free = 7;                      // 是否免费
+  int64 actual_money = 11;            // 实收的金额
+  string origin_business_type = 12;   // 业务类型, 中台只做存储
+
+  // 以下字段是响应方填充
+  int64 error_code = 5;               // 返回时才需要, 0: 表示成功  -1: 表示曾经成功过  x: 均为失败
+  string error_message = 6;           // 返回时才需要, 错误消息.
+  int64 free_balance = 8;             // 增加后账户剩余免费数
+  int64 charge_balance = 9;           // 增加后庄户剩余付费数
+  int64 balance = 10;                 // 增加后账户总额
+}
+
+// 批量增加用户的多个币种余额
+message AddBalanceReq {
+  repeated Addition additions = 10;
+  string reason = 11; // 增加原因
+  AdditionScene scene = 12; // 增加余额场景
+}
+
+// 批量增加用户的多个币种余额
+message AddBalanceRsp {
+  repeated Addition additions = 10;
+}
+
+// 转账, 业务需要汇率换算
+message TransferBalanceReq {
+  string seq_id = 10;                       // 幂等ID
+  
+  // 转出方参数
+  int64 source_uid = 11;                    // 转出用户UID
+  Currency source_currency = 12;            // 转出货币类型
+  int64 source_amount = 13;                 // 转出货币总额
+  string source_origin_business_type = 17;  // 转出方业务类型
+  DeductPriority deduct_priority = 19;      // 转出优先级
+
+  // 转入方参数
+  int64 target_uid = 14;                    // 转入用户UID
+  Currency target_currency = 15;            // 转入货币类型
+  string target_origin_business_type = 18;  // 转入方业务类型
+
+  string reason = 16;                       // 转账原因
+  map<string, string> expand = 100;         // 拓展参数, 例如: 设备ID: did
+}
+
+// 转账, 业务需要汇率换算
+message TransferBalanceRsp {
+  int64 target_amount = 10;                // 转入货币总额
+  int64 error_code = 11;                   // 0: 表示成功  -1: 表示曾经成功过  x: 均为失败
+  string error_message = 12;               // 错误消息.
+  int64 free_balance = 13;                 // 转账后账户剩余免费数
+  int64 charge_balance = 14;               // 转账后账户剩余付费数
+  int64 balance = 15;                      // 转账后账户总额
+  int64 free_amount = 16;                  // 转入的免费货币总额
+  int64 charge_amount = 17;                // 转入的付费货币总额
+  int64 target_balance = 18;               // 接受方的账户总额
+  int64 target_free_balance = 19;          // 接受方的账户剩余免费货币余额
+}
+
+// 退款
+message RefundBalanceReq {
+  string seq_id = 10;               // 本次请求的唯一序号
+  string origin_seq_id = 11;        // 要退款的那个原始序号.
+  map<string, string> context = 12; // 透传信息
+}
+
+message RefundBalanceRsp {
+  int64 error_code = 10;                   // 0: 表示成功  -1: 表示曾经成功过  x: 均为失败
+  string error_message = 11;               // 错误消息.
+}

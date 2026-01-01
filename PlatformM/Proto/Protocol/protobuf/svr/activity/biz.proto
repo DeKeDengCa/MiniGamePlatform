@@ -1,0 +1,234 @@
+syntax = "proto3";
+
+package comm.svr.activity;
+
+import "protobuf/api/adapter/model.proto";
+import "protobuf/svr/adapter/reward.proto";
+import "protobuf/mgr/guild/guild.proto";
+import "protobuf/mgr/activity/biz.proto";
+import "protobuf/api/activity/common.proto";
+import "protobuf/svr/activity/activity.proto";
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsactivity";
+
+
+// 业务需要实现的接口
+service ActivityBiz {
+  // 下发奖励
+  rpc SendReward(SendRewardReq) returns (SendRewardRsp);
+
+  // 批量查询用户信息
+  rpc BatchGetUserInfo(BatchGetUserInfoReq) returns (BatchGetUserInfoRsp);
+
+  // 监听榜单数据变化
+  rpc ListenChangeRank(ListenChangeRankReq) returns (ListenChangeRankRsp);
+
+  // 榜单结算完成之后通知业务
+  rpc SyncRankSettle(SyncRankSettleReq) returns (SyncRankSettleRsp);
+
+  // 获取自定义filters，直接全量返回，接入自定义榜单或者任务需要实现
+  rpc ListCustomFilters(ListCustomFiltersReq) returns (ListCustomFiltersRsp);
+
+  // 获取自定义filters，接入自定义榜单或者任务需要实现
+  rpc BatchGetCustomFilters(BatchGetCustomFiltersReq) returns (BatchGetCustomFiltersRsp);
+
+  // 房间可见行过滤，目前只有dating用
+  rpc RoomVisibleFilter(RoomVisibleFilterReq) returns (RoomVisibleFilterRsp);
+}
+
+
+message RoomVisibleFilterReq {
+  int64 uid = 10;
+  repeated int64 room_ids = 11;
+}
+
+message RoomVisibleFilterRsp {
+  repeated int64 illegal_room_ids = 10; // 不可见房间id列表
+}
+
+message BatchGetCustomFiltersReq {
+  repeated int64 ids = 10;
+  comm.mgr.activity.CustomFilterType filter_type = 11;
+}
+
+message BatchGetCustomFiltersRsp {
+  repeated comm.mgr.activity.CustomFilters list = 10;
+}
+
+message ListCustomFiltersReq {
+  comm.mgr.activity.CustomFilterType filter_type = 10;
+}
+
+message ListCustomFiltersRsp {
+  repeated comm.mgr.activity.CustomFilters list = 10;
+}
+
+message SettleRanking {
+  int64 ranking = 10;                           // 名次, 从1开始
+  string member = 11;                           // 成员
+  pbsadapter.RewardGenerics rewards = 12;       // 奖励快照
+  map<string, string> message_i18n = 13;        // 多语言消息文案，在xxx获得了第几名，得到了啥
+  SettleRankingType settle_ranking_type = 14;   // 类型，默认主榜
+  int64 sub_ranking = 15;                       // 子榜名次, 从1开始
+}
+
+enum SettleRankingType {
+  SETTLE_RANKING_TYPE_NONE = 0;
+  SETTLE_RANKING_TYPE_MAIN = 1;     // 主榜
+  SETTLE_RANKING_TYPE_SUB = 2;      // 子榜
+}
+
+message SyncRankSettleReq {
+  string seq = 10;               // 幂等id，调用失败会重试，业务通过这个去重
+  int64 act_id = 11;             // 活动ID
+  string application_code = 12;  // 应用标识
+  string act_name = 13;          // 活动名称
+  repeated SettleRanking settle_list = 14; // 榜单信息
+  int64 settle_unix = 15;        // 结算时间戳
+  int64 rank_id = 16;            // 榜单ID
+  comm.api.activity.RankType rank_type = 17; // 榜单类型
+}
+
+message SyncRankSettleRsp {
+}
+
+// 处理结果状态(1:处理成功,2:重复提交(已处理成功),3:处理失败)
+enum StateType {
+  STATE_TYPE_NONE = 0;
+  STATE_TYPE_SUCCESS = 1;// 处理成功
+  STATE_TYPE_SUCCESS_REPEATED = 2;// 重复提交(已处理成功)
+  STATE_TYPE_FAILED = 3;// 处理失败
+}
+
+// smicro:spath=gitit.cc/social/protocode/svr/activity/
+message SendRewardReq {
+  int64 transaction_id = 1;         // 流水Id
+  SvrRewardType reward_type = 2;    // 奖励类型(RewardType)
+  string reward_object_json = 3;    // 奖励内容(奖励配置的json序列化字符串;eg:RewardPackage,RewardAnimationEffect)
+  int32 reward_receiver_type = 4;   // 奖励接收者类型(pbsadapter.RewardReceiverType)
+  repeated string reward_receiver_ids = 5;  // 奖励接收者Id，房间奖励 传 房间id，家族奖励 传 家族id
+  string seq = 6;                           // 幂等key;接收请求方用来做幂等
+  map<string,SystemMessage> messages = 7;   // 系统消息
+  comm.api.adapter.RewardSourceType source_type = 13; // 来源
+  string source_id = 14;                              // 来源id
+}
+
+message SystemMessage {
+  string title =1; // 标题
+  string content =2; // 内容
+}
+
+message SendRewardRsp {
+  int32 error_code = 10; // 0: 表示成功  -1: 表示曾经成功过  x: 均为失败
+  string error_msg = 11; // 错误消息
+}
+
+message BatchGetUserInfoReq {
+  repeated int64 uids = 1;
+}
+
+message BatchGetUserInfoRsp {
+  repeated UserInfo list = 1;
+}
+
+message UserInfo {
+  int64 uid = 1;
+  string region = 2;             // 非必须，地区标识，不区分的可以留空，不同业务对区域划分不同，由业务自行定义
+  string cou = 3;                // 非必须，国家编码
+  repeated string tag = 4;       // 非必须，用户标签，没有的可以留空
+  int64 guild_id = 5;            // 非必须，用户所在公会，计算公会榜单
+  bool is_guild_owner = 6;       // 非必须，是否是公会长
+  bool is_guild_anchor = 7;      // 非必须，是否是公会长, 已废弃, 请使用 is_anchor 字段.
+  int64 family_id = 8;           // 非必须，用户所在家族，计算家族榜单
+  bool is_family_owner = 9;      // 非必须，是否是公会长
+  bool is_anchor = 10;           // 非必须，是否是主播
+  comm.api.adapter.FamilyRoleType family_role = 11; // 非必须，家族成员角色
+  comm.mgr.guild.MemberRole guild_role = 12; // 非必须，工会成员角色
+}
+
+// 奖励类型
+enum SvrRewardType{
+  SVR_REWARD_TYPE_NONE = 0;// none
+  SVR_REWARD_TYPE_EMPTY = 1;// 空奖励
+  SVR_REWARD_TYPE_PACKAGE = 2;// 奖励包
+  SVR_REWARD_TYPE_ANIMATION_EFFECT = 3;// 动效奖励
+}
+//奖励内容数据结构定义-空奖励
+message SvrRewardEmpty{
+}
+//奖励内容数据结构定义-奖励包
+message SvrRewardPackage{
+  string package_id = 1;//奖励包Id
+}
+//奖励内容数据结构定义-动效奖励
+message SvrRewardAnimationEffect{
+  string format = 1;//格式(mp4,svga)
+  string animation_effect_url = 2;//动效地址
+  SvrPlayLocation play_location = 3;//播放位置(1.所有房间,2.用户所在房间,3.所有界面)
+  int64 play_room_id = 4;//播放房间(如果播放位置为2,则值有效)
+  repeated SvgaText svga_texts = 5;//动效文字
+  repeated SvgaImage svga_images = 6;//动效图片
+}
+
+enum SvrPlayLocation{
+  SVR_PLAY_LOCATION_NONE = 0;// NONE
+  SVR_PLAY_LOCATION_ALL_ROOM = 1;// 所有房间
+  SVR_PLAY_LOCATION_USER_ROOM = 2;// 用户所在房间
+  SVR_PLAY_LOCATION_ALL = 3;// 所有界面
+}
+message SvgaText {
+  string key = 1; // 设计师约定好的key,key枚举:SvgaTextKey
+  string text = 2; // 动画上添加的文字
+  uint32 size = 3; // 字体size
+  string color = 4; // 字体颜色 类似 #000000
+  SvgaTextAlignment alignment = 5;//文字对齐方向
+}
+//Svga 文字对齐方向
+enum SvgaTextAlignment {
+  SvgaTextAlignmentLeft = 0;
+  SvgaTextAlignmentCenter = 1;
+  SvgaTextAlignmentRight = 2;
+}
+message SvgaImage {
+  string key = 1; // 设计师约定好的key,key枚举:SvgaImageKey
+  string value = 2; // 动画上添加的动态图像
+}
+
+message ListenChangeRankReq {
+  comm.svr.activity.ActInfo info =1; // 活动信息详情
+  int64 rank_id = 2;  // 榜单ID
+}
+
+message ListenChangeRankRsp {
+}
+
+enum SvgaUserKey{
+  S_USER_NONE = 0;// NONE
+
+  S_USER_SHOW_UID = 1;// 用户展示ID
+  S_USER_NICKNAME = 2;// 用户昵称
+  S_USER_AVATAR = 3;// 用户头像(图片地址)
+
+  S_USER_SHOW_UID1 = 10;// 用户展示ID1
+  S_USER_NICKNAME1 = 12;// 用户昵称1
+  S_USER_AVATAR1 = 13;// 用户头像1(图片地址)
+}
+enum SvgaRoomKey{
+  S_ROOM_NONE = 0;// NONE
+  S_ROOM_SHOW_ID = 1;// 房间展示号
+  S_ROOM_NAME = 2;// 房间名称
+  S_ROOM_TITLE = 3;// 房间标题
+  S_ROOM_COVER = 4;// 房间封面(图片地址)
+}
+enum SvgaGuildKey{
+  S_GUILD_NONE = 0;// NONE
+  S_GUILD_NAME = 1;// 公会名称
+  S_GUILD_LOGO = 2;// 公会logo(图片地址)
+}
+enum SvgaFamilyKey{
+  S_FAMILY_NONE = 0;// NONE
+  S_FAMILY_ID = 1;// 家族ID
+}
+
+

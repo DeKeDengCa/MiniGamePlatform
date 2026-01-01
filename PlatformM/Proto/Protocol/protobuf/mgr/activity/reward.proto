@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package comm.mgr.activity;
+
+
+import "protobuf/mgr/activity/common.proto";
+import "protobuf/api/adapter/model.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmactivity";
+
+// 奖励包
+message RewardPkg {
+    string sence_id = 1;                    // 场景ID
+    string pkg_id = 10;                     // 0表示初次生成，否则表示修改
+    string pkg_name = 11;                   // 奖励包名称
+    string pkg_cover = 12;                  // 封面图
+    repeated comm.mgr.activity.RewardItem items = 20;         // 奖励内容
+    comm.api.adapter.RankRewardTargetType reward_target_type = 21; // 奖励包类型
+}

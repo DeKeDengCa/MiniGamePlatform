@@ -1,0 +1,155 @@
+// smicro:spath=gitit.cc/social/echo/handle/svr
+syntax = "proto3";
+
+package pbsadapter;
+
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsadapter";
+
+// 基础信息接口
+service CommonBasic {
+  // 获取全部国家信息
+  rpc GetAllCountry(GetAllCountryReq) returns (GetAllCountryRsp) {}
+
+  // 获取黑白名单配置
+  rpc GetBWListConfig(GetBWListConfigReq) returns (GetBWListConfigRsp) {}
+
+  // 获取标签列表
+  rpc ListLabelConfig(ListLabelConfigReq) returns (ListLabelConfigRsp) {}
+
+  // 匹配用户标签
+  rpc BatchMatchLabelList(BatchMatchLabelListReq) returns (BatchMatchLabelListRsp) {}
+
+  // 匹配用户黑白名单
+  rpc BatchMatchBWList(BatchMatchBWListReq) returns (BatchMatchBWListRsp) {}
+
+  // 分页获取黑白名单用户列表
+  rpc ListBWListItem(ListBWListItemReq) returns (ListBWListItemRsp) {}
+
+  // 获取不同包的积分兑换比例，目前只有dating 活动模块用，作用是 榜单、任务分值在展示的时候会乘以这个值
+  rpc GetScoreDisplayRatio(GetScoreDisplayRatioReq) returns (GetScoreDisplayRatioRsp) {}
+}
+
+message GetScoreDisplayRatioReq {
+  int64 uid = 10;   // 没有则从公参取
+  string pkg = 11;  // 没有则从公参取
+}
+
+message GetScoreDisplayRatioRsp {
+  float ratio = 10; // 货币兑换比例
+}
+
+message ListBWListItemReq {
+  scommon.Page page = 1;
+  string config_id = 10;
+}
+
+message ListBWListItemRsp {
+  scommon.Page page = 1;
+  repeated string black_list = 10;     // 黑名单列表
+  repeated string white_list = 11;     // 白名单列表
+  BWListType type = 12;                // 是黑名单还是白名单
+}
+
+enum BWListType {
+  BW_LIST_TYPE_NONE = 0;
+  BW_LIST_TYPE_BLACK = 1;           // 黑名单
+  BW_LIST_TYPE_WHITE = 2;           // 白名单
+  BW_LIST_TYPE_BLACK_AND_WHITE = 3; // 黑名单 + 白名单
+}
+
+// 国家
+message Country {
+  int64 code = 1;                     // 国家区号
+  string abbr = 2;                    // 国家简码
+  string initial = 3;                 // 国家首字母
+  string name = 4;                    // 默认国家名称, 国际化国家名称中找不到对应语言时使用.
+  map<string, string> i18n_names = 5; // 国际化国家名称
+  string flag = 6;                    // 国旗图标
+}
+
+message GetAllCountryReq {
+}
+
+message GetAllCountryRsp {
+  repeated Country countries = 10;
+}
+
+
+// 黑白名单配置
+message BWListConfig {
+  string id = 1;                      // 配置ID
+  string category = 2;                // 黑白名单分类, USER: 用户的  ROOM: 房间的  FAMILY: 家族的 ...
+  string name = 3;                    // 配置名称
+  map<string, string> i18n_names = 4; // 国际化国家名称
+  repeated string black_list = 5;     // 黑名单列表
+  repeated string white_list = 6;     // 白名单列表
+  BWListType type = 7;                // 是黑名单还是白名单
+}
+
+message GetBWListConfigReq {
+  string category = 10;                // 黑白名单分类, USER: 用户的  ROOM: 房间的  FAMILY: 家族的 ...
+}
+
+message GetBWListConfigRsp {
+  repeated BWListConfig configs = 10;  // 黑白名单配置列表
+}
+
+
+// 标签配置
+// 通常群体很大，不适合把列表带过来
+message LabelConfig {
+  string id = 1;                      // 标签id
+  map<string, string> i18n_names = 2; // 国际化标签名称
+}
+
+enum LabelCategory {
+  LABEL_CATEGORY_NONE = 0;
+  LABEL_CATEGORY_USER = 1;  // 人群
+  LABEL_CATEGORY_USER_REALTIME = 2;  // 人群，实时的
+}
+
+message ListLabelConfigReq {
+  LabelCategory category = 1;
+}
+
+message ListLabelConfigRsp {
+  repeated LabelConfig configs = 10;
+}
+
+message BatchMatchLabelListReq {
+  repeated string items = 10;
+  repeated string config_ids = 11;
+  LabelCategory type = 12;
+}
+
+message BatchMatchLabelListRsp {
+  repeated MatchLabelListEntity list = 10;
+}
+
+message MatchLabelListEntity {
+  string item = 10;
+  repeated string match_ids = 5;     // 匹配的配置id列表
+}
+
+message BatchMatchBWListReq {
+  repeated string items = 10;
+  repeated string config_ids = 11;
+  MatchBWType type = 12;
+}
+
+enum MatchBWType {
+  MATCH_BW_TYPE_NONE = 0;
+  MATCH_BW_TYPE_BLACK = 1;//黑名单匹配
+  MATCH_BW_TYPE_WHITE = 2;//白名单匹配
+}
+
+message BatchMatchBWListRsp {
+  repeated MatchBWListEntity list = 10;
+}
+
+message MatchBWListEntity {
+  string item = 10;
+  repeated string match_ids = 5;     // 匹配的配置id列表
+}

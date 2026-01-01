@@ -1,0 +1,159 @@
+syntax = "proto3";
+
+package pbspay;
+
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbspay";
+option java_package = "com.entertain.sns.pbspay";
+
+import "protobuf/api/sconfig/options.proto";
+
+// 周期类型
+enum PeriodType {
+  PERIOD_TYPE_NONE = 0;           // 无意义
+  PERIOD_TYPE_WEEKLY = 10;        // 每周
+  PERIOD_TYPE_MONTHLY = 20;       // 每月
+  PERIOD_TYPE_QUARTERLY = 30;     // 每季度
+  PERIOD_TYPE_SEMI_ANNUALLY = 35; // 每半年
+  PERIOD_TYPE_YEARLY = 40;        // 每年
+  PERIOD_TYPE_CUSTOM = 100;       // 自定义
+}
+
+message Period {
+  PeriodType type = 1;    // 周期类型
+  int64 days = 2;         // 自定义周期天数，例如每10天，type=PERIOD_TYPE_CUSTOM时有效
+}
+
+// 价格信息
+message Price {
+  string currency = 1;    // 货币代码，例如 CNY、USD
+  int64 amount = 2;       // 金额，单位分
+  Discount discount = 3;  // 折扣，只用于展示，amount已经表示为实际价格
+
+  string show_currency = 10;  // 如果不为空，则使用该字段作为展示货币，例如 $、¥
+  string show_amount = 11;    // 如果不为空，则使用该字段作为展示金额，例如 5、9.99
+}
+
+// 折扣类型
+enum DiscountType {
+  DISCOUNT_TYPE_NONE = 0;         // 无折扣
+  DISCOUNT_TYPE_PERCENTAGE = 1;   // 百分比折扣
+  DISCOUNT_TYPE_FIXED_AMOUNT = 2; // 固定金额减免
+}
+
+// 折扣
+message Discount {
+  DiscountType type = 1;    // 折扣类型
+  // 当类型为百分比时取值(0-10000)(开区间)，单位0.01%，例如 9500表示95折、95%
+  // 当类型为固定金额时表示减免金额，单位分
+  int64 amount = 2;         // 折扣值
+}
+
+// 支付方式枚举
+enum PaymentType {
+  PAYMENT_TYPE_NONE = 0;
+  PAYMENT_TYPE_APPLE = 1 [(sconfig.schema.enum) = {name: "Apple"}];
+  PAYMENT_TYPE_GOOGLE = 2 [(sconfig.schema.enum) = {name: "Google"}];
+  PAYMENT_TYPE_QUARK_PAY = 10 [(sconfig.schema.enum) = {name: "QuarkPay"}]; // 废弃，这应该是支付渠道
+  PAYMENT_TYPE_PAYER_MAX = 11 [(sconfig.schema.enum) = {name: "PayerMax"}]; // 废弃，这应该是支付渠道
+}
+
+// 支付平台的sku类型
+enum SkuType {
+  SKU_TYPE_NONE = 0;
+  SKU_TYPE_SUBSCRIPTION = 10;         // 订阅-不支持试用
+  SKU_TYPE_SUBSCRIPTION_TRIAL = 11;   // 订阅-支持试用
+}
+
+// 支付方式
+message Payment {
+  PaymentType payment_type = 1;         // 支付方式类别，终端可以用来区分平台还是第三方
+  string payment_code = 2;              // 支付方式代码，终端无需关注具体值，接口透传即可
+  SkuType sku_type = 4;                 // 支付平台的sku类型
+  string sku = 5;                       // 支付平台的sku标识
+  I18NString name_i18n = 7;             // 名称
+  Price price = 8;                      // 价格
+  Jump jump = 10;                       // 跳转
+}
+
+// 支付账号
+message PaymentAccount {
+}
+
+// 跳转类型
+enum JumpType {
+  JUMP_TYPE_NONE = 0;       // 无意义
+  JUMP_TYPE_H5 = 10;        // h5 跳转
+  JUMP_TYPE_DEEPLINK = 20;  // deeplink 跳转，直接拉起支付app
+}
+
+// 跳转
+message Jump {
+  JumpType type = 1;
+  string url = 2;
+}
+
+// 业务数据
+message BizData {
+  // 数据类型
+  enum Type {
+    BIZ_DATA_TYPE_NONE = 0;
+    BIZ_DATA_TYPE_JSON = 10;     // JSON
+    BIZ_DATA_TYPE_PROTOBUF = 20; // Protobuf
+    // 更多类型
+  }
+
+  Type type = 1;  // 数据类型
+  bytes data = 2; // 数据内容
+}
+
+// 订单状态
+enum OrderStatus {
+  ORDER_STATUS_NONE = 0;
+  ORDER_STATUS_PENDING = 10;    // 待支付
+  ORDER_STATUS_PAID = 20;       // 已支付
+  ORDER_STATUS_CANCELED = 30;   // 已取消
+  ORDER_STATUS_REFUNDED = 40;   // 已退款
+}
+
+// 订单基本信息
+message BaseOrder {
+  string order_id = 1;            // 订单ID
+  OrderStatus status = 4;         // 订单状态
+  int64 create_at = 5;            // 创建时间，单位秒
+  int64 pay_at = 6;               // 支付时间，单位秒
+  int64 cancel_at = 7;            // 取消时间，单位秒
+  Payment payment = 10;           // 支付情况
+}
+
+// 苹果订单票据
+message ApplePayReceipt {
+  string receipt = 1;       // 支付成功的凭证
+  string purchase_id = 2;   // Apple 交易 transaction_id
+  string environment = 3;   // 苹果支付环境变量
+  string original_transaction_id = 10;   // 原始交易ID
+}
+
+// 谷歌订单票据
+message GooglePlayReceipt {
+  string packageName = 1;       // app包名，例如：com.flatfish.cal.privacy
+  string productId = 2;         // google的商品id，例如：hidex_month_a_2_29.99
+  string purchaseToken = 3;     // google的购买token，例如：iklaeinfeplfhiamepdokkjj.AO-J1OxYAFAMFatI1-iziNTCuvXeLvHVVsdOuKr-ufTzN5YKIAp7Gf8IH
+  string sku_type = 4;          // 购买方式，SUBS 订阅, INAPP 一次性购买
+}
+
+// 付款票据
+message PaymentReceipt {
+  ApplePayReceipt apple_receipt = 1;
+  GooglePlayReceipt google_receipt = 2;
+}
+
+// 字符串列表
+message StringList {
+  repeated string values = 1;
+}
+
+// 多语言文本
+message I18NString {
+  string default = 1;           // 默认值，如果找不到对应语言，则使用该值
+  map<string, string> i18n = 2; // 多语言，优先取对应语言的值，key为语言码
+}

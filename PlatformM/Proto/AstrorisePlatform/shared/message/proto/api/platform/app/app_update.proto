@@ -1,0 +1,43 @@
+syntax="proto3";
+
+package app.config.gene.update;
+
+// options.proto 定义了一些options，options用于描述schema。必须import
+import "protobuf/api/sconfig/options.proto";
+
+// model.proto 会定义一些公共的配置。按需import
+// 比如 sconfig.model.Time 会生成一个时间选择框
+// sconfig.model.File 会生成一个文件上传按钮
+// import "common/sconfig/model.proto";
+
+option (sconfig.schema.biz_name)="App版本更新配置";
+
+message AppUpdate {
+    option (sconfig.schema.cfg_name) = "App版本更新配置";
+
+    string title = 1 [(sconfig.schema.input) = {
+        name:"更新弹窗标题"
+    }];
+
+    string content = 2 [(sconfig.schema.input) = {
+        name:"更新弹窗详情"
+    }];
+
+    bool force = 3 [(sconfig.schema.input) = {
+        name:"强制更新开关"
+    }];
+    
+    string link = 4 [(sconfig.schema.input) = {
+        name:"App下载链接"
+    }];
+
+    int64 buildNum = 5 [(sconfig.schema.input) = {
+        name:"最新版本build号"
+        help:"用于比较版本更新"
+    }];
+
+    string version = 6 [(sconfig.schema.input) = {
+        name:"最新版本号"
+        help:"用于展示版本号"
+    }];
+}

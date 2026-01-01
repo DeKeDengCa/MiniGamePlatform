@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package api.privilege;
+
+option java_package = "com.entertain.sns.api.privilege";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbprivilegev1";
+
+
+//  分类标识 
+enum CategoryAlias{
+  CATEGORY_ALIAS_NONE = 0;
+
+  // 一级分类
+  CATEGORY_ALIAS_VEHICLE = 10; // 座驾
+  CATEGORY_ALIAS_HEADWEAR = 11; // 头像框
+  CATEGORY_ALIAS_COUPON = 12; // 优惠券
+  CATEGORY_ALIAS_MEDAL = 13; // 勋章
+  CATEGORY_ALIAS_TOOL = 14; // 道具
+  CATEGORY_ALIAS_MIC_APERTURE = 15; // 麦位光圈
+  CATEGORY_ALIAS_ROOM_BACKGROUND = 16; // 房间背景
+
+  // 二级分类标识
+  CATEGORY_ALIAS_ROOM_BACKGROUND_OFFICIAL = 16000;  // 官方房间背景
+}
+
+
+// 分类状态
+enum CategoryStatus {
+  CATEGORY_STATUS_NONE = 0;
+  CATEGORY_STATUS_NORMAL = 1; //正常
+  CATEGORY_STATUS_DISABLED = 2; // 禁用
+}
+
+// GoodsScene 商品使用场景
+enum GoodsScene {
+  GOODS_SCENE_NONE = 0;
+  GOODS_SCENE_MALL = 10; // 商城
+  GOODS_SCENE_ROOM = 11; // 房间
+  GOODS_SCENE_CP_ROOM = 12; // cp小屋
+}
+
+// 商品状态
+enum GoodsStatus {
+  GOODS_STATUS_NONE = 0;
+  GOODS_STATUS_ONSALE = 1;    // 上架
+  GOODS_STATUS_OFFSALE = 2;   // 下架
+  GOODS_STATUS_DELETED = 3;   // 已删除
+}
+
+
+// GoodsEffectType 商品生效类型
+enum GoodsEffectType {
+  GOODS_EFFECT_TYPE_NONE = 0;
+  GOODS_EFFECT_TYPE_BY_DURATION = 1;  // 按时长
+  GOODS_EFFECT_TYPE_BY_NUM = 2;   // 按数量
+}
+
+
+// BagGoodsUsingStatus 背包物品使用中状态
+enum BagGoodsUsingStatus {
+  BAG_GOODS_USING_STATUS_NONE = 0;
+  BAG_GOODS_USING_STATUS_DISUSE = 1; // 非使用中
+  BAG_GOODS_USING_STATUS_USING = 2; // 使用中
+}
+
+// BagGoodsUsedStatus 背包物品使用历史状态
+enum BagGoodsUsedStatus {
+  BAG_GOODS_USED_STATUS_NONE = 0;
+  BAG_GOODS_USED_STATUS_DISUSED = 1; // 未使用过
+  BAG_GOODS_USED_STATUS_USED = 2; // 使用过
+}
+
+// BagGoodsNewStatus 背包物品新获得状态
+enum BagGoodsNewStatus {
+  BAG_GOODS_NEW_STATUS_NONE = 0;
+  BAG_GOODS_NEW_STATUS_USUAL = 1; // 非新获得
+  BAG_GOODS_NEW_STATUS_NEW = 2; // 首次新获得
+}
+
+// PayStatus 支付状态
+enum PayStatus {
+  PAY_STATUS_NONE = 0;
+  PAY_STATUS_PENDING = 1;    // 待支付
+  PAY_STATUS_PAIED = 2;  // 已支付
+  PAY_STATUS_FAILED = 3; // 支付失败
+  PAY_STATUS_REFUND = 4; // 退款
+}

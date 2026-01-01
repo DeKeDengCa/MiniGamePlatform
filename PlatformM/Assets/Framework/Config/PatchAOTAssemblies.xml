@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<PatchAOTAssemblies>
+  <Assembly Name="System.Core.dll" />
+  <Assembly Name="UniTask.dll" />
+  <Assembly Name="UnityEngine.CoreModule.dll" />
+  <Assembly Name="YooAsset.dll" />
+  <Assembly Name="mscorlib.dll" />
+  <Assembly Name="spine-csharp.dll" />
+</PatchAOTAssemblies>

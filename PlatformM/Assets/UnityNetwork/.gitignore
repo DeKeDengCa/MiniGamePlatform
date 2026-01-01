@@ -1,0 +1,92 @@
+# Unity generated files
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+
+# Asset meta data
+!/[Aa]ssets/**/*.meta
+
+# Visual Studio
+.vs/
+*.user
+*.userprefs
+*.suo
+*.csproj
+*.unityproj
+*.sln
+*.pidb
+*.pdb
+*.opendb
+*.VC.db
+*.VC.VC.opendb
+
+# Mac files
+.DS_Store
+._.*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+
+# Windows
+desktop.ini
+
+# 构建和日志相关（项目中已存在的文件）
+compile.log
+compile_errors.log
+detailed_build.log
+detailed_compile.log
+detailed_log.txt
+unity_build.log
+unity_compile.log
+
+# IDE相关文件
+.idea/
+*.swp
+*.swo
+*~
+
+# 包管理器锁文件
+Packages/packages-lock.json
+
+# 自定义脚本生成的文件
+*.generated.cs
+
+# 测试相关
+TestResults/
+.coverage
+
+# 配置文件
+*.local
+*.override*
+
+# 认证文件（敏感信息）
+*.pem
+*.key
+*.cert
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 其他可能的缓存文件
+.cache/
+.parcel-cache/
+.npm/
+.yarn-integrity
+
+# 操作系统临时文件
+*.tmp
+*.temp
+*.bak
+
+# 项目特定忽略规则
+check_compilation.sh
+fix_meta_files.sh

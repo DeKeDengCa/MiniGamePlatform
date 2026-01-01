@@ -1,0 +1,93 @@
+// smicro:spath=gitit.cc/social/components-service/social-privilege/biz/respkg/handler
+syntax = "proto3";
+
+package api.privilege.v2;
+
+import "protobuf/api/privilege/v2/privilege.proto";
+import "protobuf/api/revenue/gift.proto";
+
+option java_package = "com.entertain.sns.api.privilege.v2";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbprivilege";
+
+// 资源包接口
+// ServiceName: privilege-api
+service ResourcePackageApi {
+  // 批量获资源包
+  rpc BatchGetResourcePackage(BatchGetResourcePackageReq) returns (BatchGetResourcePackageRsp);
+}
+
+enum ResourceType {
+  RESOURCE_TYPE_NONE = 0; // 无意义
+  RESOURCE_TYPE_COIN = 1; // 金币
+  RESOURCE_TYPE_GIFT = 2; // 礼物
+  RESOURCE_TYPE_HEADWEAR = 3; // 头像框
+  RESOURCE_TYPE_VEHICLE = 4; // 座驾
+  RESOURCE_TYPE_BUBBLE = 5; // 公屏气泡
+  RESOURCE_TYPE_ROOM_BG = 6; // 房间背景
+  RESOURCE_TYPE_MIC_APERTURE = 7; // 麦位光圈
+  RESOURCE_TYPE_HOME_ACTION = 8; // 主页动效
+  RESOURCE_TYPE_MEDAL = 9; // 勋章
+  RESOURCE_TYPE_MINI_CARD_BG = 10; // mini资料卡背景
+  RESOURCE_TYPE_BAY_WINDOW = 11; // 进房飘窗
+  RESOURCE_TYPE_ROOM_LIST_BG = 12; // 房间列表背景
+  RESOURCE_TYPE_NICKNAME_COLOR = 13; // 昵称颜色
+  RESOURCE_TYPE_VIP = 14;            // VIP
+  RESOURCE_TYPE_CP_RING = 15;       // cp戒指
+  RESOURCE_TYPE_PRETTY_NUMBER = 20;  // 用户靓号
+  RESOURCE_TYPE_PRETTY_NUMBER_ROOM = 21;  // 房间靓号
+  RESOURCE_TYPE_PRETTY_NUMBER_FAMILY = 25;  // 家族靓号
+  RESOURCE_TYPE_CP_ROOM_BACKGROUND = 26;  // cp装扮背景
+  RESOURCE_TYPE_ROOM_BADGE = 16;    // 房间勋章
+  RESOURCE_TYPE_OTHER = 100;         // 其他
+
+  // 二级分类
+  RESOURCE_TYPE_MEDAL_NORMAL = 15000;              // 用户常规勋章
+  RESOURCE_TYPE_MEDAL_ACHIEVEMENT = 15010;          // 用户成就勋章
+  RESOURCE_TYPE_MEDAL_FAMILY_HONOR = 15100;         // 家族荣誉勋章
+  RESOURCE_TYPE_MEDAL_FAMILY_ACHIEVEMENT = 15110;   // 家族成就勋章
+  RESOURCE_TYPE_ROOM_BACKGROUND_OFFICIAL = 16000;   // 官方房间背景
+  RESOURCE_TYPE_ROOM_BACKGROUND_NOBLE = 16010;      // 贵族房间背景
+  RESOURCE_TYPE_OTHER_GIF_AVATAR = 100001;          // GIF头像
+  RESOURCE_TYPE_OTHER_BLOCK_MESSAGE = 100002;       // 屏蔽陌生人消息
+  RESOURCE_TYPE_OTHER_ANTI_KICKED = 100003;         // 防踢
+  RESOURCE_TYPE_OTHER_VIP_EMOJI = 100010;           // VIP表情
+  RESOURCE_TYPE_OTHER_VIP_RECEPTION = 100011;       // VIP客服
+  RESOURCE_TYPE_OTHER_VIP_GIFT = 100012;            // VIP礼物
+}
+
+// 资源包
+message ResourcePackageInfo {
+  int64 id = 1; // id
+  string name = 2; // 资源包名称
+  string icon_url = 3; // 资源包图标URL
+}
+
+// 资源包详情
+message ResourcePackageDetailInfo {
+  int64 id = 1; // id
+  int64 package_id = 2; // 资源包id
+  ResourceType resource_type = 3; // 资源类型
+  ResourceType sub_resource_type = 13; // 资源子类型
+  int64 resource_id = 4; // 资源id
+  string icon_url = 5; // 资源图片url
+  int64 amount = 6; // 数量
+  int64 effective_time = 7; // 有效时间(单位:秒,值<=0:永久)
+  map<string, string> i18n_name = 8; // 资源名称，多语言, key 的取值有 zh / en / ar / tr ...
+  api.privilege.v2.EffectType effect_type = 9; // 生效类型
+}
+
+message ResourcePackageAndDetail {
+  ResourcePackageInfo resource_package_info = 1;
+  repeated ResourcePackageDetailInfo resource_package_detail_infos = 2;
+}
+
+message BatchGetResourcePackageReq {
+  repeated int64 resource_package_ids = 1; // 资源包ids
+}
+
+message BatchGetResourcePackageRsp {
+  map<int64, ResourcePackageAndDetail> resource_packages = 1;  // map<资源包id, 资源包>
+  map<int64, api.privilege.v2.Resource> resources = 2;
+  map<int64, pbrevenue.GiftInfo> giftInfos = 3;
+}
+

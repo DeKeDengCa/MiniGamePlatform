@@ -1,0 +1,80 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/roomlist/handler/
+syntax = "proto3";
+
+package api.astrorise.voiceroom;
+
+import "api/platform/voiceroom/comm.proto";
+import "protobuf/api/common/common.proto";
+
+option java_package = "com.entertain.sns.api.gene";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbroomlist";
+
+// 房间列表
+// serviceName: astrorise-voiceroom
+service RoomList {
+
+  // 获取房间分类列表
+  rpc ListRoomCategory(ListRoomCategoryReq) returns (ListRoomCategoryRsp);
+
+  // 获取房间列表
+  rpc ListRoomCard(ListRoomCardReq) returns (ListRoomCardRsp);
+
+  // 获取家族房间列表
+  rpc ListFamilyRoomCard(ListFamilyRoomCardReq) returns (ListFamilyRoomCardRsp);
+}
+
+// 分类显示样式
+enum RoomCategoryStyle {
+  ROOM_CATEGORY_STYLE_TEXT = 0;         // 纯文本
+  ROOM_CATEGORY_STYLE_ICON = 10;        // 纯图标
+  ROOM_CATEGORY_STYLE_ICON_TEXT = 20;   // 图标 + 文本
+}
+
+// 房间分类
+message RoomCategory {
+  int64 id = 1;                              // 房间分类ID, [0, 10000] 属于程序保留的分类ID, 例如 推荐 / 热门 这种属于不在 OMS 配置的房间分类而是程序直接定义的, 推荐: 100, 热门: 200.
+  string name = 2;                           // 房间分类缺省名称
+  map<string, string> i18n_names = 3;        // 国际化菜单名称, 中文: zh, 英文: en, 阿语: ar, ...
+  string icon = 4;                           // 图标
+  RoomCategoryStyle style = 5;               // 分类显示样式
+  repeated SubRoomCategory sub_categories = 10; // 子分类
+  api.astrorise.voiceroom.RoomType room_type = 20; // 房间类型
+}
+
+message SubRoomCategory {
+  string id = 1;
+  string name = 2;                           // 子房间分类缺省名称
+  map<string, string> i18n_names = 3;        // 国际化菜单名称, 中文: zh, 英文: en, 阿语: ar, ...
+  string icon = 4;                           // 图标
+  RoomCategoryStyle style = 5;               // 分类显示样式
+}
+
+message ListRoomCategoryReq {
+  api.astrorise.voiceroom.RoomType room_type = 1; // 房间类型
+}
+
+message ListRoomCategoryRsp {
+  repeated RoomCategory categories = 10;
+}
+
+message ListRoomCardReq {
+  scommon.Page page = 1;
+  int64 category_id = 10;     // 主分类ID
+  string sub_category_id = 11; // 子分类ID
+  api.astrorise.voiceroom.RoomType room_type = 12; // 房间类型
+  string priority_language_code = 13; // 优先排序语言Code
+}
+
+message ListRoomCardRsp {
+  scommon.Page page = 1;
+  repeated api.astrorise.voiceroom.RoomInfo room_infos = 10; // 房间列表
+}
+
+message ListFamilyRoomCardReq {
+  scommon.Page page = 1;
+}
+
+message ListFamilyRoomCardRsp {
+  scommon.Page page = 1;
+  repeated api.astrorise.voiceroom.RoomInfo room_infos = 10; // 房间列表
+}

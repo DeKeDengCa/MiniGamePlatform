@@ -1,0 +1,221 @@
+syntax = "proto3";
+
+package comm.api.guild;
+
+import "protobuf/api/guild/guild.proto";
+import "protobuf/api/common/common.proto";
+import "protobuf/api/guild/common.proto";
+import "protobuf/api/adapter/model.proto";
+
+option java_package = "com.entertain.sns.comm.api.guild";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbguild";
+
+// ServiceName: rpc.micro.social.guild
+// smicro:spath=gitit.cc/social/components-service/social-guild/handler-api/bd
+service BdApi {
+  // 创建公会
+  rpc CreateGuild(CreateGuildReq) returns (CreateGuildRsp);
+
+  // 查看公会列表
+  rpc ListGuild(ListGuildReq) returns (ListGuildRsp);
+
+  // 提交BD成员信息
+  rpc SubmitBDMemberInfo(SubmitBDMemberInfoReq) returns (SubmitBDMemberInfoRsp);
+
+  // 查询BD旗下成员列表
+  rpc ListBDMember(ListBDMemberReq) returns (ListBDMemberRsp);
+
+  // 获取BD旗下成员数量
+  rpc CountBDMember(CountBDMemberReq) returns (CountBDMemberRsp);
+
+  // 查询BD旗下成员列表同时带有统计数据
+  rpc ListBDMemberWithStat(ListBDMemberWithStatReq) returns (ListBDMemberWithStatRsp);
+}
+
+// 创建公会
+message CreateGuildReq {
+  string name = 1; // 公会名称
+  string logo = 2; // 公会LOGO
+  string owner_show_uid = 3; // 公会长 UID/ShowID
+  int64 owner_country_id = 4; // 公会长 所属国家
+  string owner_whatsapp = 5; // 公会长 whatsapp
+  string extra = 6; // 公会业务拓展信息json,对应数据库表中的 extra 字段,每个业务都有自己的结构体,结构体定义在：GuildExtra
+}
+message CreateGuildRsp {
+  int64 guild_id = 1;// 新创建的公会 ID
+}
+
+message ListGuildReq {
+  scommon.Page page = 1; // 分页参数
+  repeated int64 guild_ids = 10; // 公会ID列表
+}
+message ListGuildRsp {
+  scommon.Page page = 1; // 分页参数
+  repeated BdGuild guilds = 10;
+}
+
+message BdGuild {
+  Guild guild = 1; // 公会信息
+  comm.api.adapter.UserInfo owner_user_info = 2; // 公会长信息
+}
+
+// BD身份类型
+enum BDType {
+  BD_TYPE_NONE = 0;
+  BD_TYPE_GUILD = 10;  // 拉公会/主播的
+  BD_TYPE_USER = 20;   // 拉用户的
+}
+
+// BD成员类型
+enum BDMemberType {
+  BD_MEMBER_TYPE_NONE = 0;
+  BD_MEMBER_TYPE_USER = 10;           // 用户
+  BD_MEMBER_TYPE_GOLD_AGENCY = 20;    // 币商
+}
+
+// BD成员绑定方式
+enum BDMemberBindWay {
+  BD_MEMBER_BIND_WAY_NONE = 0;
+  BD_MEMBER_BIND_WAY_AUTO = 10;       // 系统自动绑定
+  BD_MEMBER_BIND_WAY_USER = 20;       // 用户手动绑定
+  BD_MEMBER_BIND_WAY_ADMIN = 30;      // 运营手动绑定
+}
+
+// BD成员审核状态
+enum BDMemberAuditStatus {
+  BD_MEMBER_AUDIT_STATUS_NONE = 0;      // 未审核
+  BD_MEMBER_AUDIT_STATUS_PENDING = 10;  // 待审核
+  BD_MEMBER_AUDIT_STATUS_APPROVED = 20; // 已通过
+  BD_MEMBER_AUDIT_STATUS_REJECTED = 30; // 已拒绝
+}
+
+// BD 旗下成员资料
+message BDMemberInfoEchoSG {
+  string past_platform = 1;                             // 过往平台
+  string past_id = 2;                                   // 过往平台ID
+  string wealth_level = 3;                              // 原平台财富等级
+  string vip_type = 4;                                  // 原平台等级类型 VIP / SVIP
+  string vip_level = 5;                                 // 原平台等级
+  string video_url = 6;                                 // 视频
+}
+
+// BD 旗下成员统计数据
+message BDMemberStatEchoSG {
+  int64 recent_active_at = 1;                           // 最近活跃时间
+  double total_top_up = 10;                             // 历史总充值
+
+  double this_week_total_top_up = 20;                   // 本周总充值
+  double this_week_official_top_up = 21;                // 本周官方充值
+  double this_week_agency_top_up = 22;                  // 本周币商充值
+
+  double last_week_total_top_up = 30;                   // 上周总充值
+  double last_week_official_top_up = 31;                // 上周官方充值
+  double last_week_agency_top_up = 32;                  // 上周币商充值
+
+  double this_month_total_top_up = 40;                  // 本月总充值
+  double this_month_official_top_up = 41;               // 本月官方充值
+  double this_month_agency_top_up = 42;                 // 本月币商充值
+
+  double last_month_total_top_up = 50;                  // 上月总充值
+  double last_month_official_top_up = 51;               // 上月官方充值
+  double last_month_agency_top_up = 52;                 // 上月币商充值
+}
+
+// BD 旗下成员资料(echo AR)
+message BDMemberInfoEchoAR {
+  string past_platform = 1;                             // 过往平台
+  string past_id = 2;                                   // 过往平台ID
+  string wealth_level = 3;                              // 原平台财富等级
+  string vip_type = 4;                                  // 原平台等级类型 VIP / SVIP
+  string vip_level = 5;                                 // 原平台等级
+  string video_url = 6;                                 // 视频
+}
+
+// BD 旗下成员统计数据(echo AR)
+message BDMemberStatEchoAR {
+  int64 recent_active_at = 1;                           // 最近活跃时间
+  double total_top_up = 10;                             // 历史总充值
+
+  double this_week_total_top_up = 20;                   // 本周总充值
+  double this_week_official_top_up = 21;                // 本周官方充值
+  double this_week_agency_top_up = 22;                  // 本周币商充值
+  double this_week_virtual_top_up = 23;                 // 本周虚拟美金充值
+
+  double last_week_total_top_up = 30;                   // 上周总充值
+  double last_week_official_top_up = 31;                // 上周官方充值
+  double last_week_agency_top_up = 32;                  // 上周币商充值
+  double last_week_virtual_top_up = 33;                 // 上周虚拟美金充值
+
+  double this_month_total_top_up = 40;                  // 本月总充值
+  double this_month_official_top_up = 41;               // 本月官方充值
+  double this_month_agency_top_up = 42;                 // 本月币商充值
+  double this_month_virtual_top_up = 43;                // 本月虚拟美金充值
+
+  double last_month_total_top_up = 50;                  // 上月总充值
+  double last_month_official_top_up = 51;               // 上月官方充值
+  double last_month_agency_top_up = 52;                 // 上月币商充值
+  double last_month_virtual_top_up = 53;                // 上月虚拟美金充值
+}
+
+message SubmitBDMemberInfoReq {
+  int64 id = 1; // 主键
+  string member_cou = 2; // 成员国家
+  string member_info = 3; // 成员的信息 (JSON 字符串, 对应 BDMemberInfoXXX 结构体)
+}
+message SubmitBDMemberInfoRsp {
+}
+
+message ListBDMemberReq {
+  scommon.Page page = 1; // 分页参数
+  scommon.Sorts sorts = 2; // 排序参数
+
+  repeated BDMemberAuditStatus audit_statuses = 10; // 审核状态
+  int64 member_id = 11; // 成员ID
+}
+message ListBDMemberRsp {
+  scommon.Page page = 1; // 分页参数
+
+  repeated BDMember members = 10; // 成员列表
+  int64 current_time = 11; // 当前时间;单位:秒
+}
+
+message CountBDMemberReq {
+  repeated BDMemberType member_types = 10;          // 成员类型
+  repeated BDMemberAuditStatus audit_statuses = 11; // 审核状态
+  bool filter_expired = 12; // 未审核状态是否过滤已过期的成员,仅查询条件中指定了BD_MEMBER_AUDIT_STATUS_NONE状态时生效
+}
+message CountBDMemberRsp {
+  int64 count = 10;
+}
+
+// BD 成员
+message BDMember {
+  int64 id = 1; // bd 成员ID
+  int64 bd_id = 2; // bd ID
+  comm.api.adapter.UserInfo member_user_info = 3; // 成员用户信息
+  int64 upload_deadline_time = 4; // 提交数据截止时间
+  string member_cou = 5; // 成员国家
+  string member_info = 6; // 成员的信息 (JSON 字符串, 对应 BDMemberInfoXXX 结构体)
+  int64 member_info_update_time = 7; // 修改成员信息时间
+  BDMemberAuditStatus audit_status = 8; // 审核状态
+  int64 audit_at = 9; // 审核时间
+  string member_stat = 100; // 成员的数据统计(JSON字符串, 对应 BDMemberStatXXX 结构体)
+}
+
+message ListBDMemberWithStatReq {
+  scommon.Page page = 1;          // 分页参数
+  BDMemberType member_type = 10;  // 成员类型
+  string member_show_uid = 11;    // 成员show_uid
+}
+
+message ListBDMemberWithStatRsp {
+  scommon.Page page = 1;          // 分页参数
+  repeated BDMember members = 10; // 成员列表同时带有统计数据
+}
+
+enum BDMemberSortField {
+  BD_MEMBER_SORT_FIELD_NONE = 0;
+  BD_MEMBER_SORT_FIELD_AUDIT_STATUS = 1; // 审核状态
+  BD_MEMBER_SORT_FIELD_MEMBER_INFO_UPDATE_TIME = 2; // 修改成员信息时间
+  BD_MEMBER_SORT_FIELD_ID = 3; // bd 成员ID
+}

@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package pbsrevenue;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsrevenue";
+option java_package = "com.revenue.biz.proto";
+
+import "protobuf/api/revenue/common.proto";
+
+// smicro:spath=gitit.cc/social/components-service/social-revenue/handler-svr/exchangesvr
+// 营收中台兑换功能
+service ExchangeSvr {
+  // 自定义兑换，exchange_type=EXCHANGE_TYPE_CUSTOM
+  rpc ExchangeCustom(ExchangeCustomReq) returns (ExchangeCustomRsp);
+}
+
+// 自定义兑换请求
+message ExchangeCustomReq {
+  ExchangeParticipant source = 1;       // 消耗方
+  ExchangeParticipant target = 2;       // 获得方
+}
+
+// 自定义兑换响应
+message ExchangeCustomRsp {
+  pbrevenue.Balance source_balance = 1; // 消耗方的余额
+  pbrevenue.Balance target_balance = 2; // 获得方的余额
+}
+
+// 兑换参与方
+message ExchangeParticipant {
+  pbrevenue.CurrencyType currency = 1;  // 币种
+  int64 quantity = 2;                   // 数额，使用正数
+  int64 uid = 3;                        // 操作账号
+}

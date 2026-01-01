@@ -1,0 +1,25 @@
+syntax="proto3";
+
+// smicro:spath=gitit.cc/social/components-service/social-config/biz/config/handlersvr
+
+package comm.svr.sconfig;
+
+option go_package="gitit.cc/social/protobuf/gencode/svr/pbssconfig";
+
+// S 前缀表示Svr，服务间调用，SConfig 表示social config
+service SSConfig {
+    // 注册schema
+    rpc RegSchema(RegSchemaReq) returns (RegSchemaRsp);
+}
+
+message RegSchemaReq {
+    string biz_name = 1;
+    string biz_key = 2;
+    int64  up_time = 3;
+    string process = 4;   // 进程名，用于写etcd的时候拼接路径用
+    string service = 5;   // 服务名，用于配置中心回调，例如回调检查
+    string check_key = 6; // 如果指定，保存更新前回调检查函数
+    string schema = 20;
+}
+message RegSchemaRsp {
+}

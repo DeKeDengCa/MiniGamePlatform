@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package api.astrorise.platform;
+
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/astrorise/arprotobuf/gencode/api/pbperror";
+option java_package="com.entertain.sns.astrorise.platform";
+
+enum Code {
+  SUCCESS = 0;
+
+  ERR_INNER_ERROR = 1;
+  ERR_SERVER_BUSY = 2;
+  ERR_INVALID_DATA = 3;
+  ERR_REQUEST_TIMEOUT = 4;
+  ERR_PERMISSION_DENIED = 7; // 权限不足
+  ERR_AUTHENTICATION_FAILED = 8; // 认证失败
+  ERR_ONLY_NON_PROD_ENV = 9; // 仅非生产环境
+
+  // User 用户相关 1000～1999
+  ERR_USER_NOT_EXIST = 1001; // 用户不存在
+  ERR_USER_NICKNAME_DUPLICATE = 1002;  // 用户名重复
+  ERR_USER_NICKNAME_NOT_PASS_AUDIT = 1003;  // 用户名没有经过审核
+  ERR_USER_NICKNAME_TO_LENGTH = 1004; // 用户名太长
+
+  // Match 匹配相关 2000～2199
+  ERR_MATCH_ALREADY_IN_ONE_TEAM = 2000; // 已经在一个队伍中
+  ERR_MATCH_NOT_IN_TEAM_YET = 2001; // 还不在一个队伍中
+  ERR_MATCH_TEAM_NOT_EXIST = 2002; // 队伍不存在
+  ERR_MATCH_TEAM_SEAT_SWAPING = 2003; // 你正在交换座位中
+  ERR_MATCH_TEAM_TARGET_SEAT_SWAPING = 2004; // 目标座位交换中
+  ERR_MATCH_NOT_TEAM_LEADER = 2005; // 不是队伍队长
+  ERR_MATCH_TEAM_IN_MATCH = 2006; // 队伍匹配中
+  ERR_MATCH_TEAM_IN_ROOM = 2007; // 队伍已进入房间
+  ERR_MATCH_CREATE_ROOM_FAILED = 2008; // 创建房间失败
+
+  // ========================================在上面加错误码======================================
+  ERR_DUMMY_MAX_CODE = 19999; // 20000以内
+}

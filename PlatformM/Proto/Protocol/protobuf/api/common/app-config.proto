@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package protobuf.api.common.appconfig;
+
+option java_package="com.entertain.sns.protobuf.api.common.appconfig";
+option go_package="gitit.cc/social/components-service/social-config/proto/pbappconfig";
+
+// serviceName: social-config
+service APPConfig {
+  // 读取配置
+  rpc GetConfig(GetConfigReq) returns (GetConfigRsp);
+}
+
+message GetConfigReq {
+  // 各个key的版本信息，第一次请求，这个应该是空的。如果key的版本没变化，则不会返回这个key的信息
+  // 用于减少通信量
+  map<string, int64> key_versions = 1;
+
+  // 部分公参变化之后，请求需要重新获取，至于那些公参会影响，服务端来控制。第一次请求这个传空，后续请求则传之前服务端返回的。
+  string pub_para = 10;
+
+  bool pb = 11; // 区分新老版本，新版传true
+}
+message GetConfigRsp {
+  // 有变化的配置列表
+  repeated Config configs = 1;
+  // 删除的配置key，用于某些key要删除恢复默认值的情况
+  repeated string delete_keys = 2;
+
+  // 影响的公参，服务端控制
+  string pub_para = 10;
+}
+
+message Config {
+  string key = 1;
+  int64  version = 2;
+  string value = 10;   // 值的json格式
+  bytes pb = 11; // // 值的的pb格式
+
+  bool   allow_not_login = 20;  // 非登录态也返回
+}

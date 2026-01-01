@@ -1,0 +1,234 @@
+syntax = "proto3";
+
+package pbsrevenue;
+
+import "protobuf/api/revenue/common.proto";
+import "protobuf/api/revenue/gift.proto";
+import "protobuf/svr/revenue/wallet.proto";
+import "protobuf/api/revenue/wallet.proto";
+import "protobuf/mgr/revenue/subscription.proto";
+import "protobuf/mgr/revenue/wallet.proto";
+import "protobuf/api/common/common-net.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsrevenue";
+option java_package = "com.revenue.biz.proto";
+
+
+// MQ - 送礼消息
+message SendGiftMessage {
+  int64 timestamp = 1;              // 时间戳
+  string seq_id = 2;                // 唯一序号
+  int64 sender_uid = 3;             // 送礼人UID
+  repeated int64 receiver_uids = 4; // 收礼人UID
+  pbrevenue.GiftInfo gift_info = 5;           // 礼物信息
+  int64 quantity = 6;               // 送礼数量 (每个收礼人获得的数量)
+  // 注意! 这个 amount 在赠送背包礼物时也是有值的, 但用户的余额并不会扣除, 如果需要区分是否扣了用户余额需要结合 strategy 字段来判断.
+  int64 amount = 7;                 // 送礼消耗的总金额: 礼物单价 x 送礼数量 x 收礼人数量
+  pbrevenue.CurrencyType currency_type = 8;   // 送礼消耗的币种
+  pbrevenue.GiftScene scene = 9;              // 送礼场景
+  pbrevenue.GiftStrategy strategy = 10;       // 送礼策略
+  pbrevenue.GiftBatchType batch_type = 11;    // 批量类型
+  string room_id = 12;              // 房间ID
+  map<int32, string> expand = 13;   // 拓展信息
+  map<string, string> context = 14; // 透传信息
+  // deprecated 由于送礼可以送多人, 每个收礼人的收益可能不一样, 所以这个字段被废弃, 请使用下面的 receiver_profits.
+  int64 profit_amount = 15 [deprecated = true];  // 每个收礼人获得的收益金额
+  pbrevenue.CurrencyType profit_currency_type = 16; // 收礼人获得的收益币种
+  pbrevenue.GiftReceiveStrategy receive_strategy = 17; // 礼物领取策略
+  pbrevenue.GiftPlayResult play_result = 18; // 送礼玩法结果
+  // 每个收礼人获得的收益, map 中包含不代表收礼人就实际获得了受益, 应该这样判断某个收礼人是否获得收益:
+  // if profit := receiver_profits[uid]; profit != nil && profit.Amount > 0 {
+  //    // 实际获得了受益...
+  // }
+  map<int64, pbrevenue.GiftProfit> receiver_profits = 19; // 收礼人收益
+  Cost cost = 20; // 送礼消耗
+  string gift_biz_ext = 21; // 礼物的业务拓展信息 JSON 字符串, 有对应的数据结构, 请参考: protobuf/mgr/revenue/gift.proto 中的 GiftBizExt 开头的结构体.
+}
+
+enum CostType {
+  COST_TYPE_NONE = 0;
+  COST_TYPE_CURRENCY = 10;  // 消耗货币
+  COST_TYPE_BAG = 20;       // 消耗包裹
+}
+
+// 消耗
+message Cost {
+  CostType cost_type = 1;                     // 消耗类型
+
+  pbrevenue.CurrencyType currency_type = 10;  // 消耗的货币类型
+  int64 currency_amount = 11;                 // 消耗的货币总额
+  int64 currency_free_amount = 12;            // 其中消耗的货币免费总额
+
+  int64 bag_quantity = 20;                    // 消耗的背包数量
+}
+
+// MQ - 领取礼物消息
+message ClaimGiftMessage {
+  int64 timestamp = 1;              // 领取时间戳
+  int64 claimer_uid = 3;            // 领取人UID
+  SendGiftMessage send_msg = 11;    // 送礼详情
+}
+
+// MQ - 礼物领取过期消息
+message ExpireClaimGiftMessage {
+  int64 timestamp = 1;              // 发生时间戳
+  repeated int64 expired_uids = 3;  // 过期未领取的UID
+  SendGiftMessage send_msg = 11;    // 送礼详情
+}
+
+// MQ - 奖励包发放消息 货币+礼物
+message RewardPackageMessage {
+  string app = 1; //项目标识
+  int64 uid = 2;  //发放对象uid
+  int64 timestamp = 3;  //请求时间
+  int64 package_id = 4; //奖励包ID
+  int64 reward_log_id = 5; //奖励日志ID
+  IncreaseBalanceReq balance = 6; //奖励货币
+
+  message RewardGift {
+    int64 gift_id = 1;  //礼物ID
+    int64 quantity = 2; //礼物数量
+    int64 expire_secs = 3;//有效期秒数
+  }
+
+  repeated RewardGift gifts = 7;  //奖励礼物列表
+}
+
+// OrderPaySuccessMessage topic social-revenue-order-pay-success
+message OrderPaySuccessMessage {
+  string order_no = 1;       // 充值订单订单号
+  string pay_order_id = 2;   // 支付中台订单ID
+  string plat_order_id = 3;  // 支付平台供应商订单
+  int64  uid = 4;            // 充值到账用户ID
+  string mid = 5 ;           // 支付mid
+  int32  num = 6;            // 购买数量
+  string sku = 7;            // 支付平台配置的sk
+  int64  pay_amount = 8;     // 支付金额，单位：分，注意不一定是美金！！！
+  string unit = 9;           // 支付货币，单位：USD/IDR等
+  pbrevenue.CurrencyType currency_type = 10; // 获得金额货币类型
+  int64  amount = 11;         // 或的虚拟币金额(包括充入保证金的部分)
+  string pay_type = 12;       // 支付方式
+  string client_type = 13;    // 客户端类型
+  string client_version = 14; // 客户端版本
+  string did = 15;            // 设备标识
+  string channel_id = 16;     // 支付渠道ID
+  pbrevenue.PayStatus status = 17;         // 支付状态
+  int64  pay_time = 18;          // 支付时间
+  int64 fuid = 19;                  // 发起充值的用户ID
+  pbrevenue.GoodsInfo goods_info = 21;
+  int64 free_amount = 22;              // 其中免费的变动数量, 此值永远是正数
+  int64 balance = 23;                  // 交易完成后的余额
+  int64 previous_balance = 24;        // 交易前的余额
+  int64 pay_dollar_amount = 25;       // 单位：美分，把它当价值使用（OMS配置的美金价格），非实际支付金额（实际支付可能是其他币种）
+  bool first_recharge = 26;           // 标记是否是第一笔充值
+  map<string, string> ext = 27;       // 业务透传参数
+  scommon.PubPara env_info = 28;      // 用户创单时的环境信息
+  string pay_code = 29;               // 具体支付方式，上面的pay_type其实是支付渠道
+
+  int64 guarantee_amount = 30;            // 充值进入保证金的数量
+  int64 guarantee_balance = 31;           // 充值之后保证金余额
+  int64 previous_guarantee_balance = 32;  // 充值之前保证金余额
+
+  // 以下字段因为歧义问题废弃，勿使用
+  reserved 20;
+  reserved "pay_amount_dollar";
+}
+
+// TransactionMessage 交易流水通知
+// Kafka-Topic: social-revenue-transaction-message
+message TransactionMessage {
+  int64 id = 1;                       // 流水在营收中台处记录ID
+  string seq_id = 2;                  // 唯一序号
+  int64 uid = 3;                      // 用户UID
+  pbrevenue.TransactionType type = 4;           // 交易流水类型
+  string title = 5;                   // 交易流水标题
+  pbrevenue.CurrencyType currency_type = 6;     // 交易流水币种
+  int64 amount = 7;                   // 变动的数量, 此值永远是正数, 具体增加还是减少需结合 type 字段区分.
+  int64 free_amount = 8;              // 其中免费的变动数量, 此值永远是正数, 具体增加还是减少需结合 type 字段区分.
+  int64 balance = 9;                  // 交易完成后的余额
+  int64 transact_at = 10;             // 交易时间
+  pbrevenue.TransactionSnapshot snapshot = 11;  // 交易快照
+  string origin_business_type = 13;   // 交易业务类型
+  string biz_context = 100;           // 透传的业务上下文, 中台不关心其结构与内容只是单纯在 MQ 处带回给业务.
+}
+
+
+// OrderAction 订单动作枚举
+enum OrderAction {
+  ORDER_ACTION_NONE = 0;
+  ORDER_ACTION_CREATE = 10; // 创单
+}
+
+// OrderActionMessage 订单动作消息
+// Kafka-Topic: social-revenue-order-action-${anm}
+message OrderActionMessage {
+  OrderAction order_action = 1;         // 订单动作
+  string anm = 2;                       // 业务名
+  string gaid = 3;                      // did
+  string pkg = 4;                       // 包名
+  string order_name = 5;                // 订单名称
+  string Check_sum = 6;                 // 签名
+  string pay_amount_str = 7;            // 支付金额，单位元
+  pbrevenue.GoodsOrderInfo goods_order_info = 10; // 订单信息
+  pbrevenue.GoodsInfo goods_info = 20;            // 商品信息
+}
+
+// 兑换类型, 预留后续拓展.
+enum ExchangeType {
+  EXCHANGE_TYPE_NONE = 0;
+  EXCHANGE_TYPE_OPTION = 10;  // 档位兑换
+  EXCHANGE_TYPE_RATE = 20;    // 比率兑换
+  EXCHANGE_TYPE_CUSTOM = 30;  // 自定义兑换，即消耗A货币/获得B货币的数额都是自定义输入的
+}
+
+// ExchangeMessage 兑换消息
+// Kafka-Topic: social-revenue-exchange-message-${anm}
+message ExchangeMessage {
+  ExchangeType exchange_type = 1;              // 兑换方式
+  string seq_id = 10;                          // 唯一ID
+  string anm = 2;                              // 业务代号
+  int64 uid = 3;                               // 发起兑换的用户
+  int64 target_uid = 4;                        // 交易对象, 通常情况下是兑换给自己.
+  pbrevenue.CurrencyType source_currency = 5;  // 消耗币种
+  int64 source_quantity = 6;                   // 消耗数量
+  pbrevenue.CurrencyType target_currency =  7; // 获得币种
+  int64 target_quantity = 8;                   // 获得数量
+  pbrevenue.Balance source_balance = 11;       // 消耗后的余额，对应uid和source_currency的余额
+  pbrevenue.Balance target_balance = 12;       // 获得后的余额，对应target_uid和target_currency的余额
+}
+
+
+// 订阅事件类型
+enum SubscriptionEvent {
+  SUBSCRIPTION_EVENT_NONE = 0;
+
+  SUBSCRIPTION_EVENT_SUBSCRIBED = 1;          // 开始订阅。首次订阅、中断后重新开始。e.g. 之前订阅过但在6.30已经失效，今天7.9开始重新开始订阅
+
+  SUBSCRIPTION_EVENT_RENEW_ENABLED = 20;      // 打开自动续订
+  SUBSCRIPTION_EVENT_RENEW_DISABLED = 21;     // 关闭自动续订
+
+  SUBSCRIPTION_EVENT_ITEM_UPGRADE = 25;       // 升级套餐。e.g. 当前是按月订阅，现在要更改为按年订阅
+  SUBSCRIPTION_EVENT_ITEM_DOWNGRADE = 26;     // 降级套餐。e.g. 当前是按年订阅，现在要更改为按月订阅
+
+  SUBSCRIPTION_EVENT_RENEWED = 30;            // 续费，权益的延续。e.g. 按月订阅，当前周期处于6.1-6.30，那么6.30或更早两天会有一个续费事件
+  SUBSCRIPTION_EVENT_EXPIRED = 31;            // 过期，权益最终失效。e.g. 按月订阅，当前周期处于6.1-6.30，且关闭了自动续订，那么6.30之后权益将会失效
+}
+
+// Kafka-Topic: social-revenue-subscription-message-${anm}
+message SubscriptionMessage {
+  string anm = 1;                              // 业务代号
+  int64 uid = 2;                               // 用户ID
+  SubscriptionEvent event = 5;                 // 事件类型
+  mgr.subscription.SubscriptionPlan plan = 6;  // 当前订阅信息。不同事件会附带不同的信息变更，都统一从这里取
+}
+
+// 批量余额操作审核消息
+// Kafka-Topic: social-revenue-batch-balance-operate-audit-message-${anm}
+message BatchBalanceOperateAuditMessage {
+  string anm = 1;                             // 业务代号
+  int64 batch_id = 2;                         // 批量操作ID
+  mgr.pbrevenue.AuditStatus audit_status = 3; // 审核结果
+  string audit_reason = 4;                    // 审核理由
+  int64 audit_at = 5;                         // 审核时间
+  string audit_by = 6;                        // 审核人
+}

@@ -1,0 +1,185 @@
+syntax = "proto3";
+
+package comm.api.cp;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/adapter/model.proto";
+import "protobuf/api/cp/cp-comm.proto";
+import "protobuf/api/revenue/gift.proto";
+import "protobuf/api/privilege/v2/privilege.proto";
+
+option java_package = "com.entertain.sns.comm.api.cp";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbcp";
+
+// ServiceName: social-cp
+// smicro:spath=gitit.cc/social/components-service/social-biz/biz/cp/handler
+service CPApi {
+  // 获取 CP 信息
+  rpc GetCPInfo(GetCPInfoReq) returns (GetCPInfoRsp);
+  // 同意组CP
+  rpc ApproveCP(ApproveCPReq) returns (ApproveCPRsp);
+  // 拒绝组CP
+  rpc RejectCP(RejectCPReq) returns (RejectCPRsp);
+
+  // 离婚申请
+  rpc ApplyDivorce(ApplyDivorceReq) returns (ApplyDivorceRsp);
+  // 同意离婚
+  rpc ApproveDivorce(ApproveDivorceReq) returns (ApproveDivorceRsp);
+  // 拒绝离婚
+  rpc RejectDivorce(RejectDivorceReq) returns (RejectDivorceRsp);
+
+  // CP 送礼列表
+  rpc ListGiftRecordForCP(ListGiftRecordForCPReq) returns (ListGiftRecordForCPRsp);
+
+  // 获取邀请信息
+  rpc GetInviteInfo(GetInviteInfoReq) returns (GetInviteInfoRsp);
+
+  // 获取离婚申请信息
+  rpc GetDivorceApplyInfo(GetDivorceApplyInfoReq) returns (GetDivorceApplyInfoRsp);
+
+
+  // 二期
+  // 获取用户亲密度
+  rpc GetUserIntimacy(GetUserIntimacyReq) returns (GetUserIntimacyRsp);
+
+  // 获取亲密度任务进度
+  rpc GetIntimacyTaskProgress(GetIntimacyTaskProgressReq) returns (GetIntimacyTaskProgressRsp);
+}
+
+message GetDivorceApplyInfoReq {
+  string cp_token = 10; // 为空会查询最近一次离婚申请信息
+}
+
+message DivorceApplyInfo {
+  comm.api.adapter.UserInfo apply_user_info = 10;      // 发起离婚的人的信息
+  comm.api.adapter.UserInfo opposite_user_info = 11;   // 被离婚的人的信息
+  string cp_token = 13;         // 确认离婚的token
+  int64 apply_time = 14;        // 邀请时间戳，秒
+  int64 expire_time = 15;       // 过期时间戳，秒
+  CPDivorceStatus status = 16;  // 状态
+  int64 force_divorce_gold_num = 17;  // 强制离婚金币数量
+}
+
+message GetDivorceApplyInfoRsp {
+  DivorceApplyInfo divorce_apply_info = 10;
+}
+
+message GetInviteInfoReq {
+  string cp_token = 10;
+}
+
+message CPInviteInfo {
+  comm.api.adapter.UserInfo invitor_user_info = 10;  // 邀请人信息
+  comm.api.adapter.UserInfo invitees_user_info = 11; // 被邀请人信息
+  string invite_message = 12;   // 邀请人邀请信息
+  string cp_token = 13;         // 传过来的token
+  int64 invite_time = 14;       // 邀请时间戳，秒
+  int64 expire_time = 15;       // 过期时间戳，秒
+  CPInviteStatus status = 16;         // 状态
+}
+
+message GetInviteInfoRsp {
+  CPInviteInfo invite_info = 10;
+}
+
+message ListGiftRecordForCPReq {
+  scommon.Page page = 1;
+}
+
+message ListGiftRecordForCPRsp {
+  scommon.Page page = 1;
+  repeated pbrevenue.GiftRecord gift_records = 10;
+}
+
+message ApproveDivorceReq {
+  string cp_token = 10;
+}
+
+message ApproveDivorceRsp {}
+
+message RejectDivorceReq {
+  string cp_token = 10;
+}
+
+message RejectDivorceRsp {}
+
+message RejectCPReq {
+  string cp_token = 10;
+}
+
+message RejectCPRsp {
+}
+
+message ApproveCPReq {
+  string cp_token = 10;
+}
+
+message ApproveCPRsp {
+}
+
+message ApplyDivorceReq {
+  bool force_divorce = 10; // 是否强制离婚
+}
+
+message ApplyDivorceRsp {
+}
+
+
+message GetCPInfoReq {
+  CPInfo selector = 1;
+  int64 uid = 10;       // 获取这个人的cp信息
+}
+
+message GetCPInfoRsp {
+  CPInfo cp_info = 10;
+}
+
+message CPInfo {
+  comm.api.adapter.UserInfo cp_user_info = 10;      // cp 信息
+  comm.api.adapter.UserInfo my_user_info = 11;      // cp 信息
+  CPStatus status = 12;                        // cp 状态
+  .api.privilege.v2.Resource ring_info = 13;   // 当前佩戴 cp 礼物信息(戒指)
+  int64 bind_days = 14;                        // 绑定天数
+  .api.privilege.v2.Resource bg_info = 15; // 当前佩戴 cp 装扮背景
+  int64 cp_id = 16; // 当前cp id
+}
+
+
+message GetUserIntimacyReq{
+  int64 target_uid = 1;
+}
+message GetUserIntimacyRsp{
+  int64 intimacy = 1;
+}
+
+message GetIntimacyTaskProgressReq{
+  int64 target_uid = 1;
+}
+
+message GetIntimacyTaskProgressRsp{
+  repeated Task task_list = 1;
+  int64 daily_total_reward_intimacy = 2;
+}
+
+message Task {
+  string name = 1;  // 任务名称
+  int64 award_intimacy = 2; // 任务完成可获得亲密值
+  int64 current_value = 3;  //当前进度值
+  IntimacyTask event_type = 4; // 任务类型: 送礼、同时在房、同时在麦等等
+  IntimacyTaskCategory task_category = 5; // 任务分类: 日
+  int64 current_percentage = 6; //任务百分比
+  string describe = 7; //任务说明
+}
+
+enum IntimacyTask {
+  INTIMACY_TASK_NONE = 0;
+  INTIMACY_TASK_EACH_SEND_IM = 1; // 互发消息
+  INTIMACY_TASK_IN_ROOM_TOGETHER = 2; // 同时在房
+  INTIMACY_TASK_ON_MIC_TOGETHER = 3; // 同时在麦
+  INTIMACY_TASK_SEND_GIFT = 4; // 送礼
+}
+
+enum IntimacyTaskCategory{
+  INTIMACY_TASK_CATEGORY_NONE = 0;
+  INTIMACY_TASK_CATEGORY_DAILY = 1; // 日任务
+}

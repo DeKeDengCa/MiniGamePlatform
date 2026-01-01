@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+package comm.svr.agency;
+
+import "protobuf/api/common/common.proto";
+
+option go_package="gitit.cc/social/protobuf/gencode/svr/pbsagency";
+
+service Node {
+  // 获取单个节点
+  rpc GetNode (GetNodeReq) returns (GetNodeRsp);
+  // 获取节点列表
+  rpc ListNode (ListNodeReq) returns (ListNodeRsp);
+  // 绑定节点关系
+  rpc BindNode (BindNodeReq) returns (BindNodeRsp);
+  // 获取最顶级节点信息
+  rpc GetTopBy (GetTopByReq) returns (GetTopByRsp);
+  // 转移某个节点旗下的子节点
+  rpc TransformChildNode (TransformChildNodeReq) returns (TransformChildNodeRsp);
+}
+
+/*
+  节点类型
+*/
+enum NodeType {
+  NODE_TYPE_NONE = 0;
+  NODE_TYPE_ANCHOR = 1;
+  NODE_TYPE_GUILD = 2;
+}
+
+// 节点Model
+message NodeData {
+  int64 id = 1;
+  string business_id = 2;
+  string parent_business_id = 3;
+  NodeType node_type = 4;
+  string role = 5;
+  int64 permission = 6;
+  string invite_code = 7;
+  int64 ctime = 8;
+  int64 utime = 9;
+}
+
+message GetNodeReq {
+  string app_name = 1; // 必填，对应服务名称
+  int64 id = 2;
+  string business_id = 3;
+  string parent_business_id = 4;
+  NodeType node_type = 5;
+  string role = 6;
+  string invite_code = 7;
+}
+
+message GetNodeRsp {
+  NodeData node = 1;
+  bool is_exist = 2;
+}
+
+message ListNodeReq {
+  scommon.Page page = 1;
+  string app_name = 2; // 必填，对应服务名称
+  repeated string business_id = 3;
+  repeated string parent_business_id = 4;
+  repeated NodeType node_type = 5;
+  repeated string role = 6;
+  repeated string invite_code = 7;
+}
+
+message ListNodeRsp {
+  scommon.Page page = 1;
+  repeated NodeData nodes = 2;
+}
+
+message BindNodeReq {
+  string app_name = 1; // 必填，对应服务名称
+  string business_id = 2;
+  string parent_business_id = 3;
+  NodeType node_type = 4;
+  string role = 5;
+  int64 permission = 6;
+  string invite_code = 7;
+}
+
+message BindNodeRsp {}
+
+message GetTopByReq{
+  string app_name = 1; // 必填，对应服务名称
+  string invite_code = 2;
+}
+
+message GetTopByRsp{
+  NodeData node = 1;
+}
+
+message TransformChildNodeReq{
+  string app_name = 1; // 必填，对应服务名称
+  string business_id = 2; // 需要转移旗下子节点的父亲节点
+  string transform_business_id = 3; // 转移到哪个业务节点
+}
+
+message TransformChildNodeRsp{}

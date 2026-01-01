@@ -1,0 +1,79 @@
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/oplog/handlermgr
+syntax = "proto3";
+
+package comm.mgr.platform.oplog;
+
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/components-service/social-platform/proto/pbmoplog";
+
+// 操作记录
+service OplogMgr {
+  // 获取操作人列表
+  rpc ListOperator(ListOperatorReq) returns (ListOperatorRsp);
+
+  // 获取操作类型列表
+  rpc ListOperation(ListOperationReq) returns (ListOperationRsp);
+
+  // 获取操作记录列表
+  rpc SearchOplog(SearchOplogReq) returns (SearchOplogRsp);
+}
+
+// 操作人
+message Operator {
+  string operator_type = 1; // 操作人类型, 运营: ADMIN, 用户: USER, 外部人员: OUTSIDER
+  string operator_id = 2;   // 操作人ID
+  string operator_name = 3; // 操作人名称
+}
+
+message ListOperatorReq {
+  string target_type = 10;  // 目标类型
+}
+
+message ListOperatorRsp {
+  repeated Operator operators = 10; // 操作人列表
+}
+
+message ListOperationReq {
+  string target_type = 10;  // 目标类型
+}
+
+message ListOperationRsp {
+  repeated string operation = 10; // 操作类型列表
+}
+
+// 操作记录
+message Oplog {
+  string anm = 1;                   // 业务名
+  string operator_type = 2;         // 操作人类型, 运营: ADMIN, 用户: USER, 外部人员: OUTSIDER
+  string operator_id = 3;           // 操作人ID
+  string operator_name = 4;         // 操作人名称
+  string operator_agent = 5;        // 操作人代理信息, 例如浏览器的 User-Agent
+  string operation = 6;             // 操作类型, 由业务与前端自定义, 创建: CREATE, 修改: UPDATE, 移除: DELETE, ...
+  int64 operate_at = 7;             // 操作时间, 采用 Unix 时间戳, 精确到秒.
+  string operate_args = 8;          // 操作参数, 通常是请求参数的 JSON 字符串.
+  int32 operate_edition = 9;        // 操作记录版次, 某个操作目标的特定操作已经有存量的操作记录, 后续操作记录进行升级时通过此字段进行区分, 主要是方便前端根据版本来解析操作记录.
+  string target_type = 10;          // 操作目标类型, 业务对操作对象的分类, 例如, 用户: user, 主播: anchor, ...
+  string target_id = 11;            // 操作目标ID
+  string target_old = 12;           // 操作目标旧内容
+  string target_new = 13;           // 操作目标新内容
+  string extension = 50;            // 拓展信息, 采用 JSON 格式方便后续拓展.
+  string log_id = 100;              // 日志ID, 不保证全局唯一.
+}
+
+message SearchOplogReq {
+  scommon.Page page = 1;      // 分页
+  string target_type = 10;    // 目标类型
+  string target_id = 11;      // 目标ID(可选)
+  string operator_type = 20;  // 操作人类型(可选)
+  string operator_id = 21;    // 操作人ID(可选)
+  string operation = 30;      // 操作类型(可选)
+  string keyword = 50;        // 关键字(可选)
+  int64  begin_time = 51;     // 日志记录开始时间
+  int64  end_time = 52;       // 日志记录结束时间
+}
+
+message SearchOplogRsp {
+  scommon.Page page = 1;      // 分页
+  repeated Oplog oplogs = 10; // 操作记录列表
+}

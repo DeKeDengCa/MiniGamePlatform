@@ -1,0 +1,86 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/rechargepack/handler/
+syntax = "proto3";
+
+package api.astrorise.voiceroom.recharge;
+
+import "protobuf/api/pay/pay.proto";
+import "protobuf/api/privilege/v2/resource_package.proto";
+
+option java_package="com.entertain.sns.api.gene.rechargepack";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbrechargepack";
+
+// 充值礼包
+// serviceName: astrorise-voiceroom
+service RechargePack {
+
+    // 检查是否有充值礼包的资格
+    rpc CheckQualified(CheckQualifiedReq) returns (CheckQualifiedRsp);
+
+    // 获取充值礼包权益
+    rpc GetRechargePack(GetRechargePackReq) returns (GetRechargePackRsp);
+
+    // 佩戴充值礼包权益
+    rpc UseRechargePack(UseRechargePackReq) returns (UseRechargePackRsp);
+}
+
+// 充值礼包类型
+enum PackType {
+    PKG_TYPE_NONE = 0;
+    PKG_TYPE_FIRST_RECHARGE = 10;               // 首充礼包
+
+    // 更多礼包类型...
+}
+
+message PackQualify {
+    PackType pack_type = 10;                    // 礼包类型
+    bool qualified = 20;                        // 有资格
+    bool allow_auto_popup = 21;                 // 允许自动弹出, 例如对于首充礼包即注册天数 < n 天之内才自动弹出.
+}
+
+// 礼包信息
+message Pack {
+    PackType pack_type = 10;                    // 礼包类型
+    bool qualified = 20;                        // 有资格
+    bool allow_auto_popup = 21;                 // 允许自动弹出, 例如对于首充礼包即注册天数 < n 天之内才自动弹出.
+    pbspay.SkuInfo sku_info = 30;               // sku 信息
+    int64 price = 31;                           // 价格(单位:分)
+    int64 origin_price = 32;                    // 原价(单位:分)
+    repeated api.privilege.v2.ResourcePackageDetailInfo details = 40; // 礼包权益
+}
+
+message CheckQualifiedReq {
+    repeated PackType supported_types = 10;     // 客户端支持的礼包类型
+}
+
+message CheckQualifiedRsp {
+    repeated PackQualify pack_qualifies = 10;   // 礼包资格, 顺序与请求参数的礼包类型数组顺序一致, 无论是否有资格都会返回, 客户端需要判断其中的 qualified 字段.
+}
+
+message GetRechargePackReq {
+    repeated PackType pack_types = 10;          // 礼包类型
+}
+
+message GetRechargePackRsp {
+    repeated Pack packs = 10;                   // 礼包信息, 顺序与请求参数的礼包类型数组顺序一致, 无论是否有资格都会返回, 客户端需要判断其中的 qualified 字段.
+}
+
+message UseRechargePackReq {
+    PackType pack_type = 10;                                            // 礼包类型
+    repeated api.privilege.v2.ResourcePackageDetailInfo details = 20;   // 礼包明细, 通过 NotifyPackGot 信令下发的字段原封不动传回来即可.
+}
+
+message UseRechargePackRsp {
+
+}
+
+// 礼包信令
+message Notify {
+    NotifyPackGot pack_got = 10;                // 获得充值礼包权益
+}
+
+// 获得充值礼包权益
+message NotifyPackGot {
+    PackType pack_type = 10;                                            // 礼包类型
+    repeated api.privilege.v2.ResourcePackageDetailInfo details = 20;   // 礼包权益
+    bool wearable = 21;                                                 // 存在可穿戴物品
+}

@@ -1,0 +1,137 @@
+// smicro:spath=gitit.cc/social/components-service/social-account/handler/user
+
+syntax = "proto3";
+
+package pbaccount;
+
+import "protobuf/api/account/account.proto";
+
+option java_package = "com.entertain.sns.pbaccount";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbaccount";
+
+service User {
+  // 获取用户信息, 通过参数 target_uid 与当前用户 uid 是否一致来区分主客态.
+  rpc GetUserInfo(GetUserInfoReq) returns (GetUserInfoRsp);
+
+  // 更新用户信息, 注册时首次填写用户资料也是这个接口.
+  rpc UpdateUserInfo(UpdateUserInfoReq) returns (UpdateUserInfoRsp);
+
+  // 获取注册页面的信息, 客户端应当在获取失败时也不影响注册流程.
+  rpc GetInitInfo(GetInitInfoReq) returns (GetInitInfoRsp);
+
+  // 获取一批随机昵称
+  rpc GetRandomNickname(GetRandomNicknameReq) returns (GetRandomNicknameRsp);
+
+  // 批量获取用户信息
+  rpc BatchGetUser(BatchGetUserReq) returns (BatchGetUserRsp);
+
+}
+
+// 性别
+enum Gender {
+  GENDER_NONE = 0;    // 未知
+  GENDER_MALE = 1;    // 男
+  GENDER_FEMALE = 2;  // 女
+}
+
+// 账号状态
+enum UserStatus {
+  USER_STATUS_NONE = 0;     // 无状态
+  USER_STATUS_NORMAL = 1;   // 正常
+  USER_STATUS_BAN = 2;      // 封禁
+  USER_STATUS_FROZEN = 3;   // 冻结
+  USER_STATUS_WITHDRAW = 4; // 注销（注销冷静期过后更新为删除）
+  USER_STATUS_DELETE = 5;   // 删除
+}
+
+// 用户信息
+message UserInfo {
+  int64 uid = 1;                // 用户UID
+  ShowUID show_uid = 2;         // 用户外显UID
+  Nickname nickname = 3;        // 用户昵称
+  Gender gender = 4;            // 用户性别
+  Avatar avatar = 5;            // 用户头像
+  CountryInfo country_info = 6; // 用户国家
+  Birthday birthday = 7;        // 用户生日
+  string language = 8;          // 语言码
+  UserStatus status = 9;        // 用户状态
+  string introduction = 10;     // 自我介绍
+  int32 os_type = 11;           // 系统类型
+  string client_version = 12;   // 客户端版本
+}
+
+// ShowUID, 这个结构是用于拓展靓号系统, 例如靓号可以有不同的颜色,字体...
+message ShowUID {
+  string show_uid = 1; // show-uid
+  // 目前按照默认样式即可, 后续拓展. 例如 color, icon ...
+}
+
+// 用户昵称, 这个结构是用于拓展用户特权, 例如会员的昵称是红色的, 还有一个图标的...
+message Nickname {
+  string nickname = 1; // 用户昵称
+  // 目前按照默认样式即可, 后续拓展. 例如 color, icon ...
+}
+
+// 用户头像, 这个结构是用于拓展不同尺寸的头像, 例如缩略图, 高清图等以适应不同显示场景, 同时还可以拓展不同等级的用户头像有不同的样式.
+message Avatar {
+  string small_url = 1;   // 小图
+  string middle_url = 2;  // 中图
+  string large_url = 3;   // 大图
+  // 目前按照默认样式即可, 后续拓展. 例如 头像框 / 配件 ...
+}
+
+// 生日, 用于拓展年龄, 星座等信息
+message Birthday {
+  string birthday = 1; // 生日 (yyyy-MM-dd)
+}
+
+message GetUserInfoReq {
+  int64 target_uid = 10; // 查看的目标用户UID, 如果和请求者UID一致则为查看主态信息, 否则为查看客态信息.
+}
+
+message GetUserInfoRsp {
+  UserInfo user_info = 10;
+}
+
+message UpdateUserInfoReq {
+  UserInfo user_info = 10;
+}
+
+message UpdateUserInfoRsp {
+  UserInfo user_info = 10;
+}
+
+message UpdateIntroductionReq {
+  string introduction = 1;     // 自我介绍
+}
+
+message UpdateIntroductionRsp {
+  string introduction = 1;     // 自我介绍
+}
+
+message GetInitInfoReq {
+}
+
+message GetInitInfoRsp {
+  repeated string default_avatars = 10;  // 默认头像列表, 用于拓展可以选择更多随机头像, 客户端显示第一个即可.
+  repeated string male_avatars = 11;     // 男性头像列表, 用于拓展可以选择更多随机头像, 客户端显示第一个即可.
+  repeated string female_avatars = 12;   // 女性头像列表, 用于拓展可以选择更多随机头像, 客户端显示第一个即可.
+  repeated string random_nicknames = 13; // 随机昵称列表
+  CountryInfo default_country = 14;      // 默认国家, 是否需要返回所有可选国家列表?
+}
+
+message GetRandomNicknameReq {
+  Gender gender = 10; // 性别
+}
+
+message GetRandomNicknameRsp {
+  repeated string random_nicknames = 10; // 随机昵称列表
+}
+
+message BatchGetUserReq {
+  repeated int64 uids = 10; // 查看的目标用户UID
+}
+
+message BatchGetUserRsp {
+  repeated UserInfo user_infos = 10;
+}

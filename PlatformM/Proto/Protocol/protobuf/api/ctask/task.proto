@@ -1,0 +1,111 @@
+syntax = "proto3";
+
+package comm.api.ctask;
+
+option java_package = "com.entertain.sns.comm.api.ctask";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbctask";
+
+message Task {
+  // 任务id
+  string id = 1;
+  // 展示信息
+  TaskShow show = 2;
+  // 版本号，无需关心具体值，透传即可
+  // 领取奖励等接口可能要求带回来，如果产运修改了配置，方便后端做策略
+  int64 version = 5;
+  // 最多可循环完成几次，即进度条可以循环填满几次
+  // <=0表示不限制
+  int64 max_times = 6;
+  // 每个阶段的进度、状态等信息
+  // 一个任务可分多个阶段进行，至少有一个阶段
+  // 最后一个阶段的进度值就是总的进度条长度
+  repeated Stage stages = 7;
+  // 进度条已经填充的长度，需要配合stages字段控制进度条的百分比
+  int64 progress = 8;
+  // 任务是否已经完成
+  // 通常用于UI展示或控制是否可以查看下一个任务
+  bool has_completed = 9;
+  // 奖励领取是否受限制
+  // 用于该任务有前置任务的情况，领取奖励前需要前置任务完成
+  bool reward_restricted = 10;
+  // 倒计时秒数，周期性任务才存在
+  // <=0不展示倒计时
+  int64 countdown = 11;
+  // 聚焦阶段的索引（-1表示无需聚焦，0表示第一个阶段）
+  // 例如签到场景，前端需要定位到今天是第几天
+  int32 focus_stage = 14;
+  // 进度条汇总数据
+  ProgressBar progress_bar = 15;
+  // 是否禁用领奖按钮，比如说家族任务，只有家族长才能看到领奖按钮
+  bool disable_take_reward = 16;
+  // 任务开始时间，时间戳，妙级
+  int64 start_time = 17;
+  // 任务结束时间，时间戳，秒级
+  int64 end_time = 18;
+
+  // 子任务列表
+  repeated Task subs = 31;
+}
+
+// 前端展示信息，后端不做逻辑使用
+message TaskShow {
+  map<string, string> name_i18n = 1;         // 多语言名称（语言二字码 -> 文案）
+  map<string, string> description_i18n = 2;  // 多语言描述（语言二字码 -> 文案）
+  string deeplink = 3;                       // 跳转
+  string icon = 4;                           // 图标
+
+  // 前端映射样式配置的id
+  string id = 10;
+
+  // 进度值除数，如果>0，progress相关字段需要除以该除数
+  // 用于展示和统计的粒度不一致的情况，通常计算的粒度会比展示的粒度要细，而不会更粗
+  // 例如前端是按分钟展示，而后端是按秒统计，则前端需要除以这个除数再展示
+  int64 progress_divisor = 11;
+
+  // 分组，后端给定
+  // 用于区分任务组的情况。例如A组一个区域和样式展示，B组另外一个区域和样式展示
+  string group = 12;
+
+  // 扩展字段
+  string extend = 100;
+}
+
+
+// 常用状态（斜杠仅是展示字符，非算术除法）
+// 可循环任务，一般是展示数量
+//    进度条展示：progress(当前进度) / need_progress(进度条长度)
+//    完成次数展示：completed_count(已完成次数) / max_count(总共能完成几次)
+//    奖励领取次数展示：taken_reward_count(已领取次数) / completed_count(目前总共可领取次数)
+// 只能循环一次的任务，一般是展示状态
+//    未完成状态：completed_count == 0
+//    已完成但未领取状态：completed_count > 0 && taken_reward_count == 0
+//    已完成且已领取状态：completed_count > 0 && taken_reward_count > 0
+message Stage {
+  // 完成该阶段需要的进度
+  int64 need_progress = 1;
+  // 奖励信息
+  Reward reward = 3;
+
+  // 已完成任务次数
+  int64 completed_count = 7;
+  // 已领取奖励次数
+  int64 taken_reward_count = 8;
+  // 领取奖励是否受限制, 组合+里程碑 任务用来限制这个阶段任务是否可以领取奖励
+  bool reward_restricted = 9;
+
+  // 当前无库存可领
+  bool no_stock = 20;
+}
+
+message Reward {
+  string id = 1;        // 奖励ID
+  int64 count = 5;      // 数量
+  string extend = 100;  // 奖励信息
+}
+
+// 进度条数据
+message ProgressBar {
+  int32 current_stage = 5;    // 循环后所处阶段索引，-1表示一个阶段都未达成，0表示完成第一个阶段，达到最大循环时为最大阶段索引
+  int64 next_stage_need = 6;  // 达到下一个阶段还需要的进度，0表示已达到最大
+  int64 completed_times = 7;  // 进度条循环次数
+}

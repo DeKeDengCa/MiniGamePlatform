@@ -1,0 +1,403 @@
+syntax = "proto3";
+
+package mgr.gift;
+
+import "protobuf/api/common/common.proto";
+
+import "protobuf/api/revenue/common.proto";
+import "protobuf/api/revenue/gift.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmrevenue";
+option java_package = "com.gift.biz.proto";
+
+// 礼物服务
+// smicro:spath=gitit.cc/social/components-service/social-revenue/handler-mgr/mgrgift
+service MgrGift {
+  // 获取礼物列表
+  rpc ListGifts(ListGiftsReq) returns (ListGiftsRsp) {}
+  rpc AddGift(AddGiftInfoReq) returns (AddGiftInfoRsp) {}
+  rpc BatchAddGift(BatchAddGiftInfoReq) returns (BatchAddGiftInfoRsp) {}
+  rpc UpdateGift(UpdateGiftInfoReq) returns (UpdateGiftInfoRsp) {}
+  rpc ListGiftTab(ListGiftTabReq) returns (ListGiftTabRsp){}
+  rpc UpdateGiftTab(UpdateGiftTabReq) returns (UpdateGiftTabRsp) {}
+  rpc AddGiftTab(AddGiftTabReq) returns (AddGiftTabRsp) {}
+  rpc ListGiftTag (ListGiftTagReq) returns (ListGiftTagRsp) {}
+  rpc AddGiftTag (AddGiftTagReq) returns (AddGiftTagRsp) {}
+  rpc UpdateGiftTag (UpdateGiftTagReq) returns (UpdateGiftTagRsp) {}
+  rpc UpdatePublish (UpdatePublishReq) returns (UpdatePublishRsp) {}
+  rpc DeleteGift (DeleteGiftReq) returns (DeleteGiftRsp) {}
+  rpc BatchGetGift(BatchGetGiftReq) returns (BatchGetGiftRsp) {}
+  rpc BatchGetGiftByLotteryId(BatchGetGiftByLotteryIdReq) returns (BatchGetGiftByLotteryIdRsp) {}
+
+  rpc SearchGiftRecord(SearchGiftRecordReq) returns (SearchGiftRecordRsp) {}
+
+  // 创建礼物banner
+  rpc CreateBanner(CreateBannerReq) returns (CreateBannerRsp);
+  // 更新礼物banner
+  rpc UpdateBanner(UpdateBannerReq) returns (UpdateBannerRsp);
+  // 删除礼物banner
+  rpc DeleteBanner(DeleteBannerReq) returns (DeleteBannerRsp);
+  // 礼物banner
+  rpc ListBanner(ListBannerReq) returns (ListBannerRsp);
+
+  // 离线资源信息查询
+  rpc GetGiftOfflineResInfo(GetGiftOfflineResInfoReq) returns (GetGiftOfflineResInfoRsp) {}
+
+  // 检查复制粘贴相识礼物-用礼物名称判断相似
+  rpc CheckPasteSimilarGift(CheckPasteSimilarGiftReq) returns (CheckPasteSimilarGiftRsp);
+
+}
+
+message GiftInfo {
+  int64 id = 1;
+  // 版本
+  int64 version = 2;
+  // 礼物类型 0 - 普通礼物
+  pbrevenue.GiftType type = 3;
+  // 礼物标签, 例如: 限时, 七夕 ...
+  pbrevenue.GiftTag tag = 4;
+
+  int64 sequence = 5;
+  // 礼物后台显示名称
+  string name = 6;
+  // 礼物多语言名称 包含国际化支持
+  pbrevenue.GiftName i18n = 7;
+  // 礼物价格类型
+  pbrevenue.CurrencyType currency_type = 8;
+  // 礼物价格
+  pbrevenue.GiftPrice price = 9;
+  // 礼物样式
+  pbrevenue.GiftAssets assets = 10;
+  // 礼物banner信息
+  pbrevenue.GiftBanner  banner = 11;
+  // 礼物限制条件
+  pbrevenue.GiftLimit limitation = 12;
+  pbrevenue.GiftBatchType batch_type = 13;
+  repeated pbrevenue.GiftTag tags = 14;
+  //  duration 有效时间
+  pbrevenue.GiftDuration duration = 15;
+  pbrevenue.GiftJump jump = 16;
+
+  pbrevenue.GiftLevel level = 17;
+  bool published = 18;
+  bool hidden = 19;
+  bool deleted = 20;
+  int64 create_at = 21;
+  int64 update_at = 22;
+
+  int64 tab_id = 23;
+  repeated int64 tag_ids = 24;
+  string editor = 25;
+  // 生效类型 1 - 永久有效 2 - 按时间范围生效
+  int64 effect_type = 26;
+  // 生效开始时间
+  int64 valid_from = 27;
+  // 生效结束时间
+  int64 valid_to = 28;
+  // 0 - 全部 1 - 生效中 2 - 已过期 3 - 未开始
+  int64 isValid = 29;
+  string sid = 30;     // 礼物标识，手动配置，测试环境和正式环境保持一致
+  int32 income_rate = 31;    // 礼物分成比例百分比，即：1 表示 1%
+
+  // 玩法配置
+  pbrevenue.GiftPlay gift_play = 32; // 礼物玩法
+  string remark = 33; // 备注
+  int64 banner_id = 34;  // banner id
+  int32 tier = 35;  // 阶级
+
+  // 可见性配置
+  GiftVisibility visibility = 36;
+  // 礼物对应的特权资源ID
+  int64 privilege_resource_id = 37;
+  pbrevenue.GiftReceiveStrategy receive_strategy = 38;  // 收礼策略
+  int64 receive_claim_ttl = 39; // 手动领取过期时间-秒
+
+  string biz_ext = 40; // 业务拓展信息 JSON 字符串, 根据业务名找到对应的结构体 GiftBizExtXXX 来解析.
+}
+
+// 礼物可见性配置
+message GiftVisibility {
+  repeated string countries = 1;    // 该国家可见
+  repeated int64 uids = 2;          // 该名单可见
+  repeated string user_labels = 3;  // 该人群标签可见
+}
+
+message ListGiftsReq {
+  scommon.Page page = 1;
+  int64 id = 2;
+  string name = 3;
+  pbrevenue.GiftType type = 4;
+  int64 price_min = 5;
+  int64 price_max = 6;
+  int64 published = 7; // 0 - 全部 1 - 已发布 2- 未发布
+  int64 isValid = 8; // 0 - 全部 1 - 生效中 2 - 已过期 3 - 未开始
+  int64 tab_id = 9; // 礼物导航栏
+  int64 upload_res_status = 10; // 上传资源状态 0 - 全部 1 - 已上传 2 - 未上传
+  ListGiftLimitation limitation = 11; // 限制条件
+  BizExtArgs biz_ext_args = 12; // 业务拓展信息(biz_ext)字段的查询
+  int64 banner_id = 13; // banner id
+}
+
+message BizExtArgs {
+  pbrevenue.WishGiftType wish_gift_type = 1; // 是否为心愿礼物
+}
+
+message ListGiftsRsp {
+  repeated GiftInfo list = 1;
+  scommon.Page page = 2;
+}
+
+message AddGiftInfoReq {
+  GiftInfo info = 1;
+}
+
+message AddGiftInfoRsp {
+
+}
+
+message BatchAddGiftInfoReq {
+  repeated GiftInfo infos = 1;
+}
+
+message BatchAddGiftInfoRsp {
+
+}
+
+
+
+message UpdateGiftInfoReq {
+  GiftInfo info = 1;
+}
+
+message UpdateGiftInfoRsp {
+
+}
+
+
+message GiftTab {
+  int64 id = 1;
+  int64 parent_id = 30;
+  repeated pbrevenue.GiftScene scenes = 2;
+  string name = 3;
+  map<string, string> i18n = 4;
+  int64 sequence = 5;
+  bool published = 6;
+  bool hidden = 7;
+  bool deleted = 8;
+  int64 create_at = 9;
+  int64 update_at = 10;
+  string editor = 11;
+  int64 gift_num = 12;
+  // 礼物显示的必要条件
+  repeated pbrevenue.GiftRequirement requirements = 20;
+  // 礼物隐藏开关
+  repeated pbrevenue.GiftHiddenSwitch hidden_switches = 21;
+  GiftVisibility visibility = 22;     // 可见性配置
+}
+
+message ListGiftTabReq {
+  int64 id = 1;
+  scommon.Page page = 2;
+}
+
+message ListGiftTabRsp {
+  repeated GiftTab list = 1;
+  scommon.Page page = 2;
+}
+
+message UpdateGiftTabReq {
+  GiftTab info = 1;
+}
+
+message UpdateGiftTabRsp {
+
+}
+
+message AddGiftTabReq {
+  GiftTab info = 1;
+}
+
+message AddGiftTabRsp {
+
+}
+
+message GiftTag {
+  int64 id = 1;
+  string name = 2;
+  string icon = 3;
+  int64 sequence = 4;
+  bool deleted = 8;
+  int64 create_at = 9;
+  int64 update_at = 10;
+  string editor = 11;
+  map<string, string> icon_i18n = 12; // <语言, 图标>
+}
+
+message ListGiftTagReq {
+  int64 id = 1;
+  scommon.Page page = 2;
+}
+
+message ListGiftTagRsp {
+  repeated GiftTag list = 1;
+  scommon.Page page = 2;
+}
+
+message UpdateGiftTagReq {
+  GiftTag info = 1;
+}
+
+message UpdateGiftTagRsp {
+
+}
+
+message AddGiftTagReq {
+  GiftTag info = 1;
+}
+
+message AddGiftTagRsp {
+
+}
+
+message UpdatePublishReq {
+  int64 id = 1;
+  bool published = 2;
+  string editor = 3;
+}
+
+message UpdatePublishRsp {
+
+}
+
+message DeleteGiftReq {
+  int64 id = 1;
+  string editor = 2;
+}
+
+message DeleteGiftRsp {
+
+}
+
+message BatchGetGiftReq {
+  repeated int64 ids = 10;
+}
+
+message BatchGetGiftRsp {
+  map<int64, GiftInfo> gifts = 10;
+}
+
+message BatchGetGiftByLotteryIdReq {
+  repeated int64 lottery_ids = 10;
+}
+
+message BatchGetGiftByLotteryIdRsp {
+  map<int64, GiftInfo> gifts = 10;
+}
+
+message GiftRecordInfo {
+  int64 id = 1;                                     // 记录 ID
+  GiftInfo gift_info = 2;                           // 礼物信息
+  int32 quantity = 3;                               // 礼物数量
+  int64 sender_uid = 4;                             // 送礼人
+  int64 receiver_uid = 5;                           // 收礼人
+  int64 time_sent = 6;                              // 送礼时间
+  int64 room_id = 7;                                // 房间ID
+  pbrevenue.GiftBatchType batch_type = 8;           // 赠送类型
+  pbrevenue.CurrencyType profit_currency_type = 9;  // 返利币种
+  int64 profit_amount = 10;                         // 返利金额
+}
+
+message SearchGiftRecordReq {
+  scommon.Page page = 1;
+  pbrevenue.GiftKind gift_kind = 10;
+  repeated int64 uids = 11;
+  repeated string room_ids = 12;
+  repeated int64 gift_ids = 13;
+  int64 min_time_sent = 14;
+  int64 max_time_sent = 15;
+}
+
+message SearchGiftRecordRsp {
+  scommon.Page page = 1;
+  repeated GiftRecordInfo record_infos = 10;
+}
+
+message GiftBanner {
+  string name = 1; // 中文备注名
+  string link = 2; // 跳转链接
+  string images = 3; // 背景图json例如{"en":"aa.jpg","ar":"bb.jpg"}
+  int32 width = 4; // 宽度
+  int32 height = 5; // 高度
+  int32 is_delete = 6; // 是否删除1:已删除2:未删除
+  int64 start_time = 7; // 开始时间,单位秒
+  int64 end_time = 8; // 结束时间,单位秒
+  int32 is_online = 9; // 上下架1:上架2:下架
+  string remark = 10; // 备注
+  int32 weight = 11; // 权重
+  int64 create_at = 12; // 创建时间,单位秒
+  int64 update_at = 13; // 结束时间,单位秒
+  string creator = 14; // 创建者
+  string modifier = 15; // 更新者
+  int64 id = 16; // banner id(创建不传,更新传)
+  repeated int64 gift_id = 17; // 关联礼物ID
+  pbrevenue.JumpType jump_type = 18;   // 跳转方式
+  map<string, string> image_i18n = 19; // <语言码，图片URL>
+  GiftVisibility visibility = 20;      // 可见性配置
+}
+
+message CreateBannerReq {
+  GiftBanner data = 1 ;
+}
+
+message CreateBannerRsp {
+  int64 id = 1;
+}
+
+message UpdateBannerReq {
+  GiftBanner data = 1 ;
+}
+
+message UpdateBannerRsp {
+}
+
+message DeleteBannerReq {
+  int64 id = 1;
+}
+
+message DeleteBannerRsp {
+}
+
+message ListBannerReq {
+  scommon.Page page = 1;
+  string name = 2;// 名称
+  int32 is_online = 3; // 上下架1:上架2:下架
+  int32 is_valid = 4; // 是否有效1:有效2:无效
+  int64 banner_id = 5;
+}
+
+message ListBannerRsp {
+  scommon.Page page = 1;
+  repeated GiftBanner list = 2;
+}
+
+// 离线资源信息查询
+message GetGiftOfflineResInfoReq {}
+
+// 离线资源信息查询
+message GetGiftOfflineResInfoRsp {
+  int64 total = 1; // 离线资源总数
+}
+
+message ListGiftLimitation {
+  pbrevenue.GiftLimitType type = 1; // 限制类型
+  int32 min_level = 2;              // 最小限制等级，<0不查询
+  int32 max_level = 3;              // 最大限制等级，<0不查询
+}
+
+message CheckPasteSimilarGiftReq {
+  repeated GiftInfo gifts = 10;
+}
+
+message CheckPasteSimilarGiftRsp {
+  repeated GiftInfo gifts = 10;
+}

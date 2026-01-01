@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package svr.astrorise.node_locator;
+
+// smicro:spath=gitit.cc/social/astrorise/argames/argcomm/biz/gm/handler
+
+option go_package = "gitit.cc/social/astrorise/arprotobuf/gencode/api/argames/pbgm";
+
+// ********************************接口******************************
+
+service GameGM {
+  rpc HandleGM (HandleGMReq) returns (HandleGMRsp);
+}
+
+// ********************************枚举*******************************
+
+
+// *******************************结构体*******************************
+
+
+message HandleGMReq {
+  string cmd = 1;
+}
+
+message HandleGMRsp {
+  int32 err_code = 1;
+}

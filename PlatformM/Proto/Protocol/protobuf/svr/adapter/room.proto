@@ -1,0 +1,115 @@
+syntax = "proto3";
+
+package pbsadapter;
+
+import "protobuf/api/adapter/model.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsadapter";
+
+
+service RoomSvr {
+  rpc BatchGetRoomInfo(BatchGetRoomInfoReq) returns (BatchGetRoomInfoRsp);
+
+  // 获取指定房间麦上用户UID列表
+  rpc GetOnMicUids(GetOnMicUidsReq) returns (GetOnMicUidsRsp);
+
+  // 批量获取指定房间麦上用户UID列表
+  rpc BatchGetOnMicUids(BatchGetOnMicUidsReq) returns (BatchGetOnMicUidsRsp);
+
+  // 获取指定房间在线用户UID列表
+  rpc GetOnlineUids(GetOnlineUidsReq) returns (GetOnlineUidsRsp);
+
+  // 获取属于自己的房间信息
+  rpc BatchGetOwnerRoomInfo(BatchGetOwnerRoomInfoReq) returns (BatchGetOwnerRoomInfoRsp);
+
+  // 批量获取房间状态
+  rpc BatchGetRoomStatus(BatchGetRoomStatusReq) returns (BatchGetRoomStatusRsp);
+}
+
+message BatchGetRoomStatusReq {
+  repeated int64 room_ids = 10;
+}
+
+message BatchGetRoomStatusRsp {
+  repeated RoomStatusInfo list = 10;
+}
+
+message RoomStatusInfo {
+  int64 room_id = 10;
+  comm.api.adapter.RoomStatus status = 11;
+}
+
+message BatchGetOwnerRoomInfoReq {
+  repeated int64 uids = 1;
+  RoomKind room_kind = 2;
+}
+
+message BatchGetOwnerRoomInfoRsp {
+  repeated RoomInfo list = 1;     // 房间信息列表
+}
+
+message BatchGetRoomInfoReq {
+  repeated int64 room_ids = 1;
+  repeated string show_ids = 2;
+  bool isGetRoomTag = 3;// 是否获取房间标签
+}
+
+message BatchGetRoomInfoRsp {
+  repeated RoomInfo list = 1;     // 房间信息列表
+}
+
+// 房间类型
+enum RoomKind {
+  ROOM_KIND_NONE = 0;
+  ROOM_KIND_NORMAL = 10;      // 普通房间
+  ROOM_KIND_OFFICIAL = 20;    // 官方房间
+  ROOM_KIND_TEST = 30;        // 内部测试房间，不对外显示，只允许内部账号进入
+  ROOM_KIND_FAMILY = 40;      // 家族房间
+}
+
+// 房间信息
+message RoomInfo {
+  int64 room_id = 1;          // 房间号
+  string show_id = 2;         // 房间良好
+  int64 owner_uid = 3;        // 房主
+  string room_type = 4;       // 房间类型
+  RoomKind room_kind = 20;    // 房间类型枚举, 和 room_type 字段理论上是对应的, 不过用枚举定义出来.
+  string room_name = 5;       // 房间名称
+  string room_title = 6;      // 房间标题
+  int32 level = 7;            // 房间等级
+  string cover = 8;           // 房间封面
+  string region = 9;          // 房间地区编码，可以按房主来，业务自行界定
+  string cou = 10;            // 房主国家编码，可以按房主来，业务自行界定
+  string room_mode = 11;      // 房间模式，业务自定义
+  repeated comm.api.adapter.RoomTag room_tags = 12; // 房间标签
+}
+
+
+message GetOnMicUidsReq {
+  int64 room_id = 10;
+}
+
+message GetOnMicUidsRsp {
+  repeated int64 uids = 10;
+}
+
+message BatchGetOnMicUidsReq {
+  repeated int64 room_ids = 10;
+}
+
+message BatchGetOnMicUidsRsp {
+  repeated RoomOnMicInfo list = 10;
+}
+
+message RoomOnMicInfo {
+  int64 room_id = 10;
+  repeated int64 uids = 11;
+}
+
+message GetOnlineUidsReq {
+  int64 room_id = 10;
+}
+
+message GetOnlineUidsRsp {
+  repeated int64 uids = 10;
+}

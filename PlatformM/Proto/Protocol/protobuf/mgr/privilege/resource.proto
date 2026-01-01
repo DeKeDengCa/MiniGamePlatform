@@ -1,0 +1,128 @@
+// smicro:spath=gitit.cc/social/components-service/social-privilege/biz/mall/handlermgr/mall
+
+syntax = "proto3";
+
+package comm.mgr.privilege;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/privilege/v2/privilege.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmprivilege";
+
+service ResourceMgr {
+
+  // 资源列表
+  rpc ListResource(ListResourceReq) returns (ListResourceRsp);
+
+  // 创建资源
+  rpc CreateResource(CreateResourceReq) returns (CreateResourceRsp);
+
+  // 批量创建资源
+  rpc BatchCreateResource(BatchCreateResourceReq) returns (BatchCreateResourceRsp);
+
+  // 更新资源
+  rpc UpdateResource(UpdateResourceReq) returns (UpdateResourceRsp);
+
+  // 下架资源
+  rpc OffShelfResource(OffShelfResourceReq) returns (OffShelfResourceRsp);
+
+  // 上架资源
+  rpc OnShelfResource(OnShelfResourceReq) returns (OnShelfResourceRsp);
+
+  // 删除资源
+  rpc DeleteResource(DeleteResourceReq) returns (DeleteResourceRsp);
+
+  // 检查复制粘贴的资源-用分类+资源名称判断相似, 入参资源必须是同一类型ID
+  rpc CheckPasteResource(CheckPasteResourceReq) returns (CheckPasteResourceRsp);
+}
+
+// 资源信息
+message MgrResource {
+  int64 id = 1;                                     // 资源ID
+  api.privilege.v2.CategoryID category_id = 2;      // 一级分类标识
+  api.privilege.v2.CategoryID sub_category_id = 3;  // 二级类标识
+  api.privilege.v2.EffectType effect_type = 4;      // 生效类型
+  api.privilege.v2.ResourceStatus status = 6;       // 上架状态
+  api.privilege.v2.Resource resource = 7;           // 资源信息
+  string key = 10;                                  // 资源key，用于控制相同分类下资源唯一
+  string extend = 11;                               // 扩展信息
+
+  int64 sort = 20;      // 排序 大 -> 小
+  string remark = 21;   // 备注
+  int64 ctime = 22;     // 创建时间
+  int64 utime = 23;     // 更新时间
+  string creator = 24;  // 创建人
+  string editor = 25;   // 编辑人
+
+  int64 owned_cnt = 50; // 拥有人数
+}
+
+// 资源列表请求
+message ListResourceReq {
+  scommon.Page page = 1;
+
+  api.privilege.v2.CategoryID category_id = 10;     // 一级分类标识
+  api.privilege.v2.CategoryID sub_category_id = 11; // 二级分类标识
+  int64 resource_id = 12;                           // 资源id
+  int64 status = 13;                                // 资源状态
+  string name = 14;                                 // 资源名称
+  int64 min_utime = 15;                             // 更新开始时间
+  int64 max_utime = 16;                             // 更新结束时间
+  string editor = 17;                               // 操作人
+  int64 min_ctime = 18;                             // 创建开始时间
+  int64 max_ctime = 19;                             // 创建结束时间
+  string creator = 20;                              // 创建人
+  api.privilege.v2.AssetArea animation_area = 21;   // 动画展示区域
+  int32 with_vehicle_banner = 22;                   // 是否有banner 1-是 2-否
+}
+
+// 资源列表响应
+message ListResourceRsp {
+  scommon.Page page = 1;                // 分页参数
+  repeated MgrResource resources = 10;  // 资源列表
+}
+
+message CreateResourceReq {
+  MgrResource resource = 1;
+}
+
+message CreateResourceRsp {}
+
+message BatchCreateResourceReq {
+  repeated MgrResource resources = 1;
+}
+
+message BatchCreateResourceRsp {}
+
+message UpdateResourceReq {
+  MgrResource resource = 1;
+}
+
+message UpdateResourceRsp {}
+
+message OffShelfResourceReq {
+  repeated int64 ids = 1;
+}
+
+message OffShelfResourceRsp {}
+
+message OnShelfResourceReq {
+  repeated int64 ids = 1;
+}
+
+message OnShelfResourceRsp {}
+
+message DeleteResourceReq {
+  repeated int64 ids = 1;
+}
+
+message DeleteResourceRsp {}
+
+message CheckPasteResourceReq {
+  api.privilege.v2.CategoryID category_id = 1;  // 分类ID
+  repeated MgrResource resources = 2;
+}
+
+message CheckPasteResourceRsp {
+  repeated MgrResource resources = 1;
+}

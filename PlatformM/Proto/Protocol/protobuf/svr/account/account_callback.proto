@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package pbsaccount;
+
+import "protobuf/api/account/account.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsaccount";
+
+// 执行 sproto -spath gitit.cc/social/components-service/code_path  account_callback.proto
+
+service AccountCallback {
+  // 登录前检查
+  rpc CanLogin(CanLoginReq) returns (CanLoginRsp);
+}
+
+message CanLoginReq {
+  // 方法参数ctx透传了客户端的ctx
+  int64 uid = 1; // 用户UID
+  .pbaccount.LoginType login_type = 2; // 登录类型
+  string biz_ext = 100;         // 业务拓展信息, 最好定义成一个 JSON 字符串并且有一个结构对应, 中台会在 AccountCallback 接口处回调传给业务.
+}
+
+message CanLoginRsp {
+  bool can = 1; // 是否可以登录
+  int32 code = 2; // 错误码(给客户端)
+  string message = 3; // 错误信息(给客户端)
+}

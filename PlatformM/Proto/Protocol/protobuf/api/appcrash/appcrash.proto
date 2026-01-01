@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package comm.api.appcrash;
+
+option java_package = "com.entertain.sns.comm.api.appcrash";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbappcrash";
+
+// serviceName: social-appcrash
+// smicro:spath=gitit.cc/social/components-service/social-appcrash/biz/appcrash/handler
+service AppCrash {
+  // 上报崩溃信息
+  rpc ReportCrashInfo(ReportCrashInfoReq) returns (ReportCrashInfoRsp);
+
+  // 上报崩溃文件
+  rpc ReportCrashFile(ReportCrashFileReq) returns (ReportCrashFileRsp);
+}
+
+enum Code {
+  CODE_OK = 0;
+}
+
+message CrashReport {
+  string anm = 8;           // 业务anm
+  int64 crash_time = 9;     // 发生时间
+  int64 report_time = 10;   // 上报时间
+  int32 crash_type = 11;    // 错误类型: 1:java crash 2:native crash 3:anr
+  string process_name = 12; // 进程名
+  string thread_name = 13;  // 崩溃线程名
+  string thread_id = 14;    // 崩溃线程名id
+  string abi = 15;          // cpu架构
+  int64 usage_time = 16;    // 使用时长，单位秒
+  int32 front_and_back_status = 17; // 前后天状态 1:前台 0:后台
+  string net = 18;          // 网络状态
+  int32 rooted = 19;        // 是否root 1:root 0:非root
+  string brand = 20;        // 品牌
+  string model = 21;        // 机型
+  string pid = 22;          // 进程id
+  string report_id = 23;    // 报告id，用于与文件映射
+  int64 total_storage_space = 24; // 总存储空间(单位:字节)
+  int64 available_storage_space = 25; // 可用存储空间(单位:字节)
+  int64 total_mem_size = 26;// 所有内存大小(单位:字节)
+  int64 available_mem_size = 27; // 可用内存大小(单位:字节)
+  string custom_data = 28;  // 自定义数据,json格式,base64编码
+  string stack_trace = 29;  // 堆栈信息
+  string rom_details = 30;  // ROM详情
+}
+
+message ReportCrashInfoReq {
+  CrashReport crash_report = 10;
+}
+
+message ReportCrashInfoRsp {
+
+}
+
+
+message ReportCrashFileReq {
+  string anm = 1; // 业务anm
+  string report_id = 2;
+  string file_url = 3;
+}
+
+message ReportCrashFileRsp {
+
+}

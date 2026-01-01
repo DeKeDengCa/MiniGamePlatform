@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package pbguild;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/svr/guild_old/guild_common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsguildold";
+
+service GuildInfo {
+  rpc ListGuild(ListGuildReq) returns (ListGuildRsp) {}
+}
+
+message GuildCategory {
+  int64 category_id = 1;
+  map<string, string> category_name = 2; // 分类名称, 目前只有 EN
+}
+
+message GuildGrade {
+  int64 grade_id = 1;
+  string grade_name = 2; // A / B / C
+}
+
+message Guild {
+  int64 id = 1;
+  string name = 2;
+  string logo = 3;
+  string profile = 4;
+  int64 manager_id = 5;
+  GuildCategory category = 6;
+  GuildGrade grade = 7;
+  int64 owner_uid = 8;
+  string owner_name = 9;
+  Country owner_country = 10;
+  string owner_whatsapp = 11;
+  string owner_mobile = 12;
+  string owner_email = 13;
+  repeated string owner_id_cards = 14;
+  int32 other_app_scale = 15;
+  repeated string other_app_screenshots = 16;
+  bool official = 17;
+  bool frozen = 18;
+  int64 frozen_at = 19;
+  int64 created_at = 20;
+  int64 updated_at = 21;
+}
+
+message ListGuildReq {
+  scommon.Page page = 1;           // 分页参数
+  repeated int64 owner_uids = 10;  // 公会长UID
+  repeated int64 guild_ids = 11;   // 公会ID
+}
+
+message ListGuildRsp {
+  scommon.Page page = 1;        // 分页参数
+  repeated Guild guilds = 10;   // 公会列表
+}

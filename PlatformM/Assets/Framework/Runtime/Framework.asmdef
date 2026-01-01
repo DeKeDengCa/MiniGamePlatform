@@ -1,0 +1,24 @@
+{
+    "name": "Framework",
+    "rootNamespace": "Astorise.Framework.Core",
+    "references": [
+        "YooAsset",
+        "UniTask",
+        "spine-unity",
+        "spine-csharp",
+        "AOT",
+        "NetworkFramework",
+        "AstrorisePlatform"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        "Assets/UnityNetwork/Assets/Plugins/ProtoBuf/Google.Protobuf.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

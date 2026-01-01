@@ -1,0 +1,98 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/rank/handler
+syntax = "proto3";
+
+package api.astrorise.voiceroom;
+
+option java_package="com.entertain.sns.api.gene";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbrank";
+
+import "api/platform/voiceroom/comm.proto";
+import "protobuf/api/sconfig/options.proto";
+import "protobuf/api/revenue/gift.proto";
+import "protobuf/api/activity/crank.proto";
+import "protobuf/api/adapter/model.proto";
+
+// serviceName: astrorise-voiceroom
+service Rank {
+  // 获取榜单详情
+  rpc GetRank(crank.GetRankReq) returns (crank.GetRankRsp);
+  // 获取榜单分类
+  rpc ListRankCategory(ListRankCategoryReq) returns (ListRankCategoryRsp);
+  // 获取周星榜单配置
+  rpc GetWeeklyStarRankConfig(GetWeeklyStarRankConfigReq) returns (GetWeeklyStarRankConfigRsp);
+}
+
+
+
+// 榜单样式，需要根据不同的样式解析榜单成员扩展信息
+enum RankStyle {
+  RANK_STYLE_NONE = 0;    // 无意义
+  RANK_STYLE_USER = 10 [(sconfig.schema.enum) = {name: "用户榜"}]; // UserRankEntityExtend
+  RANK_STYLE_ROOM = 20 [(sconfig.schema.enum) = {name: "房间榜"}]; // RoomRankEntityExtend
+//  RANK_STYLE_CP = 30 [(sconfig.schema.enum) = {name: "CP榜"}];
+}
+
+// 榜单配置信息，用于在不同入口获取榜单详情时控制请求参数或解析方式
+message RankConfig {
+  string rank_id = 1;                          // 榜单ID，用于请求参数: crank.GetPara.Template
+  RankStyle rank_style = 2;                    // 榜单样式，用于解析返回结构: crank.EntityInfo.Extend
+}
+
+// 获取榜单详情的扩展信息
+message GetRankParaExtend {
+}
+
+// 用户榜成员扩展信息
+message UserRankEntityExtend {
+  comm.api.adapter.UserInfo user_info = 1;            // 用户信息
+}
+
+// 房间榜成员扩展信息
+message RoomRankEntityExtend {
+  api.astrorise.voiceroom.RoomInfo room_info = 1;            // 房间信息
+  comm.api.adapter.UserInfo owner_info = 2;           // 房主信息
+  repeated api.astrorise.voiceroom.RoomTag room_tags = 5;    // 房间标签
+}
+
+
+
+message ListRankCategoryReq {
+  RankCategoryEntry entry = 1;      // 榜单入口
+}
+
+message ListRankCategoryRsp {
+  repeated RankCategory categories = 10;
+}
+
+// 榜单分类查询入口
+enum RankCategoryEntry {
+  RANK_CATEGORY_ENTRY_NONE = 0;
+  RANK_CATEGORY_ENTRY_HOME = 10 [(sconfig.schema.enum) = {name: "首页榜单"}];
+  RANK_CATEGORY_ENTRY_ROOM = 20 [(sconfig.schema.enum) = {name: "房间榜单"}];
+}
+
+// 榜单分类
+message RankCategory {
+  api.astrorise.voiceroom.I18NText i18n_name = 2;              // 多语言名称
+  repeated RankSubCategory sub_categories = 10; // 子分类，如果为空则不展示
+}
+
+// 榜单子分类
+message RankSubCategory {
+  api.astrorise.voiceroom.I18NText i18n_name = 2;              // 多语言名称
+  RankConfig rank_config = 10;                  // 榜单配置
+}
+
+
+
+message GetWeeklyStarRankConfigReq {
+}
+
+message GetWeeklyStarRankConfigRsp {
+  repeated WeeklyStarGift gifts = 10;   // 参与榜单的礼物列表
+}
+
+message WeeklyStarGift {
+  pbrevenue.GiftInfo gift_info = 1;     // 礼物信息
+}
+

@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package pbguild;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/svr/guild_old/guild_common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsguildold";
+
+service GuildAnchor {
+  rpc ListAnchor(ListAnchorReq) returns (ListAnchorRsp) {}
+}
+
+message AnchorTag {
+  int64 tag_id = 1;
+  string tag_name = 2;
+}
+
+enum AnchorSource {
+  ANCHOR_SOURCE_NONE = 0;
+  ANCHOR_SOURCE_ADMIN = 1;
+  ANCHOR_SOURCE_GUILD = 2;
+}
+
+enum AnchorAuditStatus {
+  ANCHOR_AUDIT_STATUS_NONE = 0;     // 无意义
+  ANCHOR_AUDIT_STATUS_AUDITING = 1; // 审核中
+  ANCHOR_AUDIT_STATUS_APPROVED = 2; // 已通过
+  ANCHOR_AUDIT_STATUS_REJECTED = 3; // 已拒绝
+}
+
+enum AnchorSignStatus {
+  ANCHOR_SIGN_STATUS_NONE = 0;          // 无意义
+  ANCHOR_SIGN_STATUS_UNSIGNED = 1;      // 未签约
+  ANCHOR_SIGN_STATUS_ACCEPTED = 2;      // 已签约
+  ANCHOR_SIGN_STATUS_DECLINED = 3;      // 已拒绝
+  ANCHOR_SIGN_STATUS_AUTO_DECLINED = 4; // 已自动拒绝
+}
+
+enum AnchorRole {
+  ANCHOR_ROLE_NONE = 0;
+  ANCHOR_ROLE_ANCHOR = 1;
+  ANCHOR_ROLE_BROKER = 2;
+}
+
+message Anchor {
+  int64 id = 1;
+  int64 uid = 2;
+  int64 guild_id = 3;
+  int64 migrated_at = 4;
+  repeated AnchorTag tags = 5;
+  string name = 6;
+  Country country = 7;
+  string whatsapp = 8;
+  string mobile = 9;
+  string email = 10;
+  repeated string id_cards = 11;
+  AnchorRole role = 12;
+  int64 broker_uid = 13;
+  AnchorSource source = 14;
+  AnchorAuditStatus audit_status = 15;
+  int64 audited_at = 16;
+  AnchorSignStatus sign_status = 17;
+  int64 signed_at = 18;
+  bool show_entrance = 19;  // 可进入主播公会系统
+  bool valid = 20;          // 有效的
+  int64 created_at = 21;
+  int64 updated_at = 22;
+}
+
+message ListAnchorReq {
+  scommon.Page page = 1;          // 分页参数
+  repeated int64 uids = 10;        // 主播UID
+  repeated int64 guild_ids = 11;   // 公会ID
+  repeated int64 broker_uids = 12; // 经纪人UID
+}
+
+message ListAnchorRsp {
+  scommon.Page page = 1;        // 分页参数
+  repeated Anchor anchors = 10;  // 主播列表
+}

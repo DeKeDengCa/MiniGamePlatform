@@ -1,0 +1,234 @@
+syntax = "proto3";
+
+package mgr.pbxtools;
+
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmgrxtools";
+
+// 告警配置
+// smicro:spath=gitit.cc/social/components-service/xtools/handler/alarm
+service Alarm {
+  // 添加告警配置
+  rpc AddAlarmConfig(AddAlarmConfigReq) returns (AddAlarmConfigRsp);
+  // 更新告警配置
+  rpc UpdateAlarmConfig(UpdateAlarmConfigReq) returns (UpdateAlarmConfigRsp);
+  // 删除告警配置
+  rpc DelAlarmConfig(DelAlarmConfigReq) returns (DelAlarmConfigRsp);
+  // 查询告警配置
+  rpc ListAlarmConfig(ListAlarmConfigReq) returns (ListAlarmConfigRsp);
+
+  // 添加静默
+  rpc AddSilent(AddSilentReq) returns (AddSilentRsp);
+  // 更新静默
+  rpc UpdateSilent(UpdateSilentReq) returns (UpdateSilentRsp);
+  // 删除静默
+  rpc DelSilent(DelSilentReq) returns (DelSilentRsp);
+  // 查询静默
+  rpc ListSilent(ListSilentReq) returns (ListSilentRsp);
+
+  // 获取服务--给alarm-server调用
+  rpc ListServiceForAlarm(ListServiceForAlarmReq) returns (ListServiceForAlarmRsp);
+
+  // 添加告警历史--给alarm-server调用
+  rpc AddAlarmHistory(AddAlarmHistoryReq) returns (AddAlarmHistoryRsp);
+
+  // 查询告警历史
+  rpc ListAlarmHistory(ListAlarmHistoryReq) returns (ListAlarmHistoryRsp);
+
+  // 添加/更新/删除prometheus alert rule，删除/查询复用 DelAlarmConfig/ListAlarmConfig
+  rpc AddPromRule(AddPromRuleReq) returns (AddPromRuleRsp);
+}
+
+enum PromRuleType {
+    PROM_RULE_TYPE_NONE = 0;
+    PROM_RULE_TYPE_QPS = 1;             // 请求数：个
+    PROM_RULE_TYPE_VOLA_MULTIPLE = 2;   // 涨幅倍数：倍
+    PROM_RULE_TYPE_SUCC_RATE = 3;       // 失败率：%
+
+}
+
+enum PromRuleOperator {
+    PROM_RULE_OPERATOR_NONE = 0;
+    PROM_RULE_OPERATOR_GE = 1; // >=
+    PROM_RULE_OPERATOR_LT = 2; // <
+}
+
+// 请求数（qps） >= threshold
+// 涨幅倍数 >= threshold
+// 成功率 <= threshold，查询字段中必须有code来代表哪个是成功的
+message PromRule {
+    string expr = 1;                // 计算公式：譬如 sum by (job, uri0, uri1) (rate(counter_total{uri0='errorlog'}[1m]))
+    int32 for = 2;                  // 单位为分钟默认为5分钟
+    string description = 3;         // 描述这个告警
+    PromRuleType ty = 4;            // 类型：请求数（qps），涨幅倍数，成功率。
+    int64 threshold = 5;            // 请求数（qps）>= threshold , 涨幅倍数 >= threshold ,成功率 <= threshold
+    int64 qps_restrict = 6;         // 当 ty 为波动率成功率时，可限制一下：qps 大于 某个值
+    string code = 7;                // 成功率时的code，多个时用逗号分开。譬如：0,200
+    string webhook = 8;             // 针对于一个告警规则的告警群
+}
+
+message AddPromRuleReq {
+    int64  id = 10;                  // update 时有效
+    int64 service_id = 11;           // 对应的serviceid
+    PromRule rule = 12;              // 增加的一个规则
+}
+message AddPromRuleRsp {
+    int64  id = 10;
+    string dest_expr = 11;           // 合并之后的expr
+    string alarm_name = 12;          // 告警名
+}
+
+message AlarmThreshold {
+    float delay = 1;        // 时延阈值
+    float qps = 2;          // qps阈值
+    float vola_qps = 3;     // qps波动告警，则需qps大于这个值
+    float qps_vola = 4;     // qps波动阈值
+    float delay_vola = 5;   // 时延波动阈值
+}
+
+message AlarmConfig {
+    int64 id = 1;                  // 唯一id，add时不要填
+    int64 service_id = 2;           // 对应的serviceid
+    string methond = 3;             // 告警的methond，支持*结尾的，前缀比较
+    AlarmThreshold threshold = 4;   // 告警阈值
+    AlarmThreshold urgent = 5;      // 升级，会拨打电话
+    string desc = 6;                // 告警描述
+
+    string operator = 50;           // 操作者，后端自动生成
+    int64 create_time = 51;         // 创建时间，后端自动生成
+    int64 update_time = 52;         // 更新时间，后端自动生成
+}
+
+message AddAlarmConfigReq{
+    AlarmConfig data = 10;
+}
+
+message AddAlarmConfigRsp {
+    int64 id = 10;
+}
+
+message UpdateAlarmConfigReq {
+    AlarmConfig data = 10;
+}
+message UpdateAlarmConfigRsp {
+    int64 id = 10;
+}
+
+message DelAlarmConfigReq {
+    repeated int64 ids = 10;
+}
+message DelAlarmConfigRsp {
+    int64 count = 10;
+}
+
+message ListAlarmConfigReq {
+    scommon.Page page = 1;
+    int64 service_id = 10;
+    bool needMilli = 11;        // 需要毫秒时间戳，默认是unix时间戳
+    string methond = 12;
+}
+message ListAlarmConfigRsp {
+    scommon.Page page = 1;
+    repeated AlarmConfig data = 10;
+    string alarm_webhook = 11;       // 业务的告警webhook
+}
+
+message AlarmSilent {
+    int64 id = 1;               // 唯一id，add时忽略
+    string methond = 2;         // 静默对应的methond，支持*结尾的，前缀比较，最长前缀为最佳匹配
+    int64 valid_begin = 3;      // 有效开始时间
+    int64 valid_end = 4;        // 有效结束时间
+    string operator = 5;        // 操作人，add/update时忽略，内部自动赋值
+    int64 create_at = 6;        // 创建时间点，add/update时忽略，内部自动赋值
+    int64 service_id = 7;       // 对应的service id
+    int64 alarm_config_id = 8;  // 对应的告警配置id，也可能没有对应的告警配置
+    int64 update_at = 9;        // 更新时间点，add/update时忽略，内部自动赋值
+}
+
+message AddSilentReq{
+    AlarmSilent data = 10;
+}
+message AddSilentRsp{
+    int64 id = 10;
+}
+
+message UpdateSilentReq{
+    AlarmSilent data = 10;
+}
+message UpdateSilentRsp{   
+}
+
+message DelSilentReq{
+    repeated int64 ids = 10;
+}
+message DelSilentRsp{   
+}
+
+message ListSilentReq{
+    scommon.Page page = 1;
+    int64 service_id = 10;
+    bool needMilli = 11;        // 需要毫秒时间戳，默认是unix时间戳
+    string methond = 12;
+}
+message ListSilentRsp{
+    scommon.Page page = 1;
+    repeated AlarmSilent data = 10;
+}
+
+message ServiceInfoForAlarm {
+    int64 id = 1;// 服务Id
+    int64 business_id = 2;// 业务Id
+    string business_name = 3;// 业务名称
+    string name = 4;// 服务名称，一旦创建不可更改，比如hala-api/hala-family/ahchat-api等
+    string smicro_name = 5;// smicro服务名称
+    int32 server_type = 6;// 服务类型(1:云主机,2:K8S)
+    string desc = 7;// 服务描述
+    string git_url = 8;// 服务git地址
+    string api_url = 9;// 服务api url
+    repeated string maintainers_phone = 10;// 维护人-phone
+    string creator = 11;// 创建人
+    int64 created_at = 12;// 创建时间，unix timestamp, seconds
+    string updater = 13;// 更新人
+    int64 updated_at = 14;// 更新时间
+}
+
+message ListServiceForAlarmReq {
+    scommon.Page page = 1;
+}
+message ListServiceForAlarmRsp {
+    scommon.Page page = 1;
+    repeated ServiceInfoForAlarm services = 11;
+}
+
+message AlarmHistory {
+    int64 id = 1;               // 唯一id
+    int64 service_id = 2;       // 对应的serviceid
+    int64 alarm_config_id = 3;  // 对应的alarm config id
+    string content = 4;         // 告警内容
+    string users = 5;           // 告警人员,现告警到群，无用
+    int64  alarm_time = 6;      // 告警开始时间
+    int64  send_time = 7;       //  发送告警时间
+    string webhook = 8;         // 告警webhook,现无用
+    string methond = 9;         // 告警的mthond
+}
+
+message AddAlarmHistoryReq {
+    AlarmHistory data = 10 ;
+}
+message AddAlarmHistoryRsp {
+    int64 id = 10;
+}
+
+message ListAlarmHistoryReq {
+    scommon.Page page = 1;
+    int64 service_id = 10;          // service id 必填
+    int64 alarm_config_id = 11;     // alarm config id 选填，在关联告警配置时填
+    int64 send_begin_time = 12;     // 查询告警开始时间
+    int64 send_end_time = 13;       // 查询告警结束时间
+    string methond = 14;     // 搜索methond
+}
+message ListAlarmHistoryRsp {
+    scommon.Page page = 1;
+    repeated AlarmHistory data = 10;
+}

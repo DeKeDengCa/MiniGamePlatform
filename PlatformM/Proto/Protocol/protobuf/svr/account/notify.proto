@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package pbsaccount;
+
+import "protobuf/api/account/account.proto";
+option go_package="gitit.cc/social/protobuf/gencode/svr/pbsaccount";
+
+
+// 账号状态事件
+enum AccountEvent {
+    ACCOUNT_EVENT_NONE = 0;
+    ACCOUNT_EVENT_REGISTER = 10; //账号注册
+    ACCOUNT_EVENT_LOGIN = 11;   //账号登录
+    ACCOUNT_EVENT_LOGOUT = 12; //账号登出
+    ACCOUNT_EVENT_BAN = 13;    //账号封禁
+    ACCOUNT_EVENT_UNBAN = 14;  //解除封禁
+    ACCOUNT_EVENT_WITHDRAW = 15;  //账号注销
+    ACCOUNT_EVENT_WITHDRAW_CANCEL = 17;//账号注销取消
+    ACCOUNT_EVENT_WITHDRAW_FINISHED = 16; //账号注销完成
+}
+
+message Comment {
+    int64 expired_at = 1;
+    string reason = 2;
+}
+
+message StatusUpdate {
+    int64 sourceStatus = 1; //原始状态
+    int64 targetStatus = 2; //新状态
+}
+
+// 账号状态变化通知
+message KafkaNotify {
+    AccountEvent event = 1;   //事件类型
+    int64 uid = 2;  //用户ID
+    string app = 3; //app
+    StatusUpdate status = 10;   //状态
+    Comment com = 11;   //说明信息
+}
+
+// 账号绑定消息
+message AccountBindMessage {
+    int64 ts = 1;                           // 时间戳
+    AccountBindType bind_type = 2;          // 绑定或解绑
+    int64 uid = 3;                          // UID
+    pbaccount.LoginType login_type = 10;    // 绑定或解绑的登录方式
+}
+
+// 账号绑定类型
+enum AccountBindType {
+    ACCOUNT_BIND_TYPE_NONE = 0;
+    ACCOUNT_BIND_TYPE_BIND = 10;    // 绑定
+    ACCOUNT_BIND_TYPE_UNBIND = 20;  // 解绑(目前没有解绑操作)
+}

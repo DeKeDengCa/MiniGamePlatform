@@ -1,0 +1,143 @@
+syntax = "proto3";
+
+package pbrefund;
+
+import "protobuf/svr/refund/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsrefund";
+option java_package = "com.refund.biz.proto";
+
+// mq msg
+
+// RechargeMsg 用户充值 topic: social-recharge
+message RechargeMsg {
+  string anm = 1;                // 项目标识
+  string sub_anm = 99;           // 业务子代号
+  int64  uid = 2;                // 用户ID
+  string order_no = 3;             // 订单ID
+  int64  amount_dollar_cent = 4;   // 订单金额(美分)
+  string ip = 5;                   // 发起充值IP
+  string did = 6;                  // 设备ID
+  string phone_number = 7;         // 手机号
+  string client_type = 8;          // 客户端类型：android, ios
+  string audit_status = 9;         // 审核状态：normal-正常充值且到账, 待审核-pending，拒绝-rejected，退款-refunded，已发货-shipped
+  int64  time = 10;                // 充值时间
+  string pay_type = 11;            // 支付方式（如：apple_pay google_pay）
+  CurrencyType currency_type = 20; // 充值获得的货币类型
+  int64 amount = 21;               // 充值获得的货币总额
+  int64 before_balance = 22;       // 充值前余额
+  int64 after_balance = 23;        // 充值后余额
+  string sku = 24;                 // 支付渠道配置的 sku
+  string sub_pay_type = 25;        // 支付子渠道，例如 quarkpay 子渠道有：CARD STCPAY
+  string channel_unit = 26;        // 实际支付币种，支付中台回调参数
+  string channel_amount = 27;      // 实际充值金额，支付中台回调参数
+  string channel_usd_amount = 28;  // 实际充值金额，美元单位换算，支付中台回调参数
+  string channel_unit_rate = 29;   // 支付货币转美元的汇率，支付中台回调参数
+  string pay_usd_rate = 30;        // 本币（sku配置的币种）对美元汇率
+  string pay_usd_amount = 31;      // sku配置的支付金额换算成美元
+  string unit = 32;                // 支付中台下单的币种，正常应该是跟sku配置一致，也有些情况是sku配置的雷院，但实际下单做了其他币种转换的，这个看实际业务情况
+  string pay_cb_json = 33;         // 支付中台回调原始数据 json 字符串
+  int64 agency_charge_balance = 34; // 充值后币商付费余额
+  int64 agency_free_balance = 35;     //充值后币商免费余额
+
+  string sid = 100;            // 分服，服ID
+}
+
+
+// OfflineRechargeMsg 用户线下充值 topic: social-offline-recharge
+message OfflineRechargeMsg {
+  string anm = 1;                    // 项目标识
+  string sub_anm = 99;               // 业务子代号
+  int64  uid = 2;                    // 用户ID
+  string order_no = 3;               // 订单ID
+  int64  from_uid = 4;               // 币商uid
+  int64  time = 5;                   // 充值时间
+  string audit_status = 6;           // 审核状态：normal-正常充值且到账, 待审核-pending，拒绝-rejected，退款-refunded，已发货-shipped
+  CurrencyType currency_type = 7;    // 充值获得的货币类型
+  int64 amount = 8;                  // 充值获得的货币总额
+  int64 before_balance = 9;          // 充值前余额
+  int64 after_balance = 10;          // 充值后余额
+  OfflineRechargeSource source = 11; // 线下充值来源
+
+  string sid = 100;            // 分服，服ID
+}
+
+enum OfflineRechargeSource {
+    OFFLINE_RECHARGE_SOURCE_UNKNOWN = 0;
+    OFFLINE_RECHARGE_SOURCE_COIN_AGENCY = 1;    // 币商充值
+    OFFLINE_RECHARGE_SOURCE_USD_EXCHANGE = 2;   // 美金钱包兑换
+}
+
+// OrderAuditMsg 订单审核状态变更 topic: social-order-audit
+message OrderAuditMsg {
+  string anm = 1;          // 项目标识
+  string sub_anm = 99;     // 业务子代号
+  int64  uid = 2;          // 用户ID
+  string order_no = 3;     // 订单ID
+  string audit_status = 4; // 审核状态：待审核-pending，拒绝-rejected，退款-refunded，已发货-shipped
+  int64  time = 5;         // 充值时间
+}
+
+// CreateOrderMsg 创建订单（发起支付） topic: social-order-create
+message CreateOrderMsg {
+  string anm = 1;                // 项目标识
+  string sub_anm = 99;           // 业务子代号
+  int64  uid = 2;                // 用户ID
+  string order_no = 3;           // 订单ID
+  int64  amount_dollar_cent = 4; // 订单金额(美分)
+  string ip = 5;                 // 发起充值IP
+  string did = 6;                // 设备ID
+  string phone_number = 7;       // 手机号
+  string client_type = 8;        // 客户端类型：android, ios
+  int64  time = 9;               // 充值时间
+  string pay_type = 10;          // 支付方式（如：apple_pay google_pay）
+}
+
+// 处罚用户消息，需要立即处理的类型通过 kafka 消息通知，如：push 通知
+// topic: social-limit-user-action-${anm}
+message LimitUserActionMsg {
+  int64 uid = 1;              // 用户ID
+  ActionOpt action_opt = 2;   // 处罚信息
+}
+
+// 处罚选项
+message ActionOpt {
+  LimitType type = 1;   // 限制/执行的处罚类型
+  string value = 2;     // 限制行为相关参数 json 字符串，可以解析成以下 Opt 类型，根据type来解析
+}
+
+// 多语言文案，如发端内弹窗、push
+message TextOpt {
+  map<string, string> msg = 1;  // 多语言文案<lan, msg>
+}
+
+// TimeOpt 时间点配置，如限制消费的结束时间点
+message TimeOpt {
+  int64 end_time = 1; // 限制结束时间
+}
+
+// DelayOpt 延迟类型配置，如金币延发时长
+message DelayOpt {
+  int64 duration = 1; // 延发时长
+}
+
+// LimitSceneOpt 场景限制
+message LimitSceneOpt {
+  string scene = 1; // 限制哪些场景
+  int64 end_time = 2;        // 限制结束时间
+}
+
+enum LimitType {
+  NONE = 0; // 不限制，保留值
+  PUSH_NOTIFICATION = 1; // 端内推送告警，TextOpt
+  POPUP_ALERT = 2; // 端内弹窗告警，TextOpt
+  COIN_DELAY_DELIVERY = 3; // 金币延迟发放，DelayOpt todo
+  GIFT_DELAY_DELIVERY = 4; // 礼包延迟发放，DelayOpt todo
+  VIP_DELAY_DELIVERY = 5; // 会员延迟发放，DelayOpt todo
+  MANUAL_CARD = 6; // 人工卡单，TimeOpt
+  LIMIT_EXPENSE = 7; // 限制消费，LimitSceneOpt
+  LIMIT_RECHARGE = 8; // 限制充值, TimeOpt
+  LIMIT_CURRENT_RECHARGE = 9; // 限制该笔充值，todo
+  LIMIT_IM_CHAT = 10; // 限制im聊天，TimeOpt
+  DING_TALK_ALERT = 11; // 钉钉告警，业务无需关注
+}

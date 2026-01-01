@@ -1,0 +1,92 @@
+syntax = "proto3";
+
+package pbrefund;
+
+import "protobuf/svr/refund/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsrefund";
+option java_package = "com.refund.biz.proto";
+
+// 退款工单关联的账户余额服务
+service RefundBalance {
+  // 批量获取用户的多个币种余额
+  rpc GetBalance(GetBalanceReq) returns (GetBalanceRsp) {}
+  // 批量扣减用户的多个币种余额
+  rpc DeductBalance(DeductBalanceReq) returns (DeductBalanceRsp) {}
+  // 批量冻结用户的多个币种余额
+  rpc FreezeBalance(FreezeBalanceReq) returns (FreezeBalanceRsp) {}
+  // 批量解冻用户的多个币种余额
+  rpc UnfreezeBalance(UnfreezeBalanceReq) returns (UnfreezeBalanceRsp) {}
+}
+
+// 余额
+message Balance {
+  int64 uid = 1;
+  CurrencyType currency_type = 2;
+  int64 amount = 3;
+  bool frozen = 4;
+}
+
+// 批量获取用户的多个币种余额
+message GetBalanceReq {
+  string business_id = 1;
+  repeated int64 uids = 2;
+  repeated CurrencyType currency_types = 3;
+}
+
+// 批量获取用户的多个币种余额
+message GetBalanceRsp {
+  repeated Balance balances = 1;
+}
+
+
+// 扣除
+message Deduction {
+  string seq_id = 1;              // 幂等ID
+  int64 uid = 2;                  // 扣除用户UID
+  CurrencyType currency_type = 3; // 扣除货币类型
+  int64 expect_amount = 4;        // 期望扣除总额
+  int64 actual_amount = 5;        // 返回时才需要, 实际扣除总额
+  int64 error_code = 6;           // 返回时才需要, 0: 表示成功  -1: 表示曾经成功过  x: 均为失败
+  string error_message = 7;       // 返回时才需要, 错误消息.
+  int64 free_balance = 8;          // 扣除后账户剩余免费数
+  int64 charge_balance = 9;        // 扣除后庄户剩余付费数
+  int64 balance = 10;               // 扣除后账户总额
+  int64 free_amount = 11;          // 扣除的免费货币总额
+  int64 charge_amount = 12;        // 扣除的付费货币总额
+
+}
+
+// 批量扣减用户的多个币种余额
+message DeductBalanceReq {
+  string business_id = 1;
+  repeated Deduction deductions = 2;
+}
+
+// 批量扣减用户的多个币种余额
+message DeductBalanceRsp {
+  repeated Deduction deductions = 1;
+}
+
+
+// 批量冻结用户的多个币种余额
+message FreezeBalanceReq {
+  string business_id = 1;
+  repeated int64 uids = 2;
+  repeated CurrencyType currency_types = 3;
+}
+
+// 批量冻结用户的多个币种余额
+message FreezeBalanceRsp {
+}
+
+// 批量解冻用户的多个币种余额
+message UnfreezeBalanceReq {
+  string business_id = 1;
+  repeated int64 uids = 2;
+  repeated CurrencyType currency_types = 3;
+}
+
+// 批量解冻用户的多个币种余额
+message UnfreezeBalanceRsp {
+}

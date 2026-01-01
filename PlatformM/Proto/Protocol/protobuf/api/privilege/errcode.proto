@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package api.privilege;
+
+option java_package = "com.entertain.sns.api.privilege";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbprivilegev1";
+
+enum ErrCode {
+  ErrCodeNone = 0;
+  ErrCodeSingleCoinValuesNotMatch = 40001;  //道具价值金币数不匹配
+  ErrBagGoodsNumNotEnough = 40002;  //道具数量不足
+}

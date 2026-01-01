@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package pbrefund;
+
+import "protobuf/svr/refund/risk_common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsrefund";
+option java_package = "com.refund.biz.proto";
+
+// smicro:spath=gitit.cc/social/components-service/social-refund/pkg/risk/rpc_riskmock.go
+service RiskMock {
+  // 添加充值事件统计
+  rpc AddRechargeMsg (AddRechargeMsgReq) returns (AddRechargeMsgRsp);
+  // 添加创建订单事件统计
+  rpc AddCreateOrderMsg (AddCreateOrderMsgReq) returns (AddCreateOrderMsgRsp);
+  // 添加订单审核事件统计
+  rpc AddOrderAuditMsg (AddOrderAuditMsgReq) returns (AddOrderAuditMsgRsp);
+}
+
+message AddRechargeMsgReq {
+  RechargeMsg event_msg = 1;
+}
+
+message AddRechargeMsgRsp{
+}
+
+message AddCreateOrderMsgReq {
+  CreateOrderMsg event_msg = 1;
+}
+
+message AddCreateOrderMsgRsp{
+}
+
+
+message AddOrderAuditMsgReq {
+  OrderAuditMsg event_msg = 1;
+}
+
+message AddOrderAuditMsgRsp {
+}

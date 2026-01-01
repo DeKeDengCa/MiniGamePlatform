@@ -1,0 +1,38 @@
+// smicro:spath=gitit.cc/social/echo/handle/svr
+syntax = "proto3";
+
+package pbsadapter;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsadapter";
+option java_package = "com.common.biz.oss";
+
+service CommonOss {
+  rpc GetSTSToken(GetSTSTokenReq) returns (GetSTSTokenRsp) {}
+  rpc GetSignedURL(GetSignedURLReq) returns (GetSignedURLRsp) {}
+}
+
+message GetSTSTokenReq {
+  int64 uid = 1;
+  string scene = 2;
+  string object_name = 3;
+}
+
+message GetSTSTokenRsp {
+  string endpoint = 1;
+  string access_key_id = 2;
+  string access_key_secret = 3;
+  string security_token = 4;
+  string bucket_name = 5;
+  string object_name = 6;
+}
+
+message GetSignedURLReq {
+  int64 uid = 1;
+  string scene = 2;
+  string object_name = 3;
+}
+
+message GetSignedURLRsp {
+  string url = 1;
+  int64 expired_at = 2;
+}

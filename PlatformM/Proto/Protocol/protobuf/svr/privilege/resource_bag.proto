@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package svr.privilege;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsprivilege";
+
+// smicro:spath=gitit.cc/social/components-service/social-privilege/biz/resourcebag/handlersvr
+

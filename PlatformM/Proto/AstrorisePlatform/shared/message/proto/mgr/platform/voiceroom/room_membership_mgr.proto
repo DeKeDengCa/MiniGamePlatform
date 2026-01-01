@@ -1,0 +1,184 @@
+syntax = "proto3";
+
+package mgr.astrorise.voiceroom.room.membership;
+
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbroommembershipmgr";
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/adapter/model.proto";
+import "protobuf/api/privilege/v2/privilege.proto";
+import "api/platform/voiceroom/room_membership.proto";
+
+// 房间会员
+// serviceName: gene-api
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/roommembership/handlermgr
+service RoomMembershipMgr {
+  // 保存房间会员配置
+  rpc SaveRoomMembershipConfig(SaveRoomMembershipConfigReq) returns (SaveRoomMembershipConfigRsp);
+  // 删除房间会员配置
+  rpc DeleteRoomMembershipConfig(DeleteRoomMembershipConfigReq) returns (DeleteRoomMembershipConfigRsp);
+  // 获取房间会员配置
+  rpc ListRoomMembershipConfig(ListRoomMembershipConfigReq) returns (ListRoomMembershipConfigRsp);
+
+  // 查询房间会员开通记录
+  rpc QueryRoomMembershipRecord(QueryRoomMembershipRecordReq) returns (QueryRoomMembershipRecordRsp);
+  // 发放房间会员
+  rpc GrantRoomMembership(GrantRoomMembershipReq) returns (GrantRoomMembershipRsp);
+
+
+  // ---------- 房间会员档位权益管理 ----------
+  // 新增房间会员档位权益（可批量）
+  rpc AddRoomMembershipPrivileges (AddRoomMembershipPrivilegesReq) returns (AddRoomMembershipPrivilegesRsp);
+
+  // 更新房间会员档位权益（单条）
+  rpc UpdateRoomMembershipPrivilege (UpdateRoomMembershipPrivilegeReq) returns (UpdateRoomMembershipPrivilegeRsp);
+
+  // 删除房间会员档位权益（单条）
+  rpc DeleteRoomMembershipPrivilege (DeleteRoomMembershipPrivilegeReq) returns (DeleteRoomMembershipPrivilegeRsp);
+
+  // 查询房间会员档位下权益列表
+  rpc ListRoomMembershipPrivileges (ListRoomMembershipPrivilegesReq) returns (ListRoomMembershipPrivilegesRsp);
+}
+
+
+// 一次性房间会员配置
+message RoomMembershipConfig {
+  int64 id = 1;                       // ID
+  int32 level = 2;                    // 等级
+  string name = 3;                    // 名称
+  string icon = 4;                    // 图标
+  int64 duration_sec = 5;             // 有效期，单位秒
+  RoomMembershipCost cost = 10;       // 购买花费
+  RoomMembershipBenefit benefit = 11; // 购买获得
+  int64 version = 20;                 // 版本号
+}
+
+// 购买花费
+message RoomMembershipCost {
+  int64 gold = 1;                     // 金币数
+}
+
+// 购买获得
+message RoomMembershipBenefit {
+  repeated RoomMembershipPrivilege privileges = 1;    // 权益列表
+}
+
+
+
+message SaveRoomMembershipConfigReq {
+  int64 id = 1;                       // 0表示新增，否则表示修改
+  RoomMembershipConfig config = 10;
+}
+
+message SaveRoomMembershipConfigRsp {
+  RoomMembershipConfig config = 10;
+}
+
+
+
+message DeleteRoomMembershipConfigReq {
+  repeated int64 ids = 1;             // 要删除的ID
+}
+
+message DeleteRoomMembershipConfigRsp {
+}
+
+
+
+message ListRoomMembershipConfigReq {
+}
+
+message ListRoomMembershipConfigRsp {
+  repeated RoomMembershipConfig configs = 10;
+}
+
+
+
+// 房间会员开通记录
+message RoomMembershipRecord {
+  int64 room_id = 1;                  // 房间ID
+  int32 first_level = 2;              // 首次开通的等级
+  int32 last_level = 3;               // 最近开通的等级
+  int64 first_start = 5;              // 首次开通时间戳，单位秒
+  int64 last_end = 6;                 // 最近开通的到期时间戳，单位秒
+  bool active = 10;                   // 当前是否生效中
+  int64 cost_gold = 11;               // 总消耗金币
+}
+
+message QueryRoomMembershipRecordReq {
+  scommon.Page page = 1;              // 分页
+  Filter filter = 10;                 // 筛选项
+
+  message Filter {
+    repeated int64 room_ids = 1;
+    repeated int64 owner_uids = 2;
+    repeated int32 room_membership_levels = 3;
+  }
+}
+
+message QueryRoomMembershipRecordRsp {
+  scommon.Page page = 1;
+  repeated RoomMembershipRecord records = 10;
+}
+
+
+
+// 发放房间会员的输入项
+message GrantRoomMembershipInput {
+  int64 room_id = 1;                      // 发放目标
+  int32 room_membership_level = 2;        // 发放等级
+  int64 duration_sec = 3;                 // 发放天数
+  bool only_privilege = 10;               // 仅发放虚拟特权，不发放金币
+}
+
+message GrantRoomMembershipReq {
+  repeated GrantRoomMembershipInput inputs = 1;
+}
+
+message GrantRoomMembershipRsp {
+}
+
+
+
+// 房间等级档位权益信息
+message RoomMembershipPrivilege {
+  int64 id = 1; // 权益id
+  api.astrorise.voiceroom.roommember.PrivilegeType privilege_type = 3; // 房间权益类型
+  int64 resource_id = 5; // 资源id
+  api.privilege.v2.EffectType effect_type = 6; // 资源生效类型
+  int64 amount = 7; // 数量
+  int64 effective_time = 8; // 有效时间 (单位:秒, <=0:永久)
+  api.astrorise.voiceroom.roommember.RoomMembershipPrivilege extend = 9; // 扩展信息
+  string image_url = 14; // 特权图片url
+}
+
+
+message AddRoomMembershipPrivilegesReq {
+  int64 room_membership_id = 1; // 房间会员档位ID
+  repeated RoomMembershipPrivilege privileges = 2;
+}
+message AddRoomMembershipPrivilegesRsp {
+}
+
+message UpdateRoomMembershipPrivilegeReq {
+  int64 room_membership_id = 1; // 房间会员档位ID
+  RoomMembershipPrivilege privilege = 2;
+}
+message UpdateRoomMembershipPrivilegeRsp {
+}
+
+message DeleteRoomMembershipPrivilegeReq {
+  int64 room_membership_id = 1;       // 房间会员档位ID
+  repeated int64 privilege_ids = 2;   // 要删除的权益ID列表
+}
+message DeleteRoomMembershipPrivilegeRsp {
+}
+
+message ListRoomMembershipPrivilegesReq {
+  int64 room_membership_id = 1;
+}
+message ListRoomMembershipPrivilegesRsp {
+  repeated RoomMembershipPrivilege privileges = 1;
+  map<int64, api.privilege.v2.Resource> resources = 2; // map<特权资源id, 特权资源>
+  repeated api.astrorise.voiceroom.roommember.PrivilegeType missing_privilege_types = 3; // 对比上一等级缺失的权限类型
+}

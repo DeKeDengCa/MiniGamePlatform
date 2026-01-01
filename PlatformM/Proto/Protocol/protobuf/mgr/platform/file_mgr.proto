@@ -1,0 +1,48 @@
+// 低代码平台使用, 业务实现的接口
+
+// smicro:spath=gitit.cc/social/gene/gene-api/biz/file/handlermgr
+syntax = "proto3";
+
+package comm.mgr.platform.file;
+
+option java_package = "com.gene.biz.proto";
+option go_package = "gitit.cc/social/gene/gene-api/proto/pbfilemgr";
+
+service FileMgr {
+  // 获取文件上传信息, 返回文件上传的目标地址.
+  rpc GetUploadInfo(GetUploadInfoReq) returns (GetUploadInfoRsp);
+
+  // 批量copy对象资源
+  rpc BatchCopy(BatchCopyReq) returns (BatchCopyRsp);
+
+}
+
+message GetUploadInfoReq {
+  string scene = 10;      // 上传场景, 头像: AVATAR, 私聊: IM_CHAT, 房间封面: ROOM_COVER, 公屏: ROOM_MESSAGE, ...
+  string file_type = 11;  // 文件类型, 图片: IMAGE, 音频: AUDIO, 视频: VIDEO. ...
+  string mime_type = 12;  // 文件 MIME-Type, 图片: image/jpeg, image/png, image/webp, 音频: audio/mpeg, audio/ogg, ...
+}
+message GetUploadInfoRsp {
+  string put_url = 1;     // 上传地址
+  string get_url = 2;     // 下载地址
+  string file_path = 3;   // 文件路径
+}
+
+message CopyObjectReq {
+  string src_object = 1;  // 源对象
+  string dest_object = 2; // 目标对象
+}
+
+message BatchCopyReq {
+  repeated CopyObjectReq objects = 1;
+}
+
+message CopyObjectRsp {
+  string src_object = 1;  // 源对象
+  string dest_object = 2; // 目标对象
+  string dest_file_url = 3; // 目标对象
+}
+
+message BatchCopyRsp {
+  repeated CopyObjectRsp objects = 1;
+}

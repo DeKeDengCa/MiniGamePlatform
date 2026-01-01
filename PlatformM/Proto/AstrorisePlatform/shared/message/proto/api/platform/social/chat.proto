@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package api.astrorise.social.chat;
+
+import "api/platform/common.proto";
+import "protobuf/api/adapter/model.proto";
+
+// smicro:spath=gitit.cc/social/astrorise/arplatform/s_social/biz/chat/handler
+option go_package = "gitit.cc/social/astrorise/arprotobuf/gencode/api/social/pbchat";
+option java_package="com.entertain.sns.astrorise.social.chat";
+
+// serviceName: astrorise.platform.social
+service Chat {
+  rpc RefreshImToken(RefreshImTokenReq) returns (RefreshImTokenRsp);
+
+  // 获取聊天会话信息
+  rpc GetSessionInfo(GetSessionInfoReq) returns (GetSessionInfoRsp);
+
+  // 发送群聊消息
+  rpc SendGroupMsg(SendGroupMsgReq) returns (SendGroupMsgRsp);
+}
+
+// ======================================================== 枚举 ========================================================
+
+enum GroupMsgType {
+  GROUP_MSG_TYPE_NONE = 0;
+  GROUP_MSG_TYPE_TEXT = 1;
+  GROUP_MSG_TYPE_VOICE = 2;
+}
+
+
+enum ChatType {
+  Unknown = 0;
+  CHAT_TYPE_PRIVATE = 1; // 1v1私聊
+  CHAT_TYPE_TEAM_GROUP = 2; // 组队群聊
+  CHAT_TYPE_WORLD_GROUP = 3; // 世界群聊
+}
+
+
+
+// ======================================================== 结构体 ========================================================
+
+message RefreshImTokenReq {}
+
+message RefreshImTokenRsp {
+  string token = 1;
+}
+
+message GetSessionInfoReq{
+  ChatType chat_type = 1; // 聊天类型
+  int64 target_uid = 10; // 对方UID-1v1聊天传参
+  string group_id = 11; // 群聊ID-群聊传参
+}
+
+message GetSessionInfoRsp {
+  api.astrorise.platform.UserOnlineStatus target_online_status = 1; // 对方在线状态
+  int64 last_online_ts = 2; // 最后在线时间戳-对方离线时展示
+}
+
+message SendGroupMsgReq {
+  ChatType chat_type = 1;
+  int32 game_id = 2;  // 游戏id
+
+  int32 team_id = 3;  // 队伍id(如果有)
+  comm.api.adapter.UserInfo base_user_info = 4; // 自己的用户信息(信令透传)
+  Text txt = 5; // 文本消息
+  Voice voice = 6;  // 语音消息
+  GroupMsgType msg_type = 7;  // 消息类型
+}
+
+// 文本消息
+message Text {
+  string content = 1;  // 消息内容
+  map<string,string> i18n_map = 2; // 国际化-多语言map
+}
+
+// 语音消息
+message Voice {
+  string content = 1;  // 消息内容
+  int64 duration = 2; // 语音时长-秒
+  int64 size = 3; // 语音大小-单位byte
+}
+
+message SendGroupMsgRsp {}

@@ -1,0 +1,66 @@
+// smicro:spath=gitit.cc/social/components-service/social-relation/biz/relation/handler/roomfollow
+syntax = "proto3";
+
+package comm.api.relation;
+
+import "protobuf/api/common/common.proto";
+
+option java_package = "com.entertain.sns.comm.api.relation";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbrelation";
+
+// 房间关注
+service RoomFollow {
+  // 关注
+  rpc FollowRoom(FollowRoomReq) returns (FollowRoomRsp);
+  // 取消关注
+  rpc UnFollowRoom(UnFollowRoomReq) returns (UnFollowRoomRsp);
+  // 获取用户关注房间ID列表
+  rpc GetFollowRoomIDs(GetFollowRoomIDsReq) returns (GetFollowRoomIDsRsp);
+  // 粉丝列表 （关注房间的用户ID）
+  rpc GetRoomFansIDs(GetRoomFansIDsReq) returns (GetRoomFansIDsRsp);
+  // 批量查询是否关注房间
+  rpc BatchIsFollow(BatchIsFollowReq) returns (BatchIsFollowRsp);
+}
+
+// 关注房间
+message FollowRoomReq {
+  int64 room_id = 1; // 添加关注的房间ID
+}
+
+message FollowRoomRsp {}
+
+// 取消关注
+message UnFollowRoomReq {
+  int64 unFollowRoomID = 2; // 取消关注的房间ID
+}
+
+message UnFollowRoomRsp {}
+
+// 获取用户关注房间ID列表
+message GetFollowRoomIDsReq {
+  scommon.Page page = 1; // 分页
+}
+
+message GetFollowRoomIDsRsp {
+  scommon.Page page = 1; // 分页
+  repeated int64 room_ids = 2; // 关注房间ID列表
+}
+
+// 获取粉丝ID列表
+message GetRoomFansIDsReq {
+  scommon.Page page = 1; // 分页
+  int64 room_id = 2; // 房间ID
+}
+
+message GetRoomFansIDsRsp {
+  scommon.Page page = 1; // 分页
+  repeated int64 fans_ids = 2; // 粉丝ID列表
+}
+
+message BatchIsFollowReq {
+  repeated int64 room_ids = 10;
+}
+
+message BatchIsFollowRsp {
+  map<int64, bool> followed = 10;
+}

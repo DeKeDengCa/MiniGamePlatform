@@ -1,0 +1,120 @@
+syntax = "proto3";
+
+package pbrevenue;
+
+import "protobuf/api/revenue/common.proto";
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbrevenue";
+option java_package = "com.entertain.sns.pbrevenue";
+
+// 支付sdk已经升级到pb协议，支付相关协议迁移到 https://gitit.cc/social/protocol/api/pay
+// 该协议暂时保留，仅提供carne旧版本使用
+service Goods {
+  // 获取商品列表
+  rpc ListGoods(ListGoodsReq) returns (ListGoodsRsp);
+
+  // 创单接口
+  rpc CreateOrder(CreateOrderReq) returns (CreateOrderRsp);
+
+  // 校验订单接口
+  rpc CheckOrder(CheckOrderReq) returns (CheckOrderRsp);
+
+  // 用户充值订单分页查询
+  rpc PageUserOrder(PageUserOrderReq) returns (PageUserOrderRsp);
+
+  // 支持的支付方式列表查询
+  rpc ListPayInfo(ListPayInfoReq) returns (ListPayInfoRsp);
+
+}
+
+message ListGoodsReq {
+  string cou = 1;             // 非必须，h5 quarkpay 支付需要传
+  string pay_type = 2;        // 支付方式 google_pay apple_pay huaweipay quarkpay 等，默认根据客户端类型判断，h5 根据实际支付渠道传
+  string pay_code = 3;        // 非必须，quarkpay 支付需要传 CARD（银行卡），STCPAY（钱包），参考中台支付接口定义，https://nemo.yuque.com/be/mmszip/mb0hzzhhgr1zhy98#qqPCn
+  ClientType client_type = 4; // h5必传，客户端类型，不传则使用公参
+  int64 uid = 5;              // 非必须，充值用户ID，默认取当前登录用户ID，给别人充值场景传
+}
+
+message ListGoodsRsp {
+  repeated GoodsInfo goods = 1;        // 商品（SKU）列表
+  string third_party_recharge_url = 2; // 第三方充值url
+}
+
+message CreateOrderReq {
+  int64 goods_id = 1;      // 商品ID
+  int32 num = 2;           // 非必须，购买数量，默认1，系统扩展预留
+  string pay_type = 3;     // 支付方式，如：huaweipay google_play apple_pay quarkpay
+  bool order_by_sdk = 4;   // sdk 支付
+  string phone_number = 5; // 可选，用户手机号
+  string channel_id = 6;   // 支付渠道，由支付方传入，不超过30个字符
+  string ext = 7;          // 非必须，透传给业务
+  string location = 8;     // 非必须，quarkpay 支付需要传，选择国家编码
+  string language = 9;     // 非必须，quarkpay 支付需要传，选择语言编码
+  string success_url = 10; // 非必须，quarkpay 支付需要传，支付成功后跳转的页面地址，
+  string pay_code = 11;    // 非必须，quarkpay 支付需要传，支付方式编码
+  int64 uid = 12;          // 非必须，充值用户ID，默认取当前登录用户ID，给别人充值场景传
+}
+
+message CreateOrderRsp {
+  OrderInfo order_info = 1;          // 订单信息
+  string pay_order_json_result = 2;  // 非必须，非sdk支付返回，中台创建订单返回结果，因中台接口返回内容字段不统一，且为了保持后续扩展性，直接使用json字符串，具体查看中台下单接口https://nemo.yuque.com/pay_system/interface/haaq01#415E8
+}
+
+message OrderInfo {
+  string order_no = 1;   // 订单号
+  string order_name = 2; // 订单名称
+  string mid = 3; // 支付中心参数
+  string client_type = 4; // 客户端类型
+  string checksum = 5; // 签名
+  int64 pay_amount = 6; // 需要支付的金额（分）
+  string unit = 7; // 支付金额单位，如：USD
+  string pay_type = 8; // 支付方式
+  string channel_id = 9; // 可选，支付渠道ID
+  string callback_url = 10; // 可选，回调url，通过此地址来通知付款结果（如果不填需要联系研发在后台配置回调地址）
+  string return_url = 11; // 可选，支付完成后跳转的url，仅web支付使用
+  GoodsInfo goods_info = 12; // 购买商品信息
+  int32 num = 13; // 购买数量，默认1，系统扩展预留
+  string pay_amount_dollar = 14;  // 换算成美元单位
+}
+
+message CheckOrderReq {
+  string order_no = 1;  // 订单ID
+}
+
+message CheckOrderRsp {
+  PayStatus status = 1;      // 支付状态
+  int64 coin = 2;            // 充值后钱包金币数
+  int64 recharge_coin = 3;   // 当比充值获得金币
+}
+
+message PageUserOrderReq {
+  scommon.Page page = 1; // 分页参数
+  string pay_type = 2;    // 支付方式
+  int64 start_time = 3;  // 开始时间
+  int64 end_time = 4;    // 结束时间
+}
+
+message PageUserOrderRsp {
+  scommon.Page page = 1; // 分页参数
+  repeated GoodsOrderInfo list = 2; // 充值列表
+}
+
+message ListPayInfoReq {
+  string cou = 1;             // 可选，国家编码，不传则查询所有国家
+  string pay_type = 2;        // 可选，支付方式，如：quarkpay，不传则是所有支付方式
+  ClientType client_type = 3; // 必传，客户端类型
+  int64 uid = 5;              // 非必须，充值用户ID，默认取当前登录用户ID，给别人充值场景传
+}
+
+message ListPayInfoRsp {
+  repeated PayInfo list = 1;
+}
+
+message PayInfo {
+  string cou = 1;           // 国家
+  string pay_type = 2;      // 支付方式
+  string pay_code = 3;      // 支付code，如：CARD（银行卡），STCPAY（钱包），参考中台支付接口定义，https://nemo.yuque.com/be/mmszip/mb0hzzhhgr1zhy98#qqPCn
+  string pay_code_img = 4;  // 支付code对应的图片
+  string pay_code_name = 5; // 支付code对应的名称
+}

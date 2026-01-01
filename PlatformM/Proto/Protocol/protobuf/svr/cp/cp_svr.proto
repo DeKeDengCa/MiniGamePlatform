@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package comm.svr.cp;
+
+option java_package = "com.entertain.sns.comm.svr.cp";
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbscp";
+
+import "protobuf/api/cp/cp-api.proto";
+
+// ServiceName: social-biz
+// smicro:spath=gitit.cc/social/components-service/social-biz/biz/cp/handlersvr
+service CPSvr {
+  // 能否组成cp
+  rpc CanBeCP(CanBeCPReq) returns (CanBeCPRsp);
+  // 申请成为CP
+  rpc ApplyCP(ApplyCPReq) returns (ApplyCPRsp);
+  // 批量获取cp uid
+  rpc BatchGetUserCpUid(BatchGetUserCpUidReq) returns (BatchGetUserCpUidRsp);
+  // 获取最近一次 cp 申请信息
+  rpc GetLastCpInviteInfo(GetLastCpInviteInfoReq) returns (GetLastCpInviteInfoRsp);
+  // 获取cp信息
+  rpc GetCpByUid(GetCpByUidReq) returns (GetCpByUidRsp);
+}
+
+message GetLastCpInviteInfoReq {
+  int64 uid = 10;
+}
+
+message GetLastCpInviteInfoRsp {
+  comm.api.cp.CPInviteInfo invite_info = 10;
+}
+
+message BatchGetUserCpUidReq {
+  repeated int64 uids = 10;
+}
+
+message BatchGetUserCpUidRsp {
+  map<int64, int64> uid2cp_uid = 10;
+}
+
+message CanBeCPReq {
+  int64 uid = 10;
+  int64 cp_uid = 11;
+}
+
+message CanBeCPRsp {
+  bool can = 10; // 其他错误通过smicro的code返回
+  bool already_cp = 11; // 已经是cp了
+}
+
+message ApplyCPReq {
+  int64 uid = 10;
+  int64 cp_uid = 11;
+  string gift_seq_id = 12;  // 送礼的序列号，退礼物的时候会用这个请求
+  string message = 13;      // 用户填的求婚语
+  int64 ring_resource_id = 14; // 结婚戒指资源id
+}
+
+message ApplyCPRsp {
+  string cp_token = 10; // 申请cp 记录的token
+}
+
+message GetCpByUidReq{
+  int64 uid = 10;
+}
+
+message GetCpByUidRsp{
+  int64 uid = 10;
+  int64 cp_uid = 11;
+  int64 cp_id = 12;
+}

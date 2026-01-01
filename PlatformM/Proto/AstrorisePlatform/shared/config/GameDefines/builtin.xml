@@ -1,0 +1,42 @@
+<module name="">
+    <!--  基础数学数据结构  -->
+    <bean name="Vector2" valueType="1" sep=",">
+        <var name="x" type="float"/>
+        <var name="y" type="float"/>
+    </bean>
+    <bean name="Vector3" valueType="1" sep=",">
+        <var name="x" type="float"/>
+        <var name="y" type="float"/>
+        <var name="z" type="float"/>
+    </bean>
+    <bean name="Vector4" valueType="1" sep=",">
+        <var name="x" type="float"/>
+        <var name="y" type="float"/>
+        <var name="z" type="float"/>
+        <var name="w" type="float"/>
+    </bean>
+    <!--物品-->
+    <module name="item">
+        <bean name="Pair">
+            <var name="id" type="int"/>
+            <var name="count" type="int"/>
+        </bean>
+    </module>
+    <!--勋章-->
+    <module name="medal">
+        <enum name="Quality" comment="勋章品质">
+            <var name="SILVER" alias="银质" value="1"/>
+            <var name="GOLD" alias="金质" value="2"/>
+            <var name="PLATINUM" alias="白金" value="3"/>
+        </enum>
+        <enum name="ProgressType" comment="勋章进度计算类型">
+            <var name="COUNT" alias="累计" value="1"/>
+            <var name="LEVEL" alias="水平位" value="2"/>
+        </enum>
+        <enum name="CondOperator" comment="条件关系操作符">
+            <var name="ALL" alias="全部条件" value="1"/>
+            <var name="SUM" alias="累加条件" value="2"/>
+            <var name="ANY" alias="任意条件" value="3"/>
+        </enum>
+    </module>
+</module>

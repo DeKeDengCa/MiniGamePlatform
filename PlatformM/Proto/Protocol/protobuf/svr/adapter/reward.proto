@@ -1,0 +1,327 @@
+// smicro:spath=gitit.cc/social/echo/handle/svr
+syntax = "proto3";
+
+package pbsadapter;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/adapter/model.proto";
+import "protobuf/svr/adapter/wallet.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsadapter";
+
+service CommonReward {
+
+  // 获取奖励分类列表, 由业务决定有多少种奖励类型及其信息.
+  rpc ListRewardCategory(ListRewardCategoryReq) returns (ListRewardCategoryRsp);
+
+  // 获取子分类
+  rpc ListRewardSubCategory(ListRewardSubCategoryReq) returns (ListRewardSubCategoryRsp);
+
+  // 搜索指定奖励分类的奖励配置项, 实际上也是交由业务去实现, 活动中台只是中转这些请求.
+  rpc SearchRewardItem(SearchRewardItemReq) returns (SearchRewardItemRsp);
+
+  // 批量根据ID获取奖励配置项信息
+  rpc ListRewardItemById(ListRewardItemByIdReq) returns (ListRewardItemByIdRsp);
+
+  // 下发奖励
+  rpc SendRewardToUser(SendRewardToUserReq) returns (SendRewardToUserRsp);
+
+  // 检查奖励包发放对象是否合法，目前只有hala\ahchat 可以发放给资源管理器，其他业务可以先不实现
+  rpc CheckRewardPackageLegal(CheckRewardPackageLegalReq) returns (CheckRewardPackageLegalRsp);
+
+  // 生成奖励包ID
+  rpc GenerateRewardPackageIDs(GenerateRewardPackageIDsReq) returns (GenerateRewardPackageIDsRsp);
+
+  // 扣减奖励(SendRewardToUser接口的反向操作)
+  rpc DeductReward(DeductRewardReq) returns (DeductRewardRsp);
+}
+
+message CheckRewardPackageLegalPair {
+  RewardInfo reward_info = 10; // 奖励信息
+  RewardReceiverType reward_receiver_type = 11;   // 奖励接收者类型(RewardReceiverType)
+}
+
+message CheckRewardPackageLegalReq {
+  repeated CheckRewardPackageLegalPair pairs = 10;
+}
+
+message CheckRewardPackageLegalResult {
+  int32 code = 10;      // 0: 合法，1: 非法
+  string message = 11;  // 原因
+}
+
+message CheckRewardPackageLegalRsp {
+  repeated CheckRewardPackageLegalResult results = 10;
+}
+
+// 数量类型
+enum AmountType {
+  AMOUNT_TYPE_NONE = 0;
+  AMOUNT_TYPE_DURATION = 1; // 时长型
+  AMOUNT_TYPE_QUANTITY = 2; // 数量型
+  AMOUNT_TYPE_QUANTITY_AND_DURATION = 3; // 数量+时长型
+}
+
+// 数量单位, 时长型的奖励才需要.
+enum AmountUnit {
+  AMOUNT_UNIT_NONE = 0;
+  AMOUNT_UNIT_SECOND = 1; // 秒
+  AMOUNT_UNIT_MINUTE = 2; // 分
+  AMOUNT_UNIT_HOUR = 3; // 小时
+  AMOUNT_UNIT_DAY = 4; // 天
+  AMOUNT_UNIT_PERMANENT = 10; // 永久
+}
+
+// 奖励分类, 虽然奖励分类的标识业务可以自己定义, 但是最好参照以下的名字便于多个业务之间叫法一致和阅读理解.
+//    GIFT: 礼物
+//    ROOM_BACKGROUND: 房间背景
+//    RING: 戒指
+//    HEADWEAR: 头像框
+//    MOUNT: 座驾
+//    MIC_STYLE: 麦位光圈
+//    ON_MIC_EFFECT: 上麦特效
+//    MESSAGE_BUBBLE: 公屏消息气泡
+//    PROFILE_ANIMATION: 个人主页动画
+//    STORE_PROP: 道具
+//    INTIMACY_CARD: 亲密关系卡
+//    TITLE: 称号
+//    MEDAL: 勋章
+//    CELEBRITY_TITLE: 名人称号
+//    ...
+message RewardCategory {
+  string category_key = 1; // 奖励分类标识, 参考上面的注释.
+  string category_name = 2; // 奖励分类名称, 例如: 礼物 / 头像框 / 房间背景 ..., 这是缺省名称, 如果 oms 需要国际化显示则需要提供 i18n_category_name 字段.
+  map<string, string> i18n_category_name = 3; // 国家化的奖励分类名称, key 的取值有 zh / en / ar / tr ...
+  AmountType amount_type = 4; // 此类奖励的数量类型, 例如礼物的数量类型是数量型, 头像框的数量类型是时长型
+}
+
+// 奖励配置项
+message RewardItem {
+  string item_id = 1; // 奖励配置项ID, 为了通用这里采用字符串形式, 例如礼物ID, 头像框ID, 房间背景ID, ...
+  string item_name = 2; // 奖励配置项名称, 例如: 礼物的名称 / 头像框的名称. 这是缺省名称, 如果 oms 需要国际化显示则需要提供 i18n_category_name 字段.
+  map<string, string> i18n_item_name = 3; // 国家化的奖励配置项名称, key 的取值有 zh / en / ar / tr ...
+  string item_icon = 4; // 奖励配置项图标, 例如: 礼物的图标 / 头像框的图标. 这是缺省图标, 如果 oms 需要国际化显示则需要提供 i18n_category_icon 字段.
+  map<string, string> i18n_item_icon = 5; // 国家化的奖励配置项图标, key 的取值有 zh / en / ar / tr ...
+  string item_animation = 6; // 奖励配置项动画资源
+  string reward_sub_type = 7; // 子类型,具体业务决定, 对应 goods的 goods_type \ badge 的 badge_type \ gift 的 gift_type
+  string expand = 20; // 拓展信息, 应当设计成一个 JSON 便于后续拓展.
+  RewardExpand reward_expand = 21; // 解析好的 expand，目前是通知业务用
+  repeated string sub_category_ids = 22; // 属于子分类的id
+  int64 num = 26;           // 数量
+  int64 expire_secs = 27;   // 有效期(秒)
+  string category_key = 28; // 奖励分类
+
+  // 以下部分是活动管理后台用
+  string creator = 30;
+  string modifier = 31;
+  string remark = 32;
+  string item_grade = 33; // 奖励等级，具体业务决定, 管理后台过滤用，goods 类型对应 grade，gift类型对应 gift level
+  string item_tag = 34; // 奖励标签，具体业务决定，管理后台过滤用
+  comm.api.adapter.RankRewardTargetType reward_type = 35; // 奖励目标类型
+}
+
+// 奖励信息
+message RewardInfo {
+  string reward_category_key = 1; // 奖励分类标识
+  string reward_item_id = 2; // 奖励配置项ID
+  int64 amount = 3; // 发放数量
+  AmountUnit amount_unit = 4; // 发放数量单位, 例如: 分钟 / 小时 / 天
+  int64 duration = 5; // 发放时长, 单位: 秒, AMOUNT_TYPE_QUANTITY_AND_DURATION 类型用，其他类型不用
+  AmountUnit duration_unit = 6; // 发放时长, 单位: 秒，AMOUNT_TYPE_QUANTITY_AND_DURATION 类型用，其他类型不用
+}
+
+//通用奖励配置的外层结构
+message RewardGenerics {
+  repeated RewardGeneric items = 1;
+}
+
+//通用奖励配置项
+message RewardGeneric {
+  RewardCategory reward_category = 1;
+  RewardItem reward_item = 2; // 奖励配置项
+  int64 amount = 3;           // 发放数量
+  AmountUnit amount_unit = 4; // 发放数量单位, 例如: 分钟 / 小时 / 天
+  int64 duration = 5; // 发放时长, 单位: 秒, AMOUNT_TYPE_QUANTITY_AND_DURATION 类型用，其他类型不用
+  AmountUnit duration_unit = 6; // 发放时长, 单位: 秒
+}
+
+// 获取奖励分类列表请求
+message ListRewardCategoryReq {
+  // 无需参数, 每次都是获取全部的.
+}
+// 获取奖励分类列表响应
+message ListRewardCategoryRsp {
+  repeated RewardCategory categories = 10; // 业务支持的所有奖励分类列表
+}
+
+// 根据分类来查询子分类，不会太多,无其他查询条件
+message ListRewardSubCategoryReq {
+  string category_key = 10; // 奖励分类标识, 必传.
+}
+message RewardSubCategory {
+  string sub_category_id = 1;  // 子分类的id
+  string sub_category_name = 2; // 子分类的名字
+}
+message ListRewardSubCategoryRsp {
+  repeated RewardSubCategory data = 10;
+}
+
+// 搜索指定奖励分类的奖励配置项请求
+message SearchRewardItemReq {
+  scommon.Page page = 1; // 分页参数
+  string category_key = 10; // 奖励分类标识, 必传.
+  string item_id = 11; // 根据奖励ID模糊查询, 可选.
+  string item_name = 12; // 根据奖励名称模糊查询, 可选.
+  string keyword = 13; // 关键字模糊查询, 可能为英文 , 分割的多个奖励id，也可能是名称 可选.
+  repeated string sub_category_ids = 14; // 根据子分类的id来查
+}
+// 搜索指定奖励分类的奖励配置项响应
+message SearchRewardItemRsp {
+  scommon.Page page = 1; // 分页参数
+  repeated RewardItem items = 10; // 奖励配置项列表
+}
+
+// 批量根据ID获取奖励配置项信息请求
+message ListRewardItemByIdReq {
+  string category_key = 10; // 奖励分类标识, 必传.
+  repeated string item_ids = 11; // 根据奖励ID查询, 可选.
+}
+// 批量根据ID获取奖励配置项信息响应
+message ListRewardItemByIdRsp {
+  repeated RewardItem items = 10; // 奖励配置项列表
+}
+
+// 奖励接收者类型
+enum RewardReceiverType{
+  REWARD_RECEIVER_TYPE_NONE = 0;      // NONE
+  REWARD_RECEIVER_TYPE_PERSONAL = 1;  // 个人
+  REWARD_RECEIVER_TYPE_GUILD = 2;     // 公会
+  REWARD_RECEIVER_TYPE_FAMILY = 3;    // 家族
+  REWARD_RECEIVER_TYPE_ROOM = 4;      // 房间
+  REWARD_RECEIVER_TYPE_USER_RESOURCE = 5;      // 个人资源
+  REWARD_RECEIVER_TYPE_FAMILY_RESOURCE = 6;    // 家族资源
+}
+
+// 给用户下发奖励
+message SendRewardToUserReq {
+  string seq_id = 10;         // 幂等ID
+  repeated int64 uids = 11;   //  奖励接收者Id，用户奖励传 用户uid，房间奖励 传 房间id，家族奖励 传 家族id
+  repeated RewardInfo reward_infos = 12; // 奖励信息
+  comm.api.adapter.RewardSourceType source_type = 13;
+  string source_id = 14;
+  RewardReceiverType reward_receiver_type = 15;   // 奖励接收者类型(RewardReceiverType)
+  bool immediated = 20;   // 立即发放, 表示不等待发放的定时任务, 立刻发放到用户背包等具体位置, 一般场景不要设为立即发放由定时任务发不容易发生阻塞.
+}
+
+// 给用户下发奖励
+message SendRewardToUserRsp {
+  int32 error_code = 10; // 0: 表示成功  -1: 表示曾经成功过  x: 均为失败
+  string error_msg = 11; // 错误消息
+}
+
+message RewardExpand {
+  oneof kind {
+    CommonExpand common = 10;
+    GiftExpand gift = 11;
+    PackageExpand package = 12;
+  }
+}
+
+// 通用 expand 字段定义， goods 用这个
+message CommonExpand {
+  Currency currency_type = 1; // 货币类型
+  int64 price = 2;            // 数量
+
+  // hala profile show 用
+  string female_thumb = 3;
+  string male_thumb = 4;
+  string female_svg = 5;
+  string male_svg = 6;
+}
+
+// 礼物类型 expend 字段定义
+message GiftExpand {
+  Currency currency_type = 1; // 货币类型
+  int64 price = 2; // 数量
+}
+
+// 包裹类型 expend 字段定义
+message PackageExpand {
+  repeated PackageExpandDetail details = 1;
+  string source = 10;                // 奖励包来源, oms or appnow
+}
+
+message PackageExpandDetail {
+  RewardCategory reward_category = 1; // 奖励分类
+  RewardItem reward_item = 2; // 奖励配置项
+  int64 amount = 3;           // 发放数量
+  AmountUnit amount_unit = 4; // 发放数量单位, 例如: 分钟 / 小时 / 天
+  string icon = 5; // 自定义图片
+  int64 price = 6; // 价格
+  int64 duration = 7; // 发放时长, 单位: 秒, AMOUNT_TYPE_QUANTITY_AND_DURATION 类型用，其他类型不用
+  AmountUnit duration_unit = 8; // 发放时长, 单位: 秒
+  Currency currency_type = 9; // 货币类型
+}
+
+
+// 生成奖励包ID请求
+message GenerateRewardPackageIDsReq {
+  repeated RewardPkg pkgs = 10;
+  string source = 11;           // 来源 oms or appnow or 自定义
+}
+// 生成奖励包ID响应，信息原样返回
+message GenerateRewardPackageIDsRsp {
+  repeated RewardPkg pkgs = 10;
+}
+// 奖励包
+message RewardPkg {
+  string pkg_id = 10;                     // 0表示初次生成，否则表示修改
+  string pkg_name = 11;                   // 奖励包名称
+  string pkg_cover = 12;                  // 封面图
+  repeated RewardItem items = 20;         // 奖励内容
+}
+
+// 扣减奖励
+message DeductRewardReq {
+  repeated DeductRewardInfo deduct_reward_infos = 1; // 扣减奖励信息
+}
+
+// 扣减奖励
+message DeductRewardRsp {
+  DeductRewardErrorCode error_code = 1; // 错误码
+  string error_msg = 2; // 错误消息
+  repeated DeductRewardResult results = 3; // 实际扣减结果
+}
+
+enum DeductRewardErrorCode {
+  DEDUCT_REWARD_ERROR_CODE_NONE = 0; // 无错误
+  DEDUCT_REWARD_ERROR_CODE_SUCCESS = 1; // 成功
+  DEDUCT_REWARD_ERROR_CODE_ALREADY_DONE = 2; // 成功
+  DEDUCT_REWARD_ERROR_CODE_FAIL = 3; // 失败
+}
+
+// 扣减奖励信息
+message DeductRewardInfo {
+  RewardReceiverType target_type = 1;   // 奖励接收者类型(RewardReceiverType)
+  int64 target_id = 2; //  奖励接收者Id
+  string reward_category_key = 3; // 奖励分类标识
+  string reward_item_id = 4; // 奖励配置项ID
+  int64 amount = 5; // 发放数量
+  AmountUnit amount_unit = 6; // 发放数量单位, 例如: 分钟 / 小时 / 天
+  int64 duration = 7; // 发放时长, 单位: 秒, AMOUNT_TYPE_QUANTITY_AND_DURATION 类型用，其他类型不用
+  AmountUnit duration_unit = 8; // 发放时长, 单位: 秒，AMOUNT_TYPE_QUANTITY_AND_DURATION 类型用，其他类型不用
+  string seq_id = 9; // 幂等ID
+}
+
+// 扣减奖励结果
+message DeductRewardResult {
+  RewardReceiverType target_type = 1;   // 奖励接收者类型(RewardReceiverType)
+  int64 target_id = 2; //  奖励接收者Id
+  string reward_category_key = 3; // 奖励分类标识
+  string reward_item_id = 4;  // 奖励配置项ID
+  int64 actual_amount = 5; // 实际扣减数量，可能小于请求的数量
+  int64 actual_duration = 6; // 实际扣减时长
+  DeductRewardErrorCode result_code = 7; // 本次扣减操作的结果
+  string error_msg = 8; // 错误消息
+  string seq_id = 9; // 幂等ID
+}

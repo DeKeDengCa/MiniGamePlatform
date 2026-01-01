@@ -1,0 +1,23 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/share/handler
+syntax = "proto3";
+
+package api.astrorise.voiceroom;
+
+option java_package="com.entertain.sns.api.gene";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbshare";
+
+// serviceName: astrorise-voiceroom
+service Share {
+  // 获取分享信息
+  rpc GetShareInfo (GetShareInfoReq) returns (GetShareInfoRsp);
+}
+
+message GetShareInfoReq {
+  string scene = 1;     // 场景, 语音房: ChatRoom
+  string target_id = 2; // 目标id
+}
+
+message GetShareInfoRsp {
+  string redirect_url = 1;  // 重定向地址
+  string invite_token = 2;  // 邀请进房 token
+}

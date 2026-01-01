@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package comm.mgr.platform.code;
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/platform/pbmcode";
+
+enum ErrCode {
+    ERR_CODE_OK = 0;
+  
+    ERR_CODE_DB_FAIL = 20001;   // db 操作失败
+    ERR_CODE_PARAMETER_WRONG = 20002; // 入参错误
+    ERR_CODE_DOC_CONFIG_WRONG = 20003; // 配置文本错误
+    ERR_CODE_SOURCE_CONFIG_WRONG = 20004; // 配置 内容源失败
+    ERR_CODE_NOTIFYCATION_CONFIG_WRONG = 20005; // 配置推送失败
+    ERR_CODE_CANNOT_RELATION_DOC = 20006; // 无法关联文本
+    ERR_CODE_CANNOT_RELATION_SOURCE = 20007; // 无法关联内容源
+    ERR_CODE_PUBLISH_TIMER_WRONG = 20008; // 推送定时器失败
+    ERR_CODE_ALREADY_NOTIFY = 20009; // 已经推送
+}

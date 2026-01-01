@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package svr.privilege;
+
+import "protobuf/api/privilege/v2/resource_bag.proto";
+import "protobuf/api/privilege/v2/resource_package.proto";
+import "protobuf/api/privilege/v2/privilege.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsprivilege";
+
+// =======================
+// 特权资源背包事件协议
+// =======================
+
+// 资源背包事件
+// Kafka-Topic: social-privilege-resource-bag-event-${anm}
+message ResourceBagEvent {
+  string anm = 1; // 业务名
+  string sub_anm = 2; // 子业务
+  int64 event_time = 3; // 事件发生时间
+  ResourceBagEventType event_type = 4; // 事件类型
+  repeated ResourceBagEventDetail details = 5; // 事件明细列表(根据event_type选择结构)
+}
+
+// 操作类型枚举
+enum ResourceBagEventType {
+  RESOURCE_BAG_EVENT_TYPE_NONE = 0; // 无意义
+  RESOURCE_BAG_EVENT_TYPE_ALLOCATE = 1; // 资源背包分配(运营→家族/特权用户)
+  RESOURCE_BAG_EVENT_TYPE_DISTRIBUTE = 2; // 资源背包发放(家族/特权用户→普通用户)
+}
+
+// 单条操作明细
+message ResourceBagEventDetail {
+  oneof detail {
+    ResourceBagAllocateDetail allocate = 1; // 分配明细
+    ResourceBagDistributeDetail distribute = 2; // 发放明细
+  }
+}
+
+// 资源背包分配详情
+message ResourceBagAllocateDetail {
+  string event_id = 1; // 事件唯一ID(幂等)
+  int64 allocate_audit_id = 2; // 审核记录ID
+  int64 resource_package_id = 3; // 资源包ID
+  int64 resource_package_detail_id = 4; // 资源包详情id
+  int64 resource_bag_id = 5; // 资源背包ID
+  api.privilege.v2.ResourceBagTargetType target_type = 6; // 拥有者类型(1:用户,2:家族)
+  int64 target_id = 7; // 拥有者Id(uid/family_id)
+  api.privilege.v2.ResourceType resource_type = 8; // 资源类型
+  int64 resource_id = 9; // 资源id
+  api.privilege.v2.EffectType effect_type = 27; // 生效类型
+  int64 quantity = 10; // 资源数量
+  int64 effective_time = 11; // 有效时间(单位:秒,值<=0:永久)
+  int64 distribute_deadline = 12; // 资源发放截止时间
+  int64 created_at = 13; // 创建时间
+}
+
+// 资源背包发放明细
+message ResourceBagDistributeDetail {
+  string event_id = 1; // 事件唯一ID(幂等)
+  int64 resource_bag_id = 2; // 特权资源背包id
+  int64 resource_package_detail_id = 3; // 资源包详情id
+  int64 distribute_log_id = 4;  // 发放日志ID
+  api.privilege.v2.ResourceBagTargetType target_type = 5; // 拥有者类型(1:用户,2:家族)
+  int64 target_id = 6; // 拥有者Id(uid/family_id)
+  int64 distribute_uid =7; // 发放资源用户ID
+  int64 receive_uid = 8; // 接收资源用户ID
+  api.privilege.v2.ResourceType resource_type = 9; // 资源类型
+  int64 resource_id = 10; // 资源id
+  api.privilege.v2.EffectType effect_type = 27; // 生效类型
+  int64 quantity = 11; // 资源发放数量
+  int64 effective_time = 12; // 有效时间(单位:秒,值<=0:永久)
+  int64 actual_distribute_time = 13; // 实际发放时间
+  int64 expire_time = 14; // 过期时间
+}

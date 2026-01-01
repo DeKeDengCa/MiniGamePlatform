@@ -1,0 +1,245 @@
+// smicro:spath=gitit.cc/social/components-service/social-relation/biz/relation/handlersvr
+syntax = "proto3";
+
+package comm.svr.relation;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsrelation";
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/relation/user_black.proto";
+import "protobuf/api/relation/num.proto";
+import "protobuf/api/relation/user_follow.proto";
+
+service RelationSvr {
+  // 获取批量获取房间关注状态
+  rpc BatchGetFollowStatus(BatchGetFollowStatusReq) returns (BatchGetFollowStatusResp);
+  // 获取用户关注房间ID列表
+  rpc GetFollowRoomIDs(GetFollowRoomIDsReq) returns (GetFollowRoomIDsRsp);
+  // 批量校验用户黑名单
+  rpc BatchCheckInUserBlack(BatchCheckInUserBlackReq) returns (BatchCheckInUserBlackResp);
+  // 分页查询好友UID
+  rpc ListFriendUIDs(ListFriendUIDsReq) returns (ListFriendUIDsResp);
+  // 分页查询用户关注的UID列表
+  rpc ListFollowUIDs(ListFollowUIDsReq) returns (ListFollowUIDsResp);
+  // 分页查询用户粉丝的UID列表
+  rpc ListFansUIDs(ListFansUIDsReq) returns (ListFansUIDsResp);
+  // 删除一个房间的粉丝
+  rpc DeleteRoomFans(DeleteRoomFansReq) returns (DeleteRoomFansRsp);
+  // 批量获取新增的关系数量
+  rpc BatchGetUserRelationAdditionNum(BatchGetUserRelationAdditionNumReq) returns (BatchGetUserRelationAdditionNumRsp);
+  // 关注
+  rpc Follow(FollowReq) returns (FollowRsp);
+  // 取消关注
+  rpc UnFollow(UnFollowReq) returns (UnFollowRsp);
+  // 批量关注
+  rpc BatchFollow(BatchFollowReq) returns (BatchFollowRsp);
+
+  // 用户拉黑用户
+  rpc UserBalckUser(UserBalckUserReq) returns (UserBalckUserRsp);
+  // 解除拉黑用户
+  rpc UserRmBalckUser(UserRmBalckUserReq) returns (UserRmBalckUserRsp);
+
+  // 房间拉黑用户
+  rpc RoomBalckUser(RoomBalckUserReq) returns (RoomBalckUserRsp);
+  // 房间解除拉黑用户
+  rpc RoomRmBalckUser(RoomRmBalckUserReq) returns (RoomRmBalckUserRsp);
+
+  // 用户拉黑房间
+  rpc UserBalckRoom(UserBalckRoomReq) returns (UserBalckRoomRsp);
+  // 用户解除黑房间
+  rpc UserRmBalckRoom(UserRmBalckRoomReq) returns (UserRmBalckRoomRsp);
+
+  // 获取单个用户对批量房间关注状态
+  rpc GetRoomFollowStatus(GetRoomFollowStatusReq) returns (GetRoomFollowStatusResp);
+
+  // 粉丝列表 （关注房间的用户ID）
+  rpc GetRoomFansIDs(GetRoomFansIDsReq) returns (GetRoomFansIDsRsp);
+
+  // 批量获取粉丝关注我时的业务拓展参数
+  rpc BatchGetUserFansBizExt(BatchGetUserFansBizExtReq) returns (BatchGetUserFansBizExtRsp);
+}
+
+message BatchGetFollowStatusReq {
+  int64 room_id = 1;
+  repeated int64 user_ids = 2;
+}
+
+message BatchGetFollowStatusResp {
+  map<int64, bool> status_map = 1;
+}
+
+message GetRoomFollowStatusReq {
+  int64 user_id = 1;
+  repeated int64 room_ids = 2;
+}
+
+message GetRoomFollowStatusResp {
+  map<int64, bool> status_map = 1;
+}
+
+// 获取用户关注房间ID列表
+message GetFollowRoomIDsReq {
+  scommon.Page page = 1;  // 分页
+  int64 uid = 10;         // 我的 uid
+}
+
+message GetFollowRoomIDsRsp {
+  scommon.Page page = 1; // 分页
+  repeated int64 room_ids = 2; // 关注房间ID列表
+}
+
+// 批量校验用户黑名单
+message BatchCheckInUserBlackReq {
+  repeated int64 user_ids = 1;  // 目标待检查 uid
+  int64 uid = 2;                // 我的 uid
+}
+
+message BatchCheckInUserBlackResp {
+  map<int64, comm.api.relation.UserBlackStatus> black_map = 1;
+}
+
+// 获取房间粉丝ID列表
+message GetRoomFansListReq {
+  int64 room_id = 1;
+  scommon.Page page = 2; // 分页
+}
+
+message GetRoomFansListRsp {
+  scommon.Page page = 1; // 分页
+  repeated int64 user_ids = 2; // 关注房间ID列表
+}
+
+// 获取好友列表
+message ListFriendUIDsReq {
+  scommon.Page page = 1;  // 分页
+  int64 uid = 10;         // UID
+}
+
+message ListFriendUIDsResp {
+  scommon.Page page = 1;            // 分页
+  repeated int64 friend_uids = 10;  // 好友列表
+}
+
+// 获取关注列表
+message ListFollowUIDsReq {
+  scommon.Page page = 1;  // 分页
+  int64 uid = 10;         // UID
+}
+
+message ListFollowUIDsResp {
+  scommon.Page page = 1;            // 分页
+  repeated int64 follow_uids = 10;  // 关注列表
+}
+
+// 获取粉丝列表
+message ListFansUIDsReq {
+  scommon.Page page = 1;  // 分页
+  int64 uid = 10;         // UID
+  bool clear_unread = 11; // 顺带清除未读数量
+}
+
+message ListFansUIDsResp {
+  scommon.Page page = 1;            // 分页
+  repeated int64 fans_uids = 10;    // 粉丝列表
+}
+
+message DeleteRoomFansReq {
+  int64 room_id = 1;                // 房间id
+}
+message DeleteRoomFansRsp {
+  int64 count = 1;                  // 删除的个数
+}
+
+message BatchGetUserRelationAdditionNumReq {
+  repeated int64 uids = 1;          // uid数组，限制在100以内
+}
+message BatchGetUserRelationAdditionNumRsp {
+  map<int64, comm.api.relation.UserRelationAdditionNum> addition_num_map = 1;
+}
+
+// 取消关注
+message UnFollowReq {
+  int64 uid = 1;          // 用户ID
+  int64 unFollowUid = 2;  // 取消关注用户ID
+}
+
+message UnFollowRsp {}
+
+// 关注
+message FollowReq {
+  int64 uid = 1;          // 用户ID
+  int64 follow_uid = 2;   // 关注的用户ID
+  comm.api.relation.UserFollowScene scene = 3; // 场景
+  string biz_ext = 4;                           // 业务拓展参数, 最大长度: 240 个字符
+}
+
+message FollowRsp {}
+
+// 批量关注用户
+message BatchFollowReq {
+  int64 uid = 1;                                // 用户ID
+  repeated int64 follow_uids = 2;               // 被关注用户ID
+  comm.api.relation.UserFollowScene scene = 3;  // 场景
+  string biz_ext = 4;                           // 业务拓展参数, 最大长度: 240 个字符
+}
+
+message BatchFollowRsp {}
+
+message UserBalckUserReq{
+  int64 uid = 1;
+  repeated int64 balck_uids = 2;
+}
+message UserBalckUserRsp{
+}
+
+message UserRmBalckUserReq{
+  int64 uid = 1;
+  repeated int64 balck_uids = 2;
+}
+message UserRmBalckUserRsp{}
+
+message RoomBalckUserReq{
+  int64 rid = 1;
+  repeated int64 black_uids = 2;
+}
+message RoomBalckUserRsp{
+}
+
+message RoomRmBalckUserReq{
+  int64 rid = 1;
+  repeated int64 black_uids = 2;
+}
+message RoomRmBalckUserRsp{}
+
+message UserBalckRoomReq{
+  int64 uid = 1;
+  repeated int64 black_rids =2;
+}
+message UserBalckRoomRsp{
+}
+
+message UserRmBalckRoomReq{
+  int64 uid = 1;
+  repeated int64 black_rids =2;
+}
+message UserRmBalckRoomRsp{}
+
+// 获取粉丝ID列表
+message GetRoomFansIDsReq {
+  scommon.Page page = 1; // 分页
+  int64 room_id = 2; // 房间ID
+}
+
+message GetRoomFansIDsRsp {
+  scommon.Page page = 1; // 分页
+  repeated int64 fans_ids = 2; // 粉丝ID列表
+}
+
+message BatchGetUserFansBizExtReq {
+  int64 uid = 10;                   // 被关注人UID
+  repeated int64 fans_uids = 20;    // 粉丝 UID
+}
+
+message BatchGetUserFansBizExtRsp {
+  map<int64, string> biz_exts = 10; // 各个粉丝关注我时的业务拓展参数
+}

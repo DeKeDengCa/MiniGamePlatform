@@ -1,0 +1,277 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/roomlist/handlermgr
+syntax = "proto3";
+
+package mgr.astrorise.voiceroom;
+
+import "api/platform/voiceroom/comm.proto";
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbroomlistmgr";
+
+service RoomListMgr {
+
+  // 搜索房间tab
+  rpc SearchRoomTab(SearchRoomTabReq) returns (SearchRoomTabRsp);
+
+  // 创建房间tab
+  rpc CreateRoomTab(CreateRoomTabReq) returns (CreateRoomTabRsp);
+
+  // 更新房间tab
+  rpc UpdateRoomTab(UpdateRoomTabReq) returns (UpdateRoomTabRsp);
+
+  // 删除房间tab
+  rpc DeleteRoomTab(DeleteRoomTabReq) returns (DeleteRoomTabRsp);
+
+  // 更新房间tab发布状态
+  rpc UpdateRoomTabPublished(UpdateRoomTabPublishedReq) returns (UpdateRoomTabPublishedRsp);
+
+
+  // 搜索房间分发
+  rpc SearchRoomDistribution(SearchRoomDistributionReq) returns (SearchRoomDistributionRsp);
+
+  // 创建房间分发
+  rpc CreateRoomDistribution(CreateRoomDistributionReq) returns (CreateRoomDistributionRsp);
+
+  // 更新房间分发
+  rpc UpdateRoomDistribution(UpdateRoomDistributionReq) returns (UpdateRoomDistributionRsp);
+
+  // 删除房间分发
+  rpc DeleteRoomDistribution(DeleteRoomDistributionReq) returns (DeleteRoomDistributionRsp);
+
+
+  // 搜索房间tag
+  rpc SearchRoomTag(SearchRoomTagReq) returns (SearchRoomTagRsp);
+
+  // 创建房间tag
+  rpc CreateRoomTag(CreateRoomTagReq) returns (CreateRoomTagRsp);
+
+  // 更新房间tag
+  rpc UpdateRoomTag(UpdateRoomTagReq) returns (UpdateRoomTagRsp);
+
+  // 删除房间tag
+  rpc DeleteRoomTag(DeleteRoomTagReq) returns (DeleteRoomTagRsp);
+
+}
+
+// 房间分发排序状态
+enum RoomTabStatus {
+  ROOM_TAB_STATUS_NONE = 0;
+  ROOM_TAB_STATUS_INEFFECTIVE = 1; // 不生效
+  ROOM_TAB_STATUS_EFFECTIVE = 2;   // 生效中
+  ROOM_TAB_STATUS_INVALID = 3;     // 已失效
+}
+
+// 房间tab
+message RoomTab {
+  int64 id = 1;
+  map<string, string> i18n_names = 2;       // 国际化菜单名称, 中文: zh, 英文: en, 阿语: ar, ...
+  api.astrorise.voiceroom.RoomType room_type = 3; // 房间类型
+  int32 sort_weight = 4;                    // 排序权重, 越大排序越靠前.
+  bool published = 5;                       // 已发布
+  RoomTabStatus status = 6;                 // 生效状态
+
+  int64 create_at = 50;
+  string create_by = 51;
+
+  int64 update_at = 60;
+  string update_by = 61;
+
+  int64 delete_at = 70;
+  string delete_by = 71;
+}
+
+message SearchRoomTabReq {
+  scommon.Page page = 1;
+  repeated RoomTabStatus status = 10;
+  api.astrorise.voiceroom.RoomType room_type = 11; // 房间类型
+}
+
+message SearchRoomTabRsp {
+  scommon.Page page = 1;
+  repeated RoomTab data = 10;
+}
+
+message CreateRoomTabReq {
+  RoomTab room_tab = 10;
+}
+
+message CreateRoomTabRsp {
+
+}
+
+message UpdateRoomTabReq {
+  RoomTab room_tab = 10;
+}
+
+message UpdateRoomTabRsp {
+
+}
+
+message DeleteRoomTabReq {
+  repeated int64 room_tab_ids = 10;
+}
+
+message DeleteRoomTabRsp {
+
+}
+
+message UpdateRoomTabPublishedReq {
+  repeated int64 room_tab_ids = 10;
+  bool published = 11;
+}
+
+message UpdateRoomTabPublishedRsp {
+
+}
+
+// 房间分发排序方式
+enum RoomDistributionMode {
+  ROOM_DISTRIBUTION_MODE_NONE = 0;
+  ROOM_DISTRIBUTION_MODE_TOP = 10;    // 置顶
+  ROOM_DISTRIBUTION_MODE_BOTTOM = 20; // 置底
+}
+
+// 房间分发排序状态
+enum RoomDistributionStatus {
+  ROOM_DISTRIBUTION_STATUS_NONE = 0;
+  ROOM_DISTRIBUTION_STATUS_INEFFECTIVE = 1; // 不生效
+  ROOM_DISTRIBUTION_STATUS_EFFECTIVE = 2;   // 生效中
+  ROOM_DISTRIBUTION_STATUS_INVALID = 3;     // 已失效, 包括房间导航栏tab被删除了.
+}
+
+// 房间分发
+message RoomDistribution {
+  int64 id = 1; // ID
+  int64 room_tab_id = 2; // 房间Tab ID
+  repeated int64 room_ids = 3; // 房间ID列表, 批量创建时候用.
+  int64 room_id = 4;    // 房间ID
+  string room_name = 5; // 房间名称
+
+  RoomDistributionMode sort_mode = 10; // 房间分发排序方式
+  int32 sort_weight = 11; // 房间分发排序权重
+  RoomDistributionStatus status = 12; // 房间分发排序状态
+
+  int64 valid_from = 20; // 生效时间
+  int64 valid_to = 21;   // 失效时间
+
+  int64 create_at = 50;  // 创建时间
+  string create_by = 51; // 创建人
+
+  int64 update_at = 60;
+  string update_by = 61;
+
+  int64 delete_at = 70;
+  string delete_by = 71;
+}
+
+message SearchRoomDistributionReq {
+  scommon.Page page = 1;
+
+  int64 room_id = 10;
+  int64 room_tab_id = 11;
+  RoomDistributionMode sort_mode = 12;
+  string operate_by = 13;
+  int64 operate_at_start = 14;
+  int64 operate_at_end = 15;
+  repeated RoomDistributionStatus status = 16;
+}
+
+message SearchRoomDistributionRsp {
+  scommon.Page page = 1;
+  repeated RoomDistribution data = 10;
+}
+
+message CreateRoomDistributionReq {
+  RoomDistribution room_distribution = 10;
+}
+
+message CreateRoomDistributionRsp {
+
+}
+
+message UpdateRoomDistributionReq {
+  RoomDistribution room_distribution = 10;
+}
+
+message UpdateRoomDistributionRsp {
+
+}
+
+message DeleteRoomDistributionReq {
+  repeated int64 room_distribution_ids = 10;
+}
+
+message DeleteRoomDistributionRsp {
+
+}
+
+
+// 房间分发排序状态
+enum RoomTagStatus {
+  ROOM_TAG_STATUS_NONE = 0;
+  ROOM_TAG_STATUS_INEFFECTIVE = 1; // 不生效
+  ROOM_TAG_STATUS_EFFECTIVE = 2;   // 生效中
+  ROOM_TAG_STATUS_INVALID = 3;     // 已失效
+}
+
+// 房间标签
+message RoomTag {
+  int64 id = 1;
+  repeated int64 room_ids = 2; // 房间ID
+  int64 room_id = 3; // 房间ID
+  string room_name = 4; // 房间名称
+  string name = 5; // 标签名称, 用户不可见.
+  map<string, string> i18n_icons = 6; // 国际化菜单图标, 中文: zh, 英文: en, 阿语: ar, ...
+  string remark = 7; // 备注, 用户不可见.
+  RoomTagStatus status = 8; // 状态
+
+  int64 valid_from = 20; // 生效时间
+  int64 valid_to = 21;   // 失效时间
+
+  int64 create_at = 50;
+  string create_by = 51;
+
+  int64 update_at = 60;
+  string update_by = 61;
+
+  int64 delete_at = 70;
+  string delete_by = 71;
+}
+
+message SearchRoomTagReq {
+  scommon.Page page = 1;
+
+  int64 room_id = 10;
+  string operate_by = 11;
+  int64 operate_at_start = 12;
+  int64 operate_at_end = 13;
+}
+
+message SearchRoomTagRsp {
+  scommon.Page page = 1;
+  repeated RoomTag data = 10;
+}
+
+message CreateRoomTagReq {
+  RoomTag room_tag = 10;
+}
+
+message CreateRoomTagRsp {
+
+}
+
+message UpdateRoomTagReq {
+  RoomTag room_tag = 10;
+}
+
+message UpdateRoomTagRsp {
+
+}
+
+message DeleteRoomTagReq {
+  repeated int64 room_tag_ids = 10;
+}
+
+message DeleteRoomTagRsp {
+
+}

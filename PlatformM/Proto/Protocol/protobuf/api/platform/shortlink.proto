@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package comm.api.platform.shortlink;
+
+option java_package = "com.entertain.sns.comm.api.platform.shortlink";
+option go_package = "gitit.cc/social/components-service/social-platform/proto/pbshortlink";
+
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/shortlink/handlerapi
+service ShortLink {
+
+    // 生成短链
+    rpc Generate(GenerateReq) returns (GenerateRsp);
+}
+
+message GenerateReq {
+    string origin_url = 10;     // 原链接, 由于域名经常会有被国家或地区封禁的问题, 建议这里原链接传不带域名的地址.
+}
+
+message GenerateRsp {
+    string short_url = 10;      // 短链接, 由于域名经常会有被国家或地区封禁的问题, 这里返回短链接也是不带域名的由客户端拼接上当前可用域名来使用.
+}

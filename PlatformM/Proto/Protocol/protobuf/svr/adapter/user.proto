@@ -1,0 +1,141 @@
+// smicro:spath=gitit.cc/social/echo/handle/svr,with_intf=true
+syntax = "proto3";
+
+package pbsadapter;
+
+import "protobuf/api/common/common-net.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsadapter";
+option java_package = "com.common.biz.user";
+
+service CommonUser {
+  rpc GetUserInfo(GetUserInfoReq) returns (GetUserInfoRsp) {}
+  rpc GetUserAssociation(GetUserAssociationReq) returns (GetUserAssociationRsp) {}
+  // 查询用户当前所在房间信息
+  rpc GetUserRoomInfo(GetUserRoomInfoReq) returns (GetUserRoomInfoRsp) {}
+  // 查询用户标签
+  rpc BatchGetUserLabels(BatchGetUserLabelsReq) returns (BatchGetUserLabelsRsp) {}
+
+  // 获取用户CP列表, 现在是一夫一妻制，不需要分页获取了
+  rpc ListUserCP(ListUserCPReq) returns (ListUserCPRsp) {}
+}
+
+message ListUserCPReq {
+  int64 uid = 10;
+}
+
+message UserCPItem {
+  int64 uid = 10;
+}
+
+message ListUserCPRsp {
+  repeated UserCPItem list = 10;
+}
+
+enum UserStatus {
+  USER_STATUS_NONE = 0; // 无意义
+  USER_STATUS_NORMAL = 1; // 正常
+  USER_STATUS_ABNORMAL = 2; // 异常, 封禁/注销
+}
+
+// 用户信息定义 :selector
+message UserInfo {
+  int64 uid = 1;
+  string show_uid = 2;
+  string nickname = 3;
+  string avatar = 4;
+  scommon.Gender gender = 5;
+  string room_id = 6;
+  bool online = 7;
+  UserStatus status = 8;
+  int64 registered_at = 9;
+  string did = 10;          // 注册时的 did
+  string country = 11;      // 国家简码
+  string mobile = 13;       // 手机号
+  string email = 14;        // 邮箱
+  int64 wealth_level = 15;  // 财富等级
+  int64 wealth_value = 16;  // 财富值
+  int64 charm_level = 17;   // 魅力等级
+  int64 charm_value = 19;   // 魅力值
+  string language = 20;     // 用户语言
+  int32 os_type = 21; // 系统类型
+  string client_version = 22; // 客户端版本
+  int32 age = 23;             // 年龄
+  map<string,string> wealth_img = 24;     // 财富等级 图片，语言-》图片
+  map<string,string> charm_img = 25;      // 魅力等级 图片，语言-》图片
+  string pretty_number = 26; // 用户靓号
+
+  // 注册天数相关字段, 由于不同业务对注册时间的定义不一致, 有些采用第一次心跳上报时间, 所以交由业务计算.
+  int64 register_nature_days = 40;      // 按自然日计算的注册天数, 例如: 23:59 注册, 1分钟之后就算注册两天.
+  int64 register_non_nature_days = 41;  // 按非自然日计算的注册天数, 每 24 小时算 1 天.
+}
+
+message GetUserInfoReq {
+  repeated int64 uids = 1;
+  repeated string show_uids = 2;
+  UserInfo selector = 3;
+}
+
+message GetUserInfoRsp {
+  repeated UserInfo users = 1;
+}
+
+// 关联信息类型
+enum UserAssociationType {
+  USER_ASSOCIATION_TYPE_None = 0;
+  USER_ASSOCIATION_TYPE_RegisterDeviceID = 1;
+  USER_ASSOCIATION_TYPE_RegisterDeviceIP = 2;
+  USER_ASSOCIATION_TYPE_LoginDeviceID = 3;
+  USER_ASSOCIATION_TYPE_LoginDeviceIP = 4;
+  USER_ASSOCIATION_TYPE_GoogleOpenID = 5;
+  USER_ASSOCIATION_TYPE_FacebookOpenID = 6;
+  USER_ASSOCIATION_TYPE_AppleOpenID = 7;
+  USER_ASSOCIATION_TYPE_TwitterOpenID = 8;
+  USER_ASSOCIATION_TYPE_SnapchatOpenID = 9;
+}
+
+// 用户关联信息
+message UserAssociation {
+  int64 uid = 1; // 用户UID
+  UserAssociationType type = 2; // 关联信息类型
+  string id = 3; // 关联信息的ID, 例如: 通过注册IP关联的这里就填IP值
+  repeated int64 uids = 4; // 关联到的其他用户UID列表
+}
+
+message GetUserAssociationReq {
+  repeated int64 uids = 1;
+}
+
+message GetUserAssociationRsp {
+  repeated UserAssociation associations = 1;
+}
+
+message GetUserRoomInfoReq {
+  repeated int64 uids = 1;
+}
+message GetUserRoomInfoRsp {
+  repeated UserRoomInfo userRoomInfos = 1;
+}
+
+message UserRoomInfo {
+  int64 uid = 1;// 用户id
+  int64 room_id = 3;// 房间id
+  string room_type = 4;       // 房间类型
+}
+
+
+message BatchGetUserLabelsReq {
+  repeated int64 uids = 1;
+}
+
+message BatchGetUserLabelsRsp {
+  map<int64, UserLabelList> labels = 1;
+}
+
+message UserLabel {
+  string id = 1;
+}
+
+message UserLabelList {
+  repeated UserLabel list = 1;
+}

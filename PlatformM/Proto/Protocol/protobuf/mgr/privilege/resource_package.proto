@@ -1,0 +1,173 @@
+// smicro:spath=gitit.cc/social/components-service/social-privilege/biz/respkg/handlermgr
+
+syntax = "proto3";
+
+package comm.mgr.privilege;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/privilege/v2/resource_package.proto";
+import "protobuf/api/privilege/v2/privilege.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmprivilege";
+
+service ResourcePackage {
+  // 资源包列表
+  rpc ListResourcePackage(ListResourcePackageReq) returns (ListResourcePackageRsp);
+  // 新建资源包
+  rpc CreateResourcePackage(CreateResourcePackageReq) returns (CreateResourcePackageRsp);
+  // 更新资源包
+  rpc UpdateResourcePackage(UpdateResourcePackageReq) returns (UpdateResourcePackageRsp);
+  // 删除资源包
+  rpc DeleteResourcePackage(DeleteResourcePackageReq) returns (DeleteResourcePackageRsp);
+
+  // 资源包详情列表
+  rpc ListResourcePackageDetail(ListResourcePackageDetailReq) returns (ListResourcePackageDetailRsp);
+  // 新建资源包详情
+  rpc CreateResourcePackageDetail(CreateResourcePackageDetailReq) returns (CreateResourcePackageDetailRsp);
+  // 更新资源包详情
+  rpc UpdateResourcePackageDetail(UpdateResourcePackageDetailReq) returns (UpdateResourcePackageDetailRsp);
+  // 删除资源包详情
+  rpc DeleteResourcePackageDetail(DeleteResourcePackageDetailReq) returns (DeleteResourcePackageDetailRsp);
+}
+
+enum ResourcePackageApprovalType {
+  RESOURCE_PACKAGE_APPROVAL_TYPE_NONE = 0;
+  RESOURCE_PACKAGE_APPROVAL_TYPE_NO_APPROVAL = 1;//无需审批
+  RESOURCE_PACKAGE_APPROVAL_TYPE_MUST_APPROVAL = 2;//需要审批
+}
+
+message ResourcePackageAndDetail {
+  ResourcePackageInfo resource_package_info = 1;
+  repeated ResourcePackageDetailInfo resource_package_detail_infos = 2;
+}
+
+message ResourcePackageInfo {
+  int64 id = 1; // id
+  string name = 2; // 资源包名称
+  string icon_url = 3; // 资源包图标URL
+  ResourcePackageApprovalType approval_type = 4; // 审批类型 (1:无需审批, 2:需要审批)
+  string remark = 5; // 备注
+  int64 created_at = 6; // 创建时间
+  string creator = 7; // 创建人
+  int64 updated_at = 8; // 修改时间
+  string updater = 9; // 修改人
+  repeated string tags = 10;  // 资源包标签，用于标记和筛选（运营用，非用于C端）
+}
+
+message ListResourcePackageReq {
+  scommon.Page page = 1;
+
+  int64 id = 11; // id
+  string name = 12; // 资源包名称
+  ResourcePackageApprovalType approval_type = 13; // 审批类型 (1:无需审批, 2:需要审批)
+  int64 created_at_start = 14; // 创建时间
+  int64 created_at_end = 15; // 创建时间
+  string creator = 16; // 创建人
+  int64 updated_at_start = 17; // 修改时间
+  int64 updated_at_end = 18; // 修改时间
+  string updater = 19; // 修改人
+  repeated string include_tags = 20;   // 包含资源包标签
+  repeated string exclude_tags = 21;   // 排除资源包标签
+}
+
+message ListResourcePackageRsp {
+  scommon.Page page = 1;
+  repeated ResourcePackageAndDetail items = 10; //资源包列表
+}
+
+message CreateResourcePackageReq{
+  string name = 2; // 资源包名称
+  string icon_url = 3; // 资源包图标URL
+  ResourcePackageApprovalType approval_type = 4; // 审批类型 (1:无需审批, 2:需要审批)
+  string remark = 5; // 备注
+  repeated string tags = 6;   // 资源包标签，用于标记和筛选（运营用，非用于C端）
+}
+
+message CreateResourcePackageRsp{
+  int64 id = 1; // id
+}
+
+message UpdateResourcePackageReq{
+  int64 id = 1; // id
+  string name = 2; // 资源包名称
+  string icon_url = 3; // 资源包图标URL
+  ResourcePackageApprovalType approval_type = 4; // 审批类型 (1:无需审批, 2:需要审批)
+  string remark = 5; // 备注
+}
+message UpdateResourcePackageRsp{
+}
+
+message DeleteResourcePackageReq{
+  int64 id = 1; // id
+}
+
+message DeleteResourcePackageRsp{
+}
+
+
+//资源包详情
+message ResourcePackageDetailInfo {
+  int64 id = 1; // id
+  int64 package_id = 2; // 资源包id
+  string resource_type = 3; // 资源类型
+  string sub_resource_type = 13; // 资源子类型
+  int64 resource_id = 4; // 资源id
+  string icon_url = 5; // 资源图片url
+  string extend_json = 12; // 扩展json
+  int64 amount = 6; // 数量
+  int64 effective_time = 7; // 有效时间(单位:秒,值<=0:永久)
+  int64 created_at = 8; // 创建时间
+  string creator = 9; // 创建人
+  int64 updated_at = 10; // 修改时间
+  string updater = 11; // 修改人
+
+  api.privilege.v2.ResourceType resource_type_v2 = 20;
+  api.privilege.v2.ResourceType sub_resource_type_v2 = 21;
+
+  api.privilege.v2.EffectType effect_type = 31; // 生效类型
+}
+
+message ListResourcePackageDetailReq {
+  scommon.Page page = 1;
+
+  int64 package_id = 10; // 资源包id
+}
+
+message ListResourcePackageDetailRsp {
+  scommon.Page page = 1;
+  repeated ResourcePackageDetailInfo resource_package_detail_infos = 10; //资源包详情列表
+  map<int64, api.privilege.v2.Resource> resources = 11; // map<特权资源id, 特权资源>
+}
+
+message CreateResourcePackageDetailReq{
+  int64 package_id = 2; // 资源包id
+  string resource_type = 3; // 资源类型
+  int64 resource_id = 4; // 资源id
+  string icon_url = 5; // 资源图片url
+  string extend_json = 8; // 扩展json
+  int64 amount = 6; // 数量
+  int64 effective_time = 7; // 有效时间(单位:秒,值<=0:永久)
+}
+
+message CreateResourcePackageDetailRsp{
+  int64 id = 1; // id
+}
+
+message UpdateResourcePackageDetailReq{
+  int64 id = 1; // id
+  string resource_type = 3; // 资源类型(coin:金币,gift:礼物)
+  int64 resource_id = 4; // 资源id
+  string icon_url = 5; // 资源图片url
+  string extend_json = 8; // 扩展json
+  int64 amount = 6; // 数量
+  int64 effective_time = 7; // 有效时间(单位:秒,值<=0:永久)
+}
+message UpdateResourcePackageDetailRsp{
+}
+
+message DeleteResourcePackageDetailReq{
+  int64 id = 1; // id
+}
+
+message DeleteResourcePackageDetailRsp{
+}

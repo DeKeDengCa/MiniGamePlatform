@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+// 头部配置，后端根据规则重新定义，以下是举例
+package comm.api.platform.activation;
+
+option java_package = "com.entertain.sns.comm.api.platform.activation";
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/attribution/handler
+option go_package = "gitit.cc/social/components-service/social-platform/proto/pbactivation";
+
+// 归因协议
+// serviceName: platform-api
+service Activation {
+  // 设备归因登记，即H5推广页请求后端，记录设备信息，用于App安装后首次打开归因判断
+  rpc AttrSignin(AttrSigninReq) returns (AttrSigninRsp);
+
+  // 获取设备归因信息，即App安装首次打开后，请求后端获取归因信息
+  rpc AttrTrack(AttrTrackReq) returns (AttrTrackRsp);
+}
+
+// H5推广页请求归因登记
+// 注：后端需要获取浏览器的UserAgent信息、请求IP
+message AttrSigninReq {
+  string appid = 1;    // 应用ID，保证每个App唯一即可，一般用anm的值
+  string cha = 2;      // 归因主渠道，比如填活动ID，一般产品提供
+  string sub = 3;      // 归因子渠道，比如填推广用户ID，http地址获取
+  string referrer = 4; // 推广页来源，通过JS获取（document.referrer）来源
+  map<string, string> ext = 5;  // 预留扩展信息
+}
+
+message AttrSigninRsp {
+  // 后端用于映射存储的信息的Key（关联存储信息的ID），前端需要保存在剪切板
+  // 存储的信息包括：渠道信息(cha、sub、referrer)、终端参数(浏览器UserAgent)、请求IP
+  string aid = 1;
+}
+
+// App打开请求获取归因信息
+message AttrTrackReq {
+  string appid = 1;       // 应用ID，保证每个App唯一即可，一般用anm的值
+  string aid = 2;         // 终端从cookie或剪切板获取的信息，用于后端判断归因
+  string user_agent = 3;  // 终端请求时，构造web获取浏览器UserAgent信息
+}
+
+message AttrTrackRsp {
+  // 归因信息
+  // 目前只返回以下内容，也支持扩展：
+  // {
+  //    "cha": "xxx", // 主渠道
+  //    "sub": "xxx", // 子渠道
+  //    "referrer": "xxx", // 来源
+  //    ...
+  // }
+  map<string, string> attribution = 1;
+  // 如果丢失aid，后端使用UserAgent+IP等判断，此场景定义为概率归因
+  // 取值 [0-100]，比如60表示60%的归因准确度；
+  // 如果有aid并能和后端存储匹配上且不重复则取值应该为100；
+  int32 probability = 2;
+  // 是否首次安装
+  // false:表示有统计过did已经安装过的，不管是否有归因信息；true则否
+  bool is_first_install = 3;
+}
+
+// 归因错误码
+enum ActivationCode {
+  ACTIVATION_CODE_NONE = 0;
+
+  // 归因号段 70000 - 71000，后端根据现有码来定义不重复的号段，以下是举例
+  // 表示没归因信息
+  ACTIVATION_CODE_NOT_MATCH = 70000;          // 无归因信息
+  ACTIVATION_CODE_PARSE_TOKEN_FAIL = 70001;   // aid 解析失败
+  ACTIVATION_CODE_ALREADY_USED = 70002;       // atrribution已经使用
+}

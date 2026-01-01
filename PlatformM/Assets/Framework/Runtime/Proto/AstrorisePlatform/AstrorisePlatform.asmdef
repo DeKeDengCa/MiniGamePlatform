@@ -1,0 +1,18 @@
+{
+    "name": "AstrorisePlatform",
+    "rootNamespace": "",
+    "references": [
+        "Protocol"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        "Plugins/ProtoBuf/Google.Protobuf.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

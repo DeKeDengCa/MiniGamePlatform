@@ -1,0 +1,110 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/imgroup/handler/
+syntax = "proto3";
+
+package api.astrorise.voiceroom;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/adapter/model.proto";
+
+option java_package="com.entertain.sns.api.gene.imgroup";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbimgroup";
+
+// 业务群聊功能
+// serviceName: astrorise-voiceroom
+service ImGroup {
+  // 获取群聊配置
+  rpc GetMyGroupConf(GetMyGroupConfReq) returns (GetMyGroupConfRsp);
+
+  // 设置免打扰
+  rpc SetGroupMute(SetGroupMuteReq) returns (SetGroupMuteRsp);
+
+  // 获取群聊信息
+  rpc GetGroupInfo(GetGroupInfoReq) returns (GetGroupInfoRsp);
+
+  // 批量获取群聊信息
+  rpc BatchGetGroupInfo(BatchGetGroupInfoReq) returns (BatchGetGroupInfoRsp);
+
+  // 获取群聊成员
+  rpc GetGroupMember(GetGroupMemberReq) returns (GetGroupMemberRsp);
+}
+
+message GetMyGroupConfReq {
+  repeated int64 group_ids = 1;
+}
+
+enum MuteStatus {
+  MuteStatus_NONE = 0;
+  MuteStatus_OPEN = 1;
+}
+
+enum GroupRole {
+  GroupRole_NONE = 0;
+  GroupRole_OWNER = 1;
+  GroupRole_ADMIN = 2;
+  GroupRole_MEMBER = 3;
+}
+
+enum GroupType {
+    GroupType_NONE = 0;
+    GroupType_NORMAL = 1;
+    GroupType_FAMILY = 2;
+}
+
+message GetMyGroupConfRsp {
+  message Extra {
+    int64 family_id = 1; // gtype为GroupType_FAMILY时对应群聊家族id
+  }
+  message Conf {
+    int64 group_id = 1;
+    MuteStatus mstatus = 2;
+    GroupRole grole = 3;
+    GroupType gtype = 4;
+    Extra extra = 5;
+    string group_name = 6;
+    string group_avatar = 7;
+  }
+  map<int64, Conf> confs = 1;
+}
+
+message SetGroupMuteReq {
+  int64 group_id = 1;
+  MuteStatus mstatus = 2;
+}
+
+message SetGroupMuteRsp {
+
+}
+
+message GetGroupInfoReq {
+  int64 group_id = 1;
+}
+
+message GetGroupInfoRsp {
+  int64 group_id = 1;
+  string group_name = 2;
+  string group_avatar = 3;
+}
+
+message BatchGetGroupInfoReq {
+  repeated int64 group_ids = 1;
+}
+
+message BatchGetGroupInfoRsp {
+  message GroupInfo {
+    int64 group_id = 1;
+    string group_name = 2;
+    string group_avatar = 3;
+  }
+  map<int64, GroupInfo> groups = 1;
+}
+
+message GetGroupMemberReq {
+  int64 group_id = 1;
+  scommon.Page page = 2;
+  string key = 3;
+}
+
+message GetGroupMemberRsp {
+  scommon.Page page = 1;
+  repeated comm.api.adapter.UserInfo users = 2;
+}

@@ -1,0 +1,33 @@
+// smicro:spath=gitit.cc/social/components-service/social-relation/biz/relation/handler/userrelation
+syntax = "proto3";
+
+package comm.api.relation;
+
+option java_package = "com.entertain.sns.comm.api.relation";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbrelation";
+
+// 关系服务 
+// serviceName: relation-api
+service UserRelation {
+  rpc GetUserRelation(GetUserRelationReq) returns (GetUserRelationRsp) {}
+}
+
+// 关系枚举
+enum Relation {
+  RELATION_NONE = 0;          // 无意义
+  RELATION_BLOCKED = 1;       // 我拉黑TA
+  RELATION_BE_BLOCKED = 2;    // 被TA拉黑
+  RELATION_BOTH_BLOCKED = 3;  // 互相拉黑
+  RELATION_STRANGER = 4;      // 陌生人, 既没拉黑也没关注
+  RELATION_FOLLOWED = 5;      // 我关注TA
+  RELATION_BE_FOLLOWED = 6;   // 被TA关注
+  RELATION_BOTH_FOLLOWED = 7; // 互相关注
+}
+
+message GetUserRelationReq {
+  repeated int64 target_uids = 1;
+}
+
+message GetUserRelationRsp {
+  map<int64, Relation> relations = 1;
+}

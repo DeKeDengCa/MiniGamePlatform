@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package comm.api.notify.web;
+
+option java_package="com.entertain.sns.comm.api.notify.web";
+
+// 这里不用pbcom，因为需要用Notify这个名字，过于通用了
+option go_package="gitit.cc/social/protobuf/gencode/api/pbwebnotify";
+
+message Notify {
+  NotifyWeb notify = 1;
+}
+
+message NotifyWeb {
+  string event = 1;  // {{package}}.{{message}}
+  string data = 2;   // message的json格式
+}

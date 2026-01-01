@@ -1,0 +1,97 @@
+syntax = "proto3";
+
+package comm.svr.agency;
+
+import "protobuf/api/common/common.proto";
+
+option go_package="gitit.cc/social/protobuf/gencode/svr/pbsagency";
+
+service Anchor {
+  // 获取单个主播
+  rpc GetAnchor (GetAnchorReq) returns (GetAnchorRsp);
+  // 获取主播列表
+  rpc ListAnchor (ListAnchorReq) returns (ListAnchorRsp);
+  // 通过邀请码新增主播（会新增节点）
+  rpc AddAnchorByInviteCode (AddAnchorByInviteCodeReq) returns (AddAnchorByInviteCodeRsp);
+  // 更新主播状态
+  rpc UpdateAnchorStatus (UpdateAnchorStatusReq) returns (UpdateAnchorStatusRsp);
+  // 删除主播（硬删除）
+  rpc DeleteAnchor (DeleteAnchorReq) returns (DeleteAnchorRsp);
+}
+
+/*
+  主播状态枚举
+*/
+enum AnchorStatus {
+  ANCHOR_STATUS_NONE = 0;
+  ANCHOR_STATUS_NORMAL = 1;
+  ANCHOR_STATUS_FREEZE = 2;
+}
+
+// 主播Model
+message AnchorData {
+  int64 id = 1;
+  string business_id = 2;
+  AnchorStatus status = 3;
+  string invite_code = 4;
+  int64 ctime = 5;
+  int64 utime = 6;
+}
+
+message GetAnchorReq {
+  string app_name = 1; // 必填，对应服务名称
+  int64 id = 2;
+  string business_id = 3;
+  string invite_code = 4;
+  AnchorStatus status = 5;
+}
+
+message GetAnchorRsp {
+  AnchorData anchor = 1;
+  bool is_exist = 2;
+}
+
+message ListAnchorReq {
+  scommon.Page page = 1;
+  string app_name = 2; // 必填，对应服务名称
+  repeated string business_id = 3;
+  repeated AnchorStatus status = 4;
+  repeated string invite_code = 5;
+}
+
+message ListAnchorRsp {
+  scommon.Page page = 1;
+  repeated AnchorData anchors = 2;
+}
+
+message AddAnchorByInviteCodeReq {
+  string app_name = 1; // 必填，对应服务名称
+  string business_id = 2;
+  // 需要绑定关系的邀请码
+  string bind_invite_code = 3;
+  // 新增的个人邀请码
+  string invite_code = 4;
+  // 状态
+  AnchorStatus status = 5;
+  // 节点角色
+  string role = 6;
+  // 节点权限
+  int64 permission = 7;
+}
+
+message AddAnchorByInviteCodeRsp {}
+
+message UpdateAnchorStatusReq{
+  string app_name = 1; // 必填，对应服务名称
+  string business_id = 2;
+  AnchorStatus status = 3;
+}
+
+message UpdateAnchorStatusRsp{}
+
+message DeleteAnchorReq{
+  string app_name = 1; // 必填，对应服务名称
+  string business_id = 2;
+}
+
+message DeleteAnchorRsp{}

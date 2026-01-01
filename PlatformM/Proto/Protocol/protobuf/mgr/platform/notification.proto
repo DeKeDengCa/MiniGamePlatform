@@ -1,0 +1,146 @@
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/notification/handlermgr/notification.go
+syntax = "proto3";
+
+import "protobuf/api/common/common.proto";
+import "protobuf/mgr/platform/notification_doc.proto";
+import "protobuf/mgr/platform/notification_source.proto";
+
+package comm.mgr.platform.notification;
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/platform/pbmnotification";
+
+service NotificationMgr {
+  rpc Add(AddReq) returns (AddRsp);
+  rpc Del(DelReq) returns (DelRsp);
+  rpc Update(UpdateReq) returns (UpdateRsp);
+  rpc Get(GetReq) returns (GetRsp);
+  rpc List(ListReq) returns (ListRsp);
+
+  rpc Publish(PublishReq) returns (PublishRsp);
+}
+
+enum MessageKind {
+  MSSAGE_KIND_NONE = 0;
+
+  MSSAGE_KIND_SYSTEM = 1; // 系统
+  MSSAGE_KIND_OPERATION = 2; // 运营
+  MSSAGE_KIND_OFFICIAL = 3; // 官方
+}
+
+enum UserSelector {
+  USER_SELECTOR_NONE = 0;
+  USER_SELECTOR_ALL = 1;
+  USER_SELECTOR_IDS = 2;
+  USER_SELECTOR_CROWD = 3;
+}
+
+message Version {
+  double begin = 10; // 最小版本号
+  double end = 11; // 最大版本号
+  bool is_all = 12; // 0- 部分 1- 所有
+}
+
+enum PushStatus {
+  PUSH_STATUS_NONE = 0; // 未启动
+  PUSH_STATUS_WATING = 1; // 等待发布
+  PUSH_STATUS_SUCC = 2; // 发布成功
+  PUSH_STATUS_FAIL = 3; // 发布失败
+}
+
+message Notification {
+  int64 doc_id = 10; // 关联的文本id
+  int64 source_id = 11; // 关联的内容源id
+  UserSelector user_selector = 12; // 发给的用户 1- 所有 2- 白名单用户
+  repeated int64 uids = 13; // 部分用户id
+  PushTimer push_timer = 14; // push 时间
+  MessageKind msg_kind = 15; // 消息类型
+  Version  app_version = 16; // app版本
+  Version  ios_version = 17; // ios版本
+  Version  android_version = 18; // android 版本
+  string   operator = 19; // 操作者
+
+  int64 id = 50;  // 唯一标识
+  int64 create_time = 51;
+  int64 update_time = 52;
+  bool deleted = 53; // 是否已经删除
+  bool published = 54; // 是否已经发布，0- 未发布 1- 已发布
+  comm.mgr.platform.notification.Doc doc = 55; // 关联的文本
+  comm.mgr.platform.notification.Source source = 56; // 关联的内容源
+  int32 notify_times = 57; // 推送次数
+  PushStatus push_status = 58; //推送状态
+  int64 push_action_time = 59; //推送动作时间
+}
+
+message PushTimer {
+  bool push_now = 10; // 0- 等待到push_tm再发送，1- 马上发送
+  int64 push_tm = 11; // 推送时间
+  string timezone = 12;  // 推送时间的时区
+}
+
+message AddReq {
+  int64 doc_id = 10; // 关联的文本id
+  int64 source_id = 11; // 关联的内容源id
+  UserSelector user_selector = 12; // 发给的用户 1- 所有 2- 白名单用户
+  repeated int64 uids = 13; // 部分用户id
+  PushTimer push_timer = 14; // push 时间
+  MessageKind msg_kind = 15; // 消息类型
+  Version  app_version = 16; // app版本
+  Version  ios_version = 17; // ios版本
+  Version  android_version = 18; // android 版本
+  string   operator = 19; // 操作者
+}
+
+message AddRsp {
+  int64 id = 10;
+}
+
+message DelReq {
+  repeated int64 ids = 10;
+  string operator = 11;
+}
+
+message DelRsp {
+  int64 count = 10;
+}
+
+message UpdateReq {
+  Notification req = 10;
+  string operator = 11;
+}
+
+message UpdateRsp {
+  Notification rsp = 10;
+}
+
+message GetReq {
+  int64 id = 10;
+}
+
+message GetRsp {
+  Notification resp = 10;
+}
+
+message ListReq {
+  scommon.Page page = 1; 
+  int64 id = 10;
+  int64 doc_id = 11;
+  int64 source_id = 12;
+  int64 notify_begin = 13;
+  int64 notify_end = 14; 
+  PushStatus push_status = 15;
+  bool manual_pub = 16;
+}
+
+message ListRsp {
+  scommon.Page page = 1;
+  repeated Notification list = 10;
+}
+
+message PublishReq {
+  int64 id = 10;
+  bool published = 11;
+  string operator = 12;
+}
+
+message PublishRsp {
+}

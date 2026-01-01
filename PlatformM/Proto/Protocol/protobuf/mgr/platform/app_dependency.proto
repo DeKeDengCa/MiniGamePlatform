@@ -1,0 +1,109 @@
+syntax = "proto3";
+
+import "protobuf/api/common/common.proto";
+
+package comm.mgr.platform.appdependency;
+
+option go_package = "gitit.cc/social/components-service/social-platform/proto/pbmappdependency";
+
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/appdependency/handlermgr
+service AppDependency {
+  // 提交 App 依赖快照
+  rpc SubmitAppDependency(SubmitAppDependencyReq) returns (SubmitAppDependencyRsp);
+
+  // 查询 App 依赖列表
+  rpc ListDependency (ListDependencyReq) returns (ListDependencyRsp);
+
+  // 查询所有 App 包名列表
+  rpc ListAppPackages (ListAppPackagesReq) returns (ListAppPackagesRsp);
+
+  // 查询某个包名下的所有版本
+  rpc ListAppPackageVersions (ListAppPackageVersionsReq) returns (ListAppPackageVersionsRsp);
+}
+
+// 平台枚举类型定义
+enum PlatformType {
+  PLATFORM_TYPE_NONE = 0;
+  PLATFORM_TYPE_ANDROID = 1;     // ANDROID 平台
+  PLATFORM_TYPE_IOS = 2;         // IOS 平台
+  PLATFORM_TYPE_FLUTTER = 3;     // FLUTTER 平台
+}
+
+message AppVersionDependency{
+  int64 id = 1; // 主键ID
+  string anm = 2; // 业务
+  string package = 3; // App 包名，类似:com.gene.live
+  PlatformType platform_type = 4; // 平台类型 (1:ANDROID, 2:IOS, 3:FLUTTER)
+  int64 version_code = 5; // App 版本号 (数字)
+  string version_name = 6; // App 版本名 (字符串)
+  repeated DependencySnapshotItem dependencies = 7; // App依赖的基建库列表快照
+  int64 submit_time = 8; // 提交时间
+  int64 created_at = 9; // 创建时间
+  int64 updated_at = 10; // 修改时间
+}
+
+message DependencySnapshotItem {
+  string name = 1; // 依赖的基建库名称
+  string version = 2; // 当前使用版本
+  string latest = 3; // 打包时该库的最新版本
+}
+
+message SubmitAppDependencyReq {
+  string anm = 1; // 业务anm
+  string package = 2; // App 包名,类似:com.gene.live
+  PlatformType platform_type = 3; // 平台
+  int64 version_code = 4; // App 版本号 (数字)
+  string version_name = 5; // App 版本名 (字符串)
+  repeated DependencySnapshotItem dependencies = 6; // App 依赖的基建库列表快照
+}
+
+message SubmitAppDependencyRsp {
+  int64 id = 1;
+}
+
+message ListDependencyReq {
+  scommon.Page page = 1;      // 分页
+  scommon.Sorts sorts = 2; // 排序参数
+
+  string anm = 10; // 业务anm
+  PlatformType platform_type = 11; // 平台
+  string package = 12; // App 包名
+  int64 version_code = 13;
+  string version_name = 14;
+}
+
+message ListDependencyRsp {
+  scommon.Page page = 1;      // 分页
+
+  repeated AppVersionDependency app_dependencies = 10;
+}
+
+enum AppVersionDependencySortField {
+  APP_VERSION_DEPENDENCY_SORT_FIELD_NONE = 0;
+  APP_VERSION_DEPENDENCY_SORT_FIELD_ID = 1;
+  APP_VERSION_DEPENDENCY_SORT_FIELD_VERSION_CODE = 2; // App 版本号
+  APP_VERSION_DEPENDENCY_SORT_FIELD_SUBMIT_TIME = 3; // 提交时间
+}
+
+message ListAppPackagesReq {
+  string anm = 1; // 可选，过滤业务 anm
+  PlatformType platform_type = 2; // 可选，过滤平台
+}
+message ListAppPackagesRsp {
+  repeated string packages = 1; // 包名列表
+}
+
+message ListAppPackageVersionsReq {
+  string anm = 1; // 可选
+  PlatformType platform_type = 2; // 可选
+  string package = 3; // 可选：App 包名
+}
+
+message ListAppPackageVersionsRsp {
+  repeated AppVersionOption versions = 1;
+}
+
+message AppVersionOption {
+  int64 version_code = 1;
+  string version_name = 2;
+}

@@ -1,0 +1,32 @@
+// smicro:spath=gitit.cc/social/components-service/social-biz/biz/riskcontrol/handlersvr
+syntax = "proto3";
+
+package comm.svr.platform.riskcontrol;
+
+import "protobuf/mgr/platform/risk_control.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/platform/pbsriskcontrol";
+
+// 异步，回调函数
+service RiskControlCallback {
+  rpc Callback(RiskControlCallbackReq) returns (RiskControlCallbackRsp) {}
+}
+
+message RiskControlCallbackReq {
+  string seq_id = 10;                                         // 幂等ID
+  int64  id = 11;                                             // 风控ID，唯一性递增。
+  string category = 12;                                       // 大类
+  string risk_type = 13;                                      // 审核类型
+  string context = 14;                                        // 上下文，异步回调会带上context
+  string content = 15;                                        // 修改内容
+  comm.mgr.platform.riskcontrol.RiskControlType content_type = 16;          // 内容类型
+  int64  timestamp = 17;                                      // 提交风控内容的时间戳
+
+  comm.mgr.platform.riskcontrol.RiskControlResult auto_audit_result = 20;   // 机审结果，有可能会调用两次，机审后一次，人审后一次。
+  comm.mgr.platform.riskcontrol.RiskControlResult manual_audit_result = 21; // 人审结果
+  string audit_reason = 30;           // 审核理由
+  repeated string audit_labels = 31;  // 审核标签
+}
+
+message RiskControlCallbackRsp {
+}

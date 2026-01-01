@@ -1,0 +1,70 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/family/handler/
+syntax = "proto3";
+
+package api.astrorise.voiceroom;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/adapter/model.proto";
+
+option java_package="com.entertain.sns.api.gene.bizfamily";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbbizfamily";
+
+// 业务家族功能
+// serviceName: astrorise-voiceroom
+service BizFamily {
+    
+    // 获取家族任务汇总
+    rpc GetFamilyTaskSummary(GetFamilyTaskSummaryReq) returns (GetFamilyTaskSummaryRsp);
+
+    // 获取家族任务榜单汇总
+    rpc GetFamilyRankSummary(GetFamilyRankSummaryReq) returns (GetFamilyRankSummaryRsp);
+
+    // 获取榜单成员
+    rpc GetFamilyRankMember(GetFamilyRankMemberReq) returns (GetFamilyRankMemberRsp);
+}
+
+// 家族榜单成员
+message FamilyRankMember {
+    int64 ranking = 1;                          // 排名
+    comm.api.adapter.UserInfo user_info = 10;   // 用户信息
+    int64 score = 20;                           // 分数
+}
+
+// 家族榜单周期
+enum FamilyRankCycle {
+    FAMILY_RANK_CYCLE_NONE = 0;
+    FAMILY_RANK_CYCLE_DAILY = 10;   // 日榜
+    FAMILY_RANK_CYCLE_WEEKLY = 20;  // 周榜
+    FAMILY_RANK_CYCLE_MONTHLY = 30; // 月榜
+}
+
+
+message GetFamilyTaskSummaryReq {
+    int64 family_id = 10;               // 家族ID
+}
+
+message GetFamilyTaskSummaryRsp {
+    string jump_url = 10;             // 家族任务页面地址
+    int64 completed_count = 20;       // 已完成进度
+    int64 total_count = 21;           // 总进度
+}
+
+message GetFamilyRankSummaryReq {
+    int64 family_id = 10;               // 家族ID
+}
+
+message GetFamilyRankSummaryRsp {
+    string jump_url = 10;              // 家族任务页面地址
+    int64 monthly_ranking = 20;        // 月排名
+}
+
+message GetFamilyRankMemberReq {
+    scommon.Page page = 1;              // 分页
+    int64 family_id = 10;               // 家族ID
+    FamilyRankCycle rank_cycle = 20;    // 榜单周期
+}
+
+message GetFamilyRankMemberRsp {
+    scommon.Page page = 1;                       // 分页
+    repeated FamilyRankMember rank_members = 10; // 榜单成员
+}

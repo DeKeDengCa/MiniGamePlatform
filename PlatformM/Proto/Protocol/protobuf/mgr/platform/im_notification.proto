@@ -1,0 +1,153 @@
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/im_notification/handlermgr
+syntax = "proto3";
+
+import "protobuf/api/common/common.proto";
+import "protobuf/mgr/platform/notification.proto";
+import "protobuf/mgr/platform/notification_source.proto";
+
+package comm.mgr.platform.notification;
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/platform/pbmnotification";
+
+service IMNotificationMgr {
+  rpc Add(AddIMNotificationReq) returns (AddIMNotificationRsp);
+  rpc Del(DelIMNotificationReq) returns (DelIMNotificationRsp);
+  rpc Update(UpdateIMNotificationReq) returns (UpdateIMNotificationRsp);
+  rpc List(ListIMNotificationsReq) returns (ListIMNotificationsRsp);
+
+  // 上下架
+  rpc Up(UpIMNotificationReq) returns (UpIMNotificationRsp);
+
+  // 获取人群包列表
+  rpc GetNotificationCrowd(GetNotificationCrowdReq) returns (GetNotificationCrowdRsp);
+
+  // 获取用户信息
+  rpc GetNotificationUserInfo(GetNotificationUserInfoReq) returns (GetNotificationUserInfoRsp) {}
+}
+
+enum IMPublishStatus {
+  IM_PUBLISH_STATUS_NONE = 0;
+  IM_PUBLISH_STATUS_WATING = 1;                                        // 等待发布
+  IM_PUBLISH_STATUS_PUBLISHING = 2;                                    // 发布中
+  IM_PUBLISH_STATUS_SUCC = 3;                                          // 发布成功
+  IM_PUBLISH_STATUS_FAIL = 4;                                          // 发布失败
+  IM_PUBLISH_STATUS_TIMEOUT = 5;                                       // 发布过期
+}
+
+enum IMDeleteStatus {
+  IM_DELETE_STSTUS_NONE = 0;
+  IM_DELETE_STSTUS_VALID = 10;                                          // 有效
+  IM_DELETE_STSTUS_DELETED = 20;                                        // 已删除
+}
+
+message IMNotification {
+  int64 id = 1;                                                     // 唯一标识,ADD时为0，其他操作不能为0
+
+  map<string,string> title = 10;                                     // en: 英文标题, zh: 中文标题 ar: 阿拉伯标题
+  map<string,string> body = 11 ;                                     // en: 英文body, zh: 中文body ar: 阿拉伯标题
+  map<string,string> img = 12;                                       // en: 英文图, zh: 中文图 ar: 阿拉伯图
+  map<string,int32> img_height= 13;                                  // en: 高, zh: 高 ar: 高
+  map<string,int32> img_width = 14;                                  // en: 宽, zh: 宽 ar: 宽
+
+  comm.mgr.platform.notification.JumpType jump_type = 20;                          // 跳转类型
+  string jump_link = 21;                                             // 跳转链接
+  comm.mgr.platform.notification.UserSelector user_selector = 22;                  // 发给的用户类型
+  repeated string target_ids = 23;                                    // 用户id，或者用户包id
+  int64 plan_push_time = 24;                                         // 推送时间
+  string timezone = 25;                                              // 推送时间的时区
+
+  comm.mgr.platform.notification.MessageKind message_kind = 40;                    // 消息类型
+  comm.mgr.platform.notification.Version  app_version = 41;                        // app版本区间
+  comm.mgr.platform.notification.Version  ios_version = 42;                        // ios版本区间
+  comm.mgr.platform.notification.Version  android_version = 43;                    // android版本区间
+  string comment = 44;                                               // 备注
+
+  // update时，以下字段无效
+  int64 actual_push_time = 60;                                        // 实际推送时间戳
+  IMPublishStatus publish_status = 61;                                // 推送状态
+  int64 create_at = 62;                                             // 创建时间
+  int64 update_at = 63;                                             // 修改时间
+  string operator = 64;                                               // 操作者
+  string operator_uid = 65;                                          // 操作人unionid
+  IMDeleteStatus  delete_status = 66;                                // 删除状态
+  bool up = 67;                                                      // 开关是否打开
+}
+
+message AddIMNotificationReq {
+    IMNotification data = 10;
+}
+message AddIMNotificationRsp {
+  int64 id = 10;
+}
+
+message DelIMNotificationReq {
+  repeated int64 ids = 10;
+}
+message DelIMNotificationRsp {
+}
+
+message UpdateIMNotificationReq {
+  IMNotification data = 10;
+  int64 curr_update_at = 11;                                // 把当前行的update_at时间带过来，防止没刷新的情况
+  IMPublishStatus curr_publish_status = 12;                  // 把当前状态带过来，防止没刷新的情况
+}
+message UpdateIMNotificationRsp {
+  IMNotification data = 10;
+}
+
+message ListIMNotificationsReq {
+  scommon.Page page = 1;
+
+  int64 id = 10;
+  IMPublishStatus publish_status = 11;
+  comm.mgr.platform.notification.JumpType jump_type = 12;                          // 跳转类型
+  int64 actual_push_begin = 13;
+  int64 actual_push_end = 14;
+  int64 create_begin = 15;
+  int64 create_end = 16;
+
+  IMDeleteStatus delete_status = 20;
+  repeated string operators = 21;
+  repeated string operator_unionids = 22;
+}
+message ListIMNotificationsRsp {
+  scommon.Page page = 1;
+  
+  repeated IMNotification data = 10;
+}
+
+message UpIMNotificationReq {
+  int64 id = 10;
+  bool up = 11;
+  IMPublishStatus curr_publish_status = 12;                  // 把当前状态带过来，防止没刷新的情况
+  int64 curr_update_at = 13;                                 // 把当前行的update_at时间带过来，防止没刷新的情况
+}
+message UpIMNotificationRsp {
+}
+
+message NotificationCrowd {
+  string id = 1;                                              // 人群包对应的id，根据id，可以直接对应着多个用户
+  string tag = 2;                                             // 人群包对应的tag信息，用于展示
+  string desc = 3;                                            // 人群包的描述
+}
+message GetNotificationCrowdReq {
+  scommon.Page page = 1;
+}
+message GetNotificationCrowdRsp {
+  scommon.Page page = 1;
+
+  repeated NotificationCrowd crowds = 10;                     // 人群包列表
+}
+
+message NotificationUserInfo {
+  int64 uid = 1;
+  string show_uid = 2;
+  string nickname = 3;
+  string avatar = 4;
+}
+message GetNotificationUserInfoReq {
+  repeated string all_uids = 10;                              // 包含了uid和show_uid,最多为500个
+}
+message GetNotificationUserInfoRsp {
+  repeated NotificationUserInfo users = 10;
+}

@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package comm.svr.moment;
+
+import "protobuf/api/moment/moment-comm.proto";
+
+option java_package = "com.entertain.sns.comm.svr.moment";
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsmoment";
+
+// 动作类型
+enum ActionType {
+  ACTION_TYPE_NONE = 0;
+
+  // 动态部分
+  ACTION_TYPE_MOMENT_PUBLISH = 100;         // 发布动态
+  ACTION_TYPE_MOMENT_DELETE = 110;          // 删除动态
+  ACTION_TYPE_MOMENT_VIEW = 120;            // 浏览动态
+
+  // 动态审核部分
+  ACTION_TYPE_MOMENT_AUDIT_APPROVE = 150;   // 动态审批通过
+  ACTION_TYPE_MOMENT_AUDIT_REJECT = 151;    // 动态审批拒绝
+
+  // 评论部分
+  ACTION_TYPE_COMMENT_PUBLISH = 200;        // 发表评论
+  ACTION_TYPE_COMMENT_DELETE = 210;         // 删除评论
+
+  // 评论审核部分
+  ACTION_TYPE_COMMENT_AUDIT_APPROVE = 250;  // 评论审批通过
+  ACTION_TYPE_COMMENT_AUDIT_REJECT = 251;   // 评论审批拒绝
+}
+
+// 动态消息
+// topic: social-moment-action-${anm}
+message MomentActionMessage {
+  int64 timestamp = 1;                  // 时间戳(秒)
+  string anm = 2;                       // 业务名
+  string seq_id = 3;                    // 幂等ID
+  ActionType action_type = 4;           // 动作类型
+  int64 action_uid = 5;                 // 发起这个动作的 UID, 例如动态发布者, 动态查看者, 评论发布者. 但有些动作是没有 UID 的, 例如动态和评论的审核动作.
+
+  comm.api.moment.Moment moment = 10;   // 动态信息(只有动态相关的动作才会有值, 如果是评论的动作有需要其动态信息时可以通过中台接口查询)
+  comm.api.moment.Comment comment = 20; // 评论信息(只有评论相关的动作才会有值)
+  Audit audit = 30;                     // 审核信息(只有审核相关的动作才会有值)
+}
+
+message Audit {
+  comm.api.moment.AuditStatus status = 1; // 审核状态
+  string reason = 2;                      // 审核理由
+  repeated string labels = 3;             // 审核标签
+}

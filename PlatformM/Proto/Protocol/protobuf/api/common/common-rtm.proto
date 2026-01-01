@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+// 这个package 不改了，各端都用的很多
+package scommon;
+
+import "protobuf/api/common/common-net.proto";
+
+option java_package="com.entertain.sns.scommon";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbcom";
+
+// 为了统一 RTM 和自研的单广播通道下发的内容结构,
+// 每个服务都只有一个 Notify 的 Protobuf Message 定义,
+// 但是对于一个客户端则有多个 Notify, 因为一个客户端不止对接一个业务服务还有多个中台服务,
+// 所以通过 RTM 下发消息的时候需要带上消息到底是哪个服务的 Notify.
+message RtmPayload {
+  string notify_pkg = 1;                // 通知包名
+  bytes notify_data = 2;                // 通知数据
+  string seq_id = 3;                    // 去重序号
+  int64 timestamp = 4;                  // 时间戳, 精确到秒.
+  scommon.CompressType compress_type = 5;       // 压缩类型
+  string group_id = 6;                  // 广播组ID, 单播时为空字符串, 广播时是广播组ID, ...
+  int32 notify_type = 7;                // 通知类型, 1: 单播,  2: 广播, ...
+  map<string, string> extension = 100;  // 拓展信息
+}

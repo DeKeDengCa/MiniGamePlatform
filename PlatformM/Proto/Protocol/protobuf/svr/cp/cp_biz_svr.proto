@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package comm.svr.cp;
+
+option java_package = "com.entertain.sns.comm.svr.cp";
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbscp";
+import "protobuf/api/cp/cp-comm.proto";
+import "protobuf/svr/adapter/gift.proto";
+
+// 业务实现接口
+service CPBizSvr {
+  rpc SendCPMessage(SendCPMessageReq) returns (SendCPMessageRsp);
+  rpc SendGiftMessage(SendGiftMessageReq) returns (SendGiftMessageRsp);
+  // 亲密度变化通知
+  rpc NotifyUserIntimacyChange(NotifyUserIntimacyChangeReq) returns (NotifyUserIntimacyChangeRsp);
+}
+
+message InviteInfo {
+  string invite_token = 10;       // 邀请or离婚申请token
+  int64 expire_time = 11;         // 消息token有效时间
+  string msg = 12; // 邀请信息
+}
+message SendCPMessageReq {
+  comm.api.cp.CPInviteMessageType message_type = 10; // 邀请信息类型
+  int64 invitor = 11;             // 邀请人or离婚申请人uid
+  int64 invitee = 12;             // 被邀请人or离婚接收人uid
+  InviteInfo invite_info = 13;
+}
+
+message SendCPMessageRsp {}
+
+
+message SendGiftMessageReq {
+  int64 sender_uid = 10; // 送礼人uid
+  int64 receiver_uid = 11; // 接收人uid
+  pbsadapter.GiftInfo gift_info = 12; // 礼物信息
+  int64 quantity = 13;// 数量
+}
+
+message SendGiftMessageRsp {
+
+}
+
+message NotifyUserIntimacyChangeReq{
+  int64 small_uid = 1;
+  int64 big_uid = 2;
+  int64 incr_intimacy = 3; // 增加值
+  int64 current_intimacy = 4; // 当前值
+}
+
+message NotifyUserIntimacyChangeRsp{}

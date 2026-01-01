@@ -1,0 +1,139 @@
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/riskcontrol/handlersvr
+syntax = "proto3";
+
+package comm.svr.platform.riskcontrol;
+
+import "protobuf/mgr/platform/risk_control.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/platform/pbsriskcontrol";
+
+service RiskControlSvr {
+  // 提交审批任务
+  rpc Submit(SubmitRiskControlReq) returns (SubmitRiskControlRsp) {}
+
+  // 对图片检测做一个封装：仅仅做了简单的解析，应答包中包含了原始的结果，业务可以做进一步的分析
+  // 原始接口在这里：http://yapi.flatincbr.com:40001/project/297/interface/api/7056
+  rpc CheckPictureWrap(CheckPictureWrapReq) returns (CheckPictureWrapRsp) {}
+
+  // 对图片人脸识别做一个封装
+  // 原始接口在这里：http://yapi.flatincbr.com:40001/project/297/interface/api/12344
+  rpc FaceDetect(FaceDetectReq) returns (FaceDetectRsp) {}
+}
+
+message FaceDetectReq {
+  repeated FaceDetectTask tasks = 10;
+}
+
+message FaceDetectTask {
+  string input = 10;        // 图片地址，url
+}
+
+message FaceDetectRsp {
+  repeated FaceDetectTaskResult results = 10;
+}
+
+message FaceDetectTaskResult {
+  string input = 10; // 对应输入
+  repeated FaceDetectTaskDetectResult detect_results = 11;
+}
+
+message FaceDetectTaskDetectResult {
+  int32 confidence = 11; // 置信度
+  repeated int32 cords = 12; // 坐标
+  string label = 13;         // label
+  string object_type = 14;   // 对象类型
+}
+
+enum RiskControlLevel {
+  RISKCONTROL_LEVEL_NONE = 0;                                // 默认级别：中间
+  RISKCONTROL_LEVEL_LIGHT = 10;                              // 风控级别：轻量
+  RISKCONTROL_LEVEL_MEDIUM = 20;                             // 风控级别：中间
+  RISKCONTROL_LEVEL_HEAVY = 30;                              // 风控级别：严格
+}
+
+enum PictureCheckClass {
+  PICTURE_CHECK_CLASS_NONE = 0;                               // 无
+  PICTURE_CHECK_CLASS_PORN = 10;                              // 黄色："porn", "sexy"
+  PICTURE_CHECK_CLASS_VIOLENCE = 20;                          // 恐暴涉政："political", "violent", "contraband"
+  PICTURE_CHECK_CLASS_UNDERAGE = 30;                          // 儿童：face_underage
+  // 二维码检测 注意：只对图片有效，对视频无效。
+  PICTURE_CHECK_CLASS_QRCODE = 40;                            // 二维码检测
+}
+
+// 风控选项
+message RiskControlOption {
+  int32 video_split_interval_sec = 1;                         // 视频帧采样间隔(秒), 默认整个视频只取均匀的 10 帧.
+  bool skip_auto_audit = 10;                                  // 是否跳过机审
+  bool ignore_audit_order = 11;                               // 忽略人工审核顺序
+
+  // 图片和视频审核相关
+  repeated PictureCheckClass check_class = 12;                // 检测类别,不填的话，则属于默认值:黄色（"porn", "sexy"）和恐暴涉政检测（"political", "violent", "contraband"）
+  repeated string pass_labels = 13;                           // 忽略掉的标签检测，如："sexy". 这些忽略的标签也包含了阿里云的标签
+  int32 review_min_rate = 14;                                 // 最小置信度，高于这个值时则判定该场景block, 不填默认为80
+  map<string, int32> label_min_rate = 15;                     // 针对每个标签设置最小置信度，如["sexy":90], 默认取review_min_rate参数.
+
+  // 仅图片,提取文字
+  bool need_ocr = 16;                                         // 需要提取出图片中的文字，只在图片审核中有效
+  string ocr_model = 17;                                      // ocr 模型参数。空: 英文，数字，中文识别，速度快；ch_full_v4-ch_full_v4: 英文，数字，中文识别，较准，但是速度较慢；ch_full_v4-en_v4: 英文，数字识别，较准，但是速度较慢
+}
+
+// 混合内容项, 需要指定此项内容的类型和值
+message MixedContentItem {
+  comm.mgr.platform.riskcontrol.RiskControlType content_type = 1; // 审核内容项的类型, 例如: 文本/图片/视频, 暂不支持混合类型.
+  string content_value = 2;                                       // 审核内容项的值, 例如文本内容/图片地址/视频地址.
+}
+
+// 混合内容
+message MixedContent {
+  repeated MixedContentItem items = 1;                        // 混合内容项
+}
+
+message SubmitRiskControlReq {
+  string seq_id = 10;                                         // 幂等ID
+  string category = 11;                                       // 大类，由业务后端定义
+  string risk_type = 12;                                      // 风险类型，由业务后端定义
+
+  string content = 13;                                        // 修改的内容, 不同的内容类型有着不同的字符串形式，当为文本时此值是文本内容本身, 当为图片或视频时此值是URL, 当为混合类型时此值是 MixedContent 的 JSON 字符串.
+  comm.mgr.platform.riskcontrol.RiskControlType content_type = 14;          // 内容类型：图片，文本
+  int64 relation_id = 15;                                     // 内容关联的id,方便查询
+  string frontend_data = 16;                                  // 交给前端的内容，需要展示
+  string remark = 17;                                         // 备注
+  RiskControlLevel level = 18;                                // 分为三个级别：轻量，中间，严格。不填为中间。仅使用于文本检测中
+  RiskControlOption option = 19;                              // 风控选项
+
+  bool   async = 20;                                          // 是否异步。同步时会在应答中有机审结果，需要几s
+  string context = 21;                                        // 上下文，异步回调会带上context
+  string callback_url = 22;                                   // 回调地址, 支持 gRPC
+
+  string submit_by = 30;                                      // 提交人
+  int64 submit_uid = 31;                                      // 提交人uid
+}
+
+message ExtractOCR {
+  string rec_txt = 1;                                         // 提取的内容
+  string score = 2;                                           // 提取打分
+}
+
+message SubmitRiskControlRsp {
+  string seq_id = 10;                                         // 幂等ID
+  int64  id = 11;                                             // 唯一性id
+  bool   async = 13;                                          // 是否异步
+  comm.mgr.platform.riskcontrol.RiskControlResult auto_audit_result = 14;   // 在同步的情况会有机审结果
+  string ocr_extract_result = 15;                                           // 同步情况下，设置了need_ocr.为提取结果的json串。仅对图片检测有效
+  repeated ExtractOCR ocrs = 16;                                            // 解析ocr结果后得到内容
+}
+
+message CheckPictureWrapReq{
+  string content = 10;                                        // 图片URL
+  RiskControlOption option = 11;                              // 风控选项
+}
+
+message CheckPictureWrapRsp{
+  comm.mgr.platform.riskcontrol.RiskControlResult auto_audit_result = 10;   // 检测结果
+  string reason = 11;                                                       // 结论原因
+  map<string,float> labels_result = 12;                                     // 检测的标签分数
+  repeated ExtractOCR ocrs = 13;                                            // 解析ocr结果后得到内容
+  string extract_result = 14;                                               // 设置了need_ocr，为提取结果的json串
+  string vision_result = 15;                                                // 黄色,恐暴涉政,儿童 检测结果，json串
+  string detect_result = 16;                                                // 二维码检测结果，json串
+}

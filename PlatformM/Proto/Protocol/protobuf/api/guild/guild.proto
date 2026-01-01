@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package comm.api.guild;
+
+import "protobuf/api/guild/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbguild";
+
+// ServiceName: rpc.micro.social.guild
+// smicro:spath=gitit.cc/social/components-service/social-guild/handler-api/guild
+
+// 工会信息
+message Guild {
+  int64 id = 1; // 公会ID
+  string name = 2; // 公会名称
+  string logo = 3; // 公会LOGO
+  string profile = 4; // 公会宣言
+  int64 owner_uid = 8; // 公会长UID
+  string owner_name = 9; // 公会长姓名
+  Country owner_country = 10; // 公会长国家
+  string owner_whatsapp = 11; // 公会长 whatsapp
+  string owner_mobile = 12; // 公会长手机号
+  string owner_email = 13; // 公会长邮箱
+  bool official = 17; // 是否为官方公会
+  bool frozen = 18; // 公会是否已冻结
+  int64 frozen_at = 19; // 公会冻结时间
+  int64 created_at = 20; // 公会创建时间
+  int64 updated_at = 21; // 公会更新时间
+  string invite_code = 30; // 邀请码
+  string extra = 31; // 公会业务拓展信息
+}
+
+// 公会拓展信息, 用于反序列化公会的拓展信息 JSON 字符串.
+message GuildExtra {
+
+  // darling 业务的
+  message Darling {
+    string sexual_orientation = 1; // 性取向, 同性: same_sex, 异性: opposite_sex
+    string live_type = 2;          // 直播类型, 语音房: voice_room, 秀场: show_time, 语音厅: voice_room_hall
+  }
+
+  // ... 其他业务的
+}

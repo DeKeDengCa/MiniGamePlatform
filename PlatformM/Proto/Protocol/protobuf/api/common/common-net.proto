@@ -1,0 +1,245 @@
+syntax = "proto3";
+
+//smicro:with_unmarshal=true
+
+// 这个package 不改了，各端都用的很多
+package scommon;
+
+option java_package="com.entertain.sns.scommon";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbcom";
+
+// 返回码，0表示成功，10000-20000 为通用错误码
+enum Code {
+  CODE_OK = 0;    // 成功
+
+  // 为了避免和http的status code重合，以及避免和老业务错误码重合，错误码从10000开始
+
+  CODE_SERVER_ERROR = 10000;       // 服务的未知错误，非必要不要用
+  CODE_INVALID_PARAMETER = 10001;  // 参数非法
+  CODE_UNAUTH = 10002;             // 未授权用户，未登录、黑名单用户都可以返回这个
+  CODE_UNSUPPORT_VERSION = 10003;  // 不支持的版本
+  CODE_NOT_FOUND = 10004;          // 目标不存在
+  CODE_ALREADY_EXISTS = 10005;     // 已经存在
+  CODE_DUPLICATE_SEQID = 10006;    // seqid重复
+  CODE_NOT_STARTED = 10007;        // 未开始
+  CODE_OVER = 10008;               // 已结束
+  CODE_TOKEN_AGED = 10009;         // TOKEN 过期
+  CODE_BANNED = 10010;             // 被封禁
+
+  // 主要给cproxy用的
+  CODE_APP_NOT_FOUND = 10500;      // 找不到该APP配置信息
+  CODE_UNKNOW_CONTENT_TYPE = 10501;// 不支持的content-type
+  CODE_ENCRYPT_KEY_AGED = 10502;   // 加密密钥已经过期了
+  CODE_DECRYPT_FAIL = 10503;       // 解密失败
+  CODE_BASE64_FAIL = 10504;        // base64解码失败
+  CODE_UNZIP_FAIL = 10505;         // 解压失败，没有压缩失败的错误码，压缩失败就不压缩
+  CODE_DECODE_DATA_FAIL = 10506;   // 反序列化请求失败
+  CODE_ENCODE_DATA_FAIL = 10507;   // 序列化响应失败
+};
+
+// 发起请求的原因，这个可以用来辅助服务端做策略，比如在流量暴增的情况下，
+// 应该优先保证用户触发的请求
+enum RPCReason {
+  RPC_REASON_NONE = 0;
+  RPC_REASON_USER_ACTION = 1;  // 用户行为触发
+  RPC_REASON_PRE_LOAD = 10;    // 预加载
+  RPC_REASON_TIMER = 11;       // 定时器
+}
+
+// 主要用于在二进制协议包中表示序列化方式
+enum ContentType {
+  CONTENT_TYPE_PROTO = 0; // protobuf
+  CONTENT_TYPE_JSON = 1; // json
+}
+
+// 压缩类型
+enum CompressType {
+  COMPRESS_TYPE_NONE = 0; // 没有压缩
+  COMPRESS_TYPE_GZIP = 1; // gzip压缩
+}
+
+// 请求控制体
+message ReqControl {
+  string service = 1;   // 服务名
+  string method = 2;    // RPC方法名
+
+  // 请求序列ID，同用户，必须单调递增（两次不同的登录也要求递增），
+  // 如果是重传，则seqid不变。一种建议的方案是：记录上一次的seqid，如果是0，则获取当前的毫秒时间。
+  // 如果当前的毫秒时间小于或者等于上一次的seqid，则用上一次的seqid+1，记得每次使用要更新上一次的seqid
+  int64  seqid = 3;
+  string route_key = 4; // 用于把请求发送到指定的某台服务器，用于调试，客户端一般不填
+
+  // 【后端处理的超时时间】，单位毫秒，默认是3000ms，对于部分比较耗时的请求，可以设置一个大一点的timeout，
+  // 用默认值的可以不设置这个header
+  int64 timeout = 5;
+
+  // 客户端自己生成一个16字节的密钥，用公钥加密，再做base64，然后拼上公钥编号（以防后续密钥对要更新的情况）
+  // 最终的格式就是 0,xxxxxxx
+  // 其中0是公钥的编号，编号服务端给APP公钥的时候会告诉编号，从0开始递增
+  // 后面的xxxxx就是密钥经过公钥加密并做base64之后的数值
+  // 长连接可以每次建立连接生成一个新的密钥，短连接建议客户端定期更新，避免非对称解密浪费服务端资源
+  string encrypt = 10;
+  CompressType compress = 11; // 压缩算法，目前就支持"gzip"， 空表示不压缩
+
+  bool   background = 20;// 发送这个请求的时候，APP是否处于后台。
+  RPCReason reason = 21; // 发起请求的原因
+}
+
+// 公参信息
+// 系统类型
+enum OSType {
+  OS_TYPE_NONE = 0;
+  OS_TYPE_ANDROID = 1;
+  OS_TYPE_IOS = 2;
+
+  OS_TYPE_WEB = 100;
+}
+// 性别信息
+enum Gender {
+  GENDER_NONE = 0;
+  GENDER_MALE = 1;
+  GENDER_FEMALE = 2;
+  GENDER_UNISEX = 3; // 性别保密、未填写
+}
+message PubPara {
+  string ver = 1;  // starhalo；版本号，分三段，主版本 | 次版本(两位) | 灰度版本(三位)，如：2.06.008
+  int64  verc = 2; // 递增的编译版本号
+  string did = 3;  // 设备ID
+  OSType os_type = 4;     // 系统类型
+  string os_ver = 5;      // 系统版本
+  string os_api_ver = 6;  // 系统API版本
+  string lan = 7;  // 语言，优先APP设置的语言，如果APP没有语言设置，用系统语言
+  string pkg = 8;  // 包名
+  string cou = 9;  // 当前的国家码，优先取sim卡的，没有则取系统的
+  Gender gender = 10; // 性别信息
+  string rel = 11;  // pkg_channel，历史原因继续使用rel，包渠道，比如google play/app store、huawei、oppo、vivo、小米等。
+  string cha = 12;  // ad_channel，历史原因继续使用cha，广告渠道(用户渠道），比如google/facebook/toutiao/kuaishou等
+  string sub_cha = 13; // 子渠道，原来的命名是sub，过于通用了，所以改成sub_cha
+  string biz_ver = 14; // 业务版本号，比如：V1.0.0，用于多个马甲包版本号不一样的情况，功能一致的情况下，业务版本是一致的
+
+  string sub_anm = 31; // 用于那些分服，分线的业务填充
+
+  string biz = 100; // 业务公参，json格式，需要定义一个pb与之对应
+  // 以下信息从token获取:uid/rcou(注册国家码)
+}
+
+// 消息类型
+enum RspNotifyType {
+  MSG_TYPE_NONE = 0;
+  MSG_TYPE_RESPONSE = 1;  // request的响应，response
+  MSG_TYPE_NOTIFY = 2;    // 服务端主动发送的通知
+}
+
+// code&msg
+message Result {
+  int64 code = 1;     // 这里不用枚举，需要设置一些其他协议定义的错误码
+  string message = 2; // 一般不需要填这个字段，客户端更应该用code，这个字段方便调试
+}
+
+// 通用的toast
+message Toast {
+  map<string, string> msg = 1; // 多语言内容，{语言码:文案}
+}
+
+// Response&Notify消息，在长连接里面，这些是流，然后也没有header表明这个是一个
+// response还是一个Notify，所以放一块
+message RspNotifyControl {
+  RspNotifyType msg_type = 1;
+
+  string service = 2;   // 服务名，rsp和Notify都填，rsp是透传req的service
+  string method = 3;    // RPC方法名，rsp透传，Notify不填
+  string notify_pkg = 4;// 因为一个service会包含多个proto文件，也就是会有多个Notify的结构体，所以需要区分是哪个proto文件的Notify，这里填proto的package名称
+  int64  seqid = 5;     // rsp透传，Notify服务端生
+  int64  ts = 6;        // 服务器的unix timestamp, seconds, response带，Notify是否带不确定，0表示不带
+  string bc_group = 7;  // 如果是发的广播，则表示广播组的ID
+  int64  ts_ms = 8;     // 和ts一样，但是单位是ms
+
+  // 客户端请求的密钥用的是非对称加密，密钥长度很长，为了节省传输，服务端会对密钥做一次对称加密之后
+  // 回传给客户端，客户端后续请求可以使用携带该密钥，需要注意的是，用经过处理的密钥，不要携带公钥id
+  string encrypt = 10;
+  CompressType compress = 11; // 压缩算法，目前就支持"gzip"， 空表示不压缩
+
+  // 这两个字段，都是Response才有。result里面的message是用于debug和打印日志用的，
+  // 不要把对应的message展示给用户看。客户端的错误提示主要应该是根据code来提示。
+  Result result = 20;
+
+  // toast是作为一种【补救手段】用的，千万不要滥用了！！！！！！
+  // 何为补救手段，这里举个例子。比如原来用户是可以随意编辑自己的昵称的，在B版本里面，
+  // 产品提了个需求：每个用户每天只能编辑三次昵称。这个时候，老版本是没有“编辑次数超过
+  // 限制”这个提示的。为了解决这个问题，当老版本编辑次数超过限制的时候，服务端就应该
+  // 返回对应的toast。简单来说：toast不应该用在当前的版本的提示中！！！！
+  Toast toast = 21;
+  NotifyScene scene = 22;
+  oneof scene_info {
+    int64 room_id = 23; // 语音房填roomid
+    string call_id = 24; // 音视频通话的session id
+  }
+
+  NotifyFilter deprecated1 = 50; // 这个不会使用了
+
+  // Notify的过滤，filter_out 优先，
+  FilterCond notify_filter_out = 51;  // 如果匹配则丢弃notify
+  FilterCond notify_filter_in = 52;   // 如果不匹配则丢弃notify
+
+  // 如果 update_route_key 为true，则客户端需要记录下来route_key（与service对应，不同的service有不同的route_key)。
+  // 客户端在发起请求的时候，如果对应的service有route_key记录，则 ReqControl 中的 route_key 需要填对应的值。
+  // 务必注意 route_key 是分 service 的，也就是不同的 service 可能会有不同的 route_key !!!!!!!，service以route_service为准，可能和service不同。
+  // 客户端本地记录，只需要在进程的生命周期内记录即可。进程重启后，映射表为空，收到新的 update_route_key 之后再更新 route_key
+  // 即可。 update_route_key==true && route_key=="" 表示清空这个service对应的route_key
+  bool update_route_key = 70;
+  string route_key = 71;
+  string route_service = 72;
+}
+
+// Notify 的场景，只定义一些非常基础的场景，不要定义太多细节场景
+enum NotifyScene {
+  NOTIFY_SCENE_NONE = 0;
+  NOTIFY_SCENE_ROOM = 1;   // 语音房
+  NOTIFY_SCENE_CALL = 50;  // 语音/视频通话
+}
+
+// Notify的过滤规则，各个条件是与的关系，表示全部都满足才处理这个Notify
+// 这个不会使用了
+message NotifyFilter {
+  repeated string langs = 1; // 如果非空表示只有这些语言才处理这个通知，格式是zh/en这种双字母语言码(小写)
+  repeated string cous = 2;  // 如果非空表示只有这些国家才处理这个通知，格式是CN/US这种双字母国家码(大写)
+  repeated VersionRange ver_range = 3; // 如果非空表示只有这些版本才处理这个通知
+}
+// 版本范围，闭区间，如果只写了min没写max，则表示[min, ∞)，反之表示(0, max]
+message VersionRange {
+  string min = 1;
+  string max = 2;
+}
+
+enum Op {
+  OP_NONE = 0;
+
+  OP_AND = 1;     // &&
+  OP_OR = 2;      // ||
+  OP_NOT = 3;     // !
+
+  OP_EQUAL = 10;  // ==
+  OP_NE = 11;     // !=
+  OP_IN = 12;     // 在一个列表里面
+  OP_NOT_IN = 13; // 不在一个列表里面
+
+  OP_GT = 20;     // >
+  OP_GTE = 21;    // >=
+  OP_LT = 22;     // <
+  OP_LTE = 23;    // <=
+}
+
+// 过滤条件
+message FilterCond {
+  string name = 1;       // 过滤规则的名字，用于调试&日志，只有最顶层的Cond才有
+  string raw_expr = 2;   // 原始的表达式，只有最顶层的Cond才会有。
+  Op op = 3;
+
+  string field_name = 10;         // PubPara的成员名字
+  int64 int_val = 11;             // field是int或者枚举的时候用
+  repeated int64 int_vals = 12;   // OP_IN/OP_NOT_IN 的时候用
+  string str_val = 13;            // field是string的时候用
+  repeated string str_vals = 14;  // OP_IN/OP_NOT_IN 的时候用
+
+  repeated FilterCond sub_conds = 20; // && || !的时候用，!的时候应该只有一个
+}

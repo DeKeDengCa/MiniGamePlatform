@@ -1,0 +1,46 @@
+// smicro:spath=gitit.cc/social/components-service/social-privilege/biz/respkg/handlersvr
+
+syntax = "proto3";
+
+package svr.privilege;
+
+import "protobuf/api/privilege/v2/resource_package.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsrespkg";
+
+// ServiceName: privilege-api
+service ResourcePackageSvr {
+  // 发放资源包给用户
+  rpc DistributePackages(DistributePackagesReq) returns (DistributePackagesRsp);
+
+  // 批量获取资源包详情
+  rpc BatchGetPackageDetailByIDs(BatchGetPackageDetailByIDsReq) returns (BatchGetPackageDetailByIDsRsp);
+}
+
+message DistributePackagesReq {
+  repeated UserPackageDistribution user_distributions = 1; // 每个用户及其对应资源包
+}
+
+message UserPackageDistribution {
+  string seq_id = 1; // 幂等ID
+  int64 uid = 2; // 用户ID
+  repeated int64 package_ids = 3; // 要发放给该用户的资源包ID列表
+}
+
+message DistributePackagesRsp {
+  repeated FailedDistribution failed_distributions = 1; // 发放失败项原因
+}
+
+message FailedDistribution {
+  int64 uid = 1; // 用户ID
+  int64 package_id = 2; // 资源包ID
+  string reason = 3; // 失败原因（可选，如用户不存在、资源不足等）
+}
+
+message BatchGetPackageDetailByIDsReq {
+  repeated int64 package_detail_ids = 1; // 资源包详情IDs
+}
+message BatchGetPackageDetailByIDsRsp {
+  map<int64, api.privilege.v2.ResourcePackageDetailInfo> resource_package_detail_infos = 1;  // map<资源包详情id, 资源包详情>
+}
+

@@ -1,0 +1,212 @@
+syntax = "proto3";
+
+package pbrevenue;
+
+import "protobuf/api/revenue/common.proto";
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbrevenue";
+option java_package = "com.entertain.sns.pbrevenue";
+
+service Wallet {
+  // 获取自己的余额, 支持多个币种同时查询.
+  rpc GetBalance(GetBalanceReq) returns (GetBalanceRsp) {}
+
+  // 查询交易记录
+  rpc ListTransactionDetail(ListTransactionDetailReq) returns (ListTransactionDetailRsp) {}
+
+  // 获取交易记录类型,根据不同场景返回
+  rpc ListTransactionSearchType(ListTransactionSearchTypeReq) returns (ListTransactionSearchTypeRsp) {}
+
+  // 转账
+  rpc TransferBalance(TransferBalanceReq) returns (TransferBalanceRsp) {}
+
+  // 提现
+  rpc Withdraw(WalletWithdrawReq) returns (WalletWithdrawRsp) {}
+
+  // 取消提现
+  rpc CancelWithdraw(WalletCancelWithdrawReq) returns (WalletCancelWithdrawRsp) {}
+
+  // 查询提现记录
+  rpc ListWithdrawDetail(ListWithdrawDetailReq) returns (ListWithdrawDetailRsp) {}
+
+  // 查询交易支统计信息-需指定时间区间
+  rpc GetTransactionStat(GetTransactionStatReq) returns (GetTransactionStatRsp) {}
+}
+
+
+message GetBalanceReq {
+  repeated CurrencyType currency_types = 1;
+}
+
+message GetBalanceRsp {
+  repeated Balance balances = 1;
+  string detail_url = 2; // 消费记录详情跳转url
+  string contact_us_url = 3; // 联系我们跳转url
+}
+
+message TransactionSnapshot {
+  UserInfo receiver = 1; //收礼用户信息
+  string business_type = 2; //消费类型
+  string sub_business_type = 3; //子类型
+  string sub_business_type_text = 4; //子类型文案
+  int64 item_id = 5;  //商品或物品ID
+  string item_name = 6; //商品名称
+  string icon = 7; //道具icon
+  int64 unit = 8; //数量或时长
+  UserInfo sender = 9; //送礼用户信息
+
+  // 兑换场景用到
+  CurrencyType source_currency_type = 10;  // 消耗币种
+  int64 source_quantity = 11;              // 消耗多少数量货币
+  CurrencyType target_currency_type = 12;  // 获得币种
+  int64 target_quantity = 13;              // 可以获得多少数量货币
+  UserInfo source_user = 14;               // 发起兑换的用户信息
+  UserInfo target_user = 15;               // 兑换对象信息
+
+  // 业务自定义扩展信息
+  map<string, string> expand = 20;
+}
+
+message TransactionDetail {
+  int64 id = 1;
+  TransactionType type = 2;
+  string title = 3; //消费类型文案 对应-business_type
+  CurrencyType currency_type = 4;
+  int64 amount = 5;
+  int64 balance = 6;
+  int64 time_transacted = 7; // 交易发生的时间戳, unix-timestamp 精确到秒.
+  TransactionSnapshot snapshot = 8; //消费扩展信息
+  BusinessType business_type = 9; //扣费业务类型,废除
+  string currency_type_icon = 10; // 币种icon图片
+  string origin_business_type = 11; //业务类型
+}
+
+
+
+// 交易类型
+enum TransactionType {
+  TRANSACTION_TYPE_NONE = 0;
+  TRANSACTION_TYPE_RECHARGE = 1; // 充值
+  TRANSACTION_TYPE_CONSUME = 2; // 消费
+  TRANSACTION_TYPE_INCOME = 3; // 收入
+  TRANSACTION_TYPE_REFUND = 4; // 退款
+}
+
+message ListTransactionDetailReq {
+  scommon.Page page = 1;
+  repeated TransactionType types = 2; // 交易类型
+  repeated CurrencyType currency_types = 3; // 币种
+  int64 min_amount = 4; // 最小金额
+  int64 max_amount = 5; // 最大金额
+  int64 min_time_transacted = 6; // 起始时间, unix-timestamp 精确到秒.
+  int64 max_time_transacted = 7; // 结束时间, unix-timestamp 精确到秒.
+  BusinessType business_type = 8; //扣费业务类型,废除
+  string origin_business_type = 9; //业务类型
+}
+
+message ListTransactionDetailRsp {
+  scommon.Page page = 1;
+  repeated TransactionDetail transaction_details = 2; // 按交易时间倒序排列
+}
+
+message ListTransactionSearchTypeReq {
+  CurrencyType currency_type = 1; // 币种
+}
+
+message ListTransactionSearchTypeRsp {
+  repeated BusinessType list = 1; //业务类型
+}
+
+message TransferBalanceReq {
+  string seq_id = 10;
+  int64 to_uid = 11;
+  CurrencyType currency_type = 12;
+  int64 amount = 13;
+  string business_type = 14; //消费类型
+  string sub_business_type = 15; //子类型
+  string sub_business_type_text = 16; //子类型文案
+}
+
+message TransferBalanceRsp {
+  Balance balance = 10; // 返回自己的余额
+}
+
+enum BalanceStatus {
+  BALANCE_STATUS_NONE = 0;    // 正常状态
+  BALANCE_STATUS_FROZEN = 3;   // 冻结
+}
+
+
+message WalletWithdrawReq {
+  .pbrevenue.CurrencyType currency_type = 10; // 币种
+  int64 amount = 11;                          // 提现金额
+  WithdrawInfo withdraw_info = 12;            // 提现信息
+}
+
+message WalletWithdrawRsp {
+
+}
+
+message WithdrawInfo {
+  string name = 1;                  // 名字
+  string cou = 2;                   // 国家
+  string phone = 3;                 // 手机
+  string remark = 11;               // 备注
+  map<string, string> expand = 100; // 拓展字段
+}
+
+
+message WalletCancelWithdrawReq {
+  int64 id = 1;   // 提现记录id
+}
+
+message WalletCancelWithdrawRsp {
+
+}
+
+
+message ListWithdrawDetailReq {
+  scommon.Page page = 1;
+  .pbrevenue.CurrencyType currency_type = 10;  // 币种
+}
+
+message ListWithdrawDetailRsp {
+  scommon.Page page = 1;
+  repeated WithdrawDetail withdraw_details = 10;
+}
+
+message WithdrawDetail {
+  int64 id = 1;                   // 提现记录id
+  int64 amount = 2;               // 提现数额
+  WithdrawInfo withdraw_info = 3; // 用户申请时填写的信息
+  WithdrawStatus status = 4;      // 状态
+  int64 create_at = 5;            // 申请时间
+  WithdrawAuditInfo audit_info = 6; // 审核结果
+}
+
+message WithdrawAuditInfo {
+  string remark = 1;
+}
+
+enum WithdrawStatus {
+  WITHDRAW_STATUS_NONE = 0;
+  WITHDRAW_STATUS_IN_REVIEW = 1;         // 申请审核中
+  WITHDRAW_STATUS_IN_CANCEL_REVIEW = 2;  // 取消审核中
+  WITHDRAW_STATUS_SUCCESS = 3;           // 审核通过，提现成功
+  WITHDRAW_STATUS_FAILED = 4;            // 审核不通过
+  WITHDRAW_STATUS_CANCELED = 5;          // 用户主动取消
+}
+
+// GetTransactionStat 获取交易统计信息
+message GetTransactionStatReq {
+  repeated int64 ts_range = 10; // 必填 统计时间范围 unix-timestamp 精确到秒.范围区间不超过180天
+  pbrevenue.CurrencyType currency_type = 11; // 必传-货币类型
+  repeated string exclude_origin_business_type = 12; // 不包含的业务类型(把这部分类型的流水剔除)
+}
+
+message GetTransactionStatRsp {
+  int64 net_amount = 10; // 净额 = 收益金额 - 支出金额
+  int64 income_amount = 11; // 收入金额
+  int64 consume_amount = 12; // 支出金额
+}

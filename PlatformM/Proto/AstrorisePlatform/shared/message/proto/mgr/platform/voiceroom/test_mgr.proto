@@ -1,0 +1,51 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/test/handlermgr
+syntax = "proto3";
+
+package mgr.astrorise.voiceroom;
+
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbtestmgr";
+
+import "api/platform/voiceroom/notify.proto";
+
+// 测试后门接口
+service TestMgr {
+
+  // 测试单播
+  rpc TestUnicast(TestUnicastReq) returns (TestUnicastRsp);
+
+  // 测试广播
+  rpc TestBroadcast(TestBroadcastReq) returns (TestBroadcastRsp);
+
+  // 测试发送群聊信息
+  rpc TestSendGroupMsg(TestSendGroupMsgReq) returns (TestSendGroupMsgRsp);
+
+}
+
+message TestUnicastReq {
+  int64 uid = 10;               // 用户UID
+  api.astrorise.voiceroom.Notify notify = 11;  // 消息
+}
+
+message TestUnicastRsp {
+
+}
+
+message TestBroadcastReq {
+  string gid = 10;              // 广播组ID
+  api.astrorise.voiceroom.Notify notify = 11;  // 消息
+}
+
+message TestBroadcastRsp {
+
+}
+
+message TestSendGroupMsgReq {
+  int64 group_id = 1;
+  int64 sender_uid = 2;
+  string txt = 3;
+  string sys_txt = 4; // 系统消息sender_uid默认为系统号
+}
+
+message TestSendGroupMsgRsp {
+
+}

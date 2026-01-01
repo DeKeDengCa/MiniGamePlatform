@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package comm.api.relation;
+
+option java_package = "com.entertain.sns.comm.api.relation";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbrelation";
+
+// 拓展信息
+message Ext {
+    bool cp = 10;           // 是否为 CP
+    bool top = 20;          // 是否已置顶
+    bool friend = 30;       // 是否为好友
+}

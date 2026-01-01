@@ -1,0 +1,70 @@
+syntax="proto3";
+
+package app.config.public.upgrade;
+
+import "protobuf/api/sconfig/options.proto";
+import "protobuf/api/sconfig/model.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbsconfig";
+
+option (sconfig.schema.biz_name)="APP通用配置";
+
+// 强升配置
+message AppUpgrade {
+    option (sconfig.schema.cfg_name) = "App版本更新配置";
+    option (sconfig.schema.model_type) = "app_update";
+
+    string pkg_name = 1 [(sconfig.schema.input) = {
+        name:"包名"
+        kid:true
+    }];
+    string version_name = 2 [(sconfig.schema.input) = {
+        name:"版本名"
+    }];
+
+    int64 version_code = 10 [(sconfig.schema.input) = {
+        name:"版本号"
+    }];
+    string apk_link = 11 [(sconfig.schema.input) = {
+        name:"App下载链接"
+        opt:true
+    }];
+    string md5 = 12 [(sconfig.schema.input) = {
+        name:"MD5"
+        opt:true
+    }];
+
+    int64 version_code_64 = 31 [(sconfig.schema.input) = {
+        name:"64位版本号"
+        opt:true
+    }];
+    string apk_abi_link = 32 [(sconfig.schema.input) = {
+        name:"64位APK下载链接"
+        opt:true
+    }];
+    string abi_md5 = 33 [(sconfig.schema.input) = {
+        name:"64位MD5"
+        opt:true
+    }];
+
+    string market_link = 50 [(sconfig.schema.input) = {
+        name:"应用市场链接"
+        opt:true
+    }];
+
+    bool is_force_update = 80 [(sconfig.schema.input) = {
+        name:"是否强制升级"
+        opt:true
+        help:"强制升级可能导致某些低版本APP无法使用"
+    }];
+
+    sconfig.model.Langs title = 100 [(sconfig.schema.input) = {
+        name:"升级标题"
+        opt:true
+    }];
+
+    sconfig.model.Langs content = 101 [(sconfig.schema.input) = {
+        name:"升级描述"
+        opt:true
+    }];
+}

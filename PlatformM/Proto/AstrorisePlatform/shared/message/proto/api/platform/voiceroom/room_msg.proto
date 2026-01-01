@@ -1,0 +1,146 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/room/handler
+syntax = "proto3";
+
+package api.astrorise.voiceroom;
+
+import "protobuf/api/privilege/v2/bag.proto";
+import "api/platform/voiceroom/lucky_bag.proto";
+import "protobuf/api/adapter/model.proto";
+
+option java_package="com.entertain.sns.api.gene";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbroommsg";
+
+// 房间公屏消息
+// serviceName: astrorise-voiceroom
+service RoomMessage {
+  // 公屏消息
+  rpc SendRoomMessage(SendRoomMessageReq) returns (SendRoomMessageRsp);
+}
+
+// 公屏消息类型
+enum MsgType {
+  MSG_TYPE_NONE = 0;
+
+  // 用户消息
+  MSG_TYPE_USER_BEGIN = 1;
+  MSG_TYPE_USER_TEXT = 2;             // 用户发送公屏
+  MSG_TYPE_USER_EMOJI = 3;            // emoji 表情
+  MSG_TYPE_USER_END = 10000;
+
+  // 系统公屏
+  MSG_TYPE_SYS_BEGIN = 10001;
+  MSG_TYPE_ENTER = 10002;             // 进房消息
+  MSG_TYPE_GIFT = 10003;              // 送礼公屏
+  MSG_TYPE_ROOM_ANNOUNCEMENT = 10004; // 房间公告
+  MSG_TYPE_WELCOME = 10005;           // 进房欢迎消息
+  MSG_TYPE_MUTE_MSG_TIPS = 10006;     // 禁言提示公屏
+  MSG_TYPE_SET_ROOM_ADMIN = 10007;    // 设置管理员公屏
+  MSG_TYPE_AT_MODEL_MSG = 10008;      // 单条艾特消息(@xxx content content)，之后类似都用这个消息类型
+  MSG_TYPE_SYS_TEXT = 10009;          // 系统文本公屏
+  MSG_TYPE_ROOM_PK_START = 10010;     // 开始房内PK
+  MSG_TYPE_ROOM_PK_END = 10011;       // 结束房内PK
+  MSG_TYPE_SYS_END = 20000;
+
+  // 红包公屏
+  MSG_TYPE_LUCKY_BAG_BEGIN = 20001;
+  MSG_TYPE_LUCKY_BAG_SEND = 20002;    // 红包发送公屏, 对应结构: LuckyBagSendExt
+  MSG_TYPE_LUCKY_BAG_GRAB = 20003;    // 红包领取公屏, 对应结构: LuckyBagGrabExt
+  MSG_TYPE_LUCKY_BAG_END = 20100;
+
+  // IM 相关
+  MSG_TYPE_IM_COMMON = 30000;     // IM 通用消息
+  MSG_TYPE_IM_INVITE_CP = 30001;  // 结婚邀请
+  MSG_TYPE_IM_BECOME_CP = 30002;  // 结婚成功通知
+}
+
+enum SectionType {
+  SECTION_TYPE_NONE = 0;
+  SECTION_TYPE_TEXT = 1;
+  SECTION_TYPE_IMAGE = 2;
+  SECTION_TYPE_PLAY = 3;
+  SECTION_TYPE_DYNAMIC = 4;
+}
+
+// 文本类型
+message TextSection {
+  string content = 1;           // 内容
+  string color = 2;             // 颜色
+  string bg_color = 3;          // 背景色
+  repeated string action = 4;   // 点击的行为（包含跳转等）
+  string font = 5;              // 字体，没填就用默认字体
+  int64  font_size = 6;         // 字体大小，没填就用默认大小
+  string ext_json = 7;          // 拓展json
+  map<string, string> multi_lan_content = 8; // 多语言提示
+}
+
+message ImageSection {
+  string url = 1;   // 图片的链接
+  int64 width = 2;  // 宽
+  int64 height = 3; // 高
+  repeated string action = 4;// 点击的行为
+  string ext_json = 7;  // 拓展json
+}
+
+message PlaySection {
+  string url = 1;   // 图片的链接
+  int64 width = 2;  // 宽
+  int64 height = 3; // 高
+  repeated string action = 4;// 点击的行为
+  int64 id = 5; // 玩法表情ID
+  string ext_json = 7;  // 拓展json
+  string result = 8; // 结果
+}
+
+message DynamicSection {
+  string url = 1;   // 图片的链接
+  int64 width = 2;  // 宽
+  int64 height = 3; // 高
+  repeated string action = 4;// 点击的行为
+  string icon = 5; // 动态表情的静态图片
+  string ext_json = 7;  // 拓展json
+}
+
+// 公屏消息
+message Message {
+  comm.api.adapter.UserInfo from_user = 1;        // 用户信息
+  repeated string action = 2;             // 整个消息点击的行为
+  MsgType msg_type = 3;                   // 公屏消息类型
+  MessageStrategyType strategy_type = 4;  // 不认识的type处理策略
+
+  api.privilege.v2.UsingPrivilege from_user_privilege = 10; // 发送者特权信息
+
+  repeated SectionType types = 20;
+  repeated TextSection texts = 21;
+  repeated ImageSection images = 22;
+  repeated DynamicSection dynamics = 23;
+  repeated PlaySection plays = 24;
+
+  bytes ext_data = 30;                    // 拓展消息的数据
+}
+
+enum MessageStrategyType {
+  MESSAGE_STRATEGY_TYPE_IGNORE_NONE = 0;
+  MESSAGE_STRATEGY_TYPE_IGNORE_ALL = 1; // 不认识的，整个消息不展示
+  MESSAGE_STRATEGY_TYPE_IGNORE_ONLY = 2; // 只是不展示不认识的
+  MESSAGE_Strategy_TYPE_NOTICE_REPLACE_ALL = 3; // 整个消息用通用文案代替
+  MESSAGE_Strategy_TYPE_NOTICE_REPLACE_ONLY = 4; // 不认识的用通用文案代替
+}
+
+message SendRoomMessageReq {
+  int64 room_id = 10;   // 房间ID
+  Message message = 11; // 消息
+}
+
+message SendRoomMessageRsp {
+  string message_id = 10; // 消息ID, 后续用于撤回.
+}
+
+message LuckyBagSendExt {
+  api.astrorise.voiceroom.luckybag.LuckyBag lucky_bag = 10;  // 红包
+  int64 server_ts = 20;                       // 系统时间(秒)
+}
+
+message LuckyBagGrabExt {
+  api.astrorise.voiceroom.luckybag.GrabRecord grab_record = 10;        // 领取记录
+  api.astrorise.voiceroom.luckybag.LuckyBagState lucky_bag_state = 30; // 本次领取后红包的状态
+}

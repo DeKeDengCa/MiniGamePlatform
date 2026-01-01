@@ -1,0 +1,34 @@
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/notification/handlersrv/notification.go
+syntax = "proto3";
+
+package comm.svr.platform.apm;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/platform/pbsapm";
+
+service ApmSvr {
+  // 日志回捞
+  rpc LogRecovery(LogRecoveryReq) returns (LogRecoveryRsp);
+  // 录屏回捞
+  rpc ScreenRecordingRecovery(ScreenRecordingRecoveryReq) returns (ScreenRecordingRecoveryRsp);
+}
+
+message LogRecoveryReq {
+  int64 start_time = 10;
+  int64 end_time = 11;
+  string task_id = 12;
+  string uids = 13;
+  string extend = 14;
+}
+
+message LogRecoveryRsp {
+}
+
+message ScreenRecordingRecoveryReq {
+  int64 start_time = 1;
+  int64 end_time = 2;
+  string task_id = 3;
+  string uids = 4;
+  string extend = 5;
+}
+message ScreenRecordingRecoveryRsp {
+}

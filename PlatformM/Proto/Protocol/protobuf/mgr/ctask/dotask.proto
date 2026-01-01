@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package comm.mgr.ctask;
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmctask";
+
+//smicro:spath=gitit.cc/social/components/ctask/mgr_handler.go
+
+import "protobuf/api/ctask/handler.proto";
+
+service CTaskMgr {
+  // 累加进度
+  rpc DoTask(DoTaskReq) returns (DoTaskRsp);
+}
+
+message DoTaskReq {
+  BaseReq base_req = 1;
+
+  string member = 6;  // 谁的任务
+  string task_id = 7; // 任务id
+  int64 progress = 8; // 要加的进度值
+}
+
+message DoTaskRsp {
+  comm.api.ctask.DoTaskRet ret = 1;
+}
+
+message BaseReq {
+  // name/template由后端提供
+  string name = 1;      // 类似于服务名的定义
+  string template = 2;  // 类似于活动id的定义
+}

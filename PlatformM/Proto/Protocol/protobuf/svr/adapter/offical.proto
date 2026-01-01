@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package pbsadapter;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsadapter";
+
+// 内部账号服务
+// smicro:spath=gitit.cc/social/components-service/social-offical/handler
+service CommonOffical {
+  // 申请货币回调
+  rpc ApplyMoneyCallback(ApplyMoneyCallbackReq) returns (ApplyMoneyCallbackRsp);
+}
+
+message ApplyMoneyCallbackReq {
+  string track_id = 1;      // 审批实例跟踪ID(可做幂等)
+  int64 uid = 2;            // 用户Id
+  int64 amount = 3;         // 货币金额
+  int32 currency_type = 4;  // 货币类型(1:结算,2:消费,3:币商,4:美分) 值枚举参考:common_wallet.proto  Currency
+  string currency_name = 5; // 货币名称;仅展示用
+}
+message ApplyMoneyCallbackRsp {
+}

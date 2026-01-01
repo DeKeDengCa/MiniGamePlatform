@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package comm.svr.guild;
+
+import "protobuf/mgr/guild/guild.proto";
+import "protobuf/svr/guild/info.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsguild";
+option java_package = "com.guild.biz.member";
+
+service SocialGuildMember {
+  // 获取成员信息
+  rpc GetMemberInfo(GetMemberInfoReq) returns (GetMemberInfoRsp) {}
+}
+
+// 成员信息
+message MemberInfo {
+  int64 uid = 1;                            // UID
+  comm.mgr.guild.MemberRole role = 2;       // 角色 (在签约公会中的角色)
+  int64 guild_id = 3;                       // 公会ID (签约公会)
+  int64 unread_message = 4;                 // 未读消息数量
+
+  // 数据公会ID, 对于 HalaMe 来说主播有两个公会: 签约公会 和 数据公会.
+  // 因为这个概念会产生几种特殊情况:
+  // 1. 一个主播的签约公会和数据公会可能不是同一个
+  // 2. 一个主播和签约公会解约了或签约公会删除了, 但是本月数据还在某个其他公会中
+  // 因为有第 2 种特殊情况的存在, 所以某个成员的角色类型和签约公会可能是空, 但是数据公会有值, 这时候也需要对此用户开放入口.
+  int64 data_guild_id = 20;                 // 数据公会ID
+}
+
+// 获取成员信息
+message GetMemberInfoReq {
+  repeated int64 uids = 1;
+  bool check_is_sign = 2; // false 不检查签约状态，true 检查签约状态
+}
+
+// 获取成员信息
+message GetMemberInfoRsp {
+  map<int64, MemberInfo> member_infos = 1;
+  map<int64, comm.svr.guild.Guild> guilds = 2;
+}

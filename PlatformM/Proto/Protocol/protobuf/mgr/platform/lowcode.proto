@@ -1,0 +1,117 @@
+syntax = "proto3";
+
+package comm.mgr.platform.lowcode;
+
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/components-service/social-platform/proto/pbmlowcode";
+
+// 低代码平台管理接口
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/lowcode/handlermgr
+service LowcodeMgr {
+
+    // 创建页面
+    rpc CreatePage(CreatePageReq) returns (CreatePageRsp);
+
+    // 更新页面
+    rpc UpdatePage(UpdatePageReq) returns (UpdatePageRsp);
+
+    // 删除页面
+    rpc DeletePage(DeletePageReq) returns (DeletePageRsp);
+
+    // 根据ID获取页面, 可以获取历史版本的页面.
+    rpc GetPageById(GetPageByIdReq) returns (GetPageByIdRsp);
+
+    // 获取生效中的页面
+    rpc GetEffectivePage(GetEffectivePageReq) returns (GetEffectivePageRsp);
+
+    // 获取页面列表
+    rpc ListPage(ListPageReq) returns (ListPageRsp);
+}
+
+
+message CreatePageReq {
+    string project = 1;                     // 所属工程
+    string route = 2;                       // 页面路由
+    string name = 3;                        // 默认名称
+    map<string, string> i18n_name = 4;      // 国际化名称
+    string ext = 5;                         // 拓展信息
+    string schema = 6;                      // 元数据
+}
+
+message CreatePageRsp {
+    int64 page_id = 1;                      // 页面ID
+    string page_code = 2;                   // 页面代号
+}
+
+
+message UpdatePageReq {
+    int64 page_id = 1;                      // 页面ID
+    string route = 2;                       // 页面路由
+    string name = 3;                        // 默认名称
+    map<string, string> i18n_name = 4;      // 国际化名称
+    string ext = 5;                         // 拓展信息
+    string schema = 6;                      // 原信息
+}
+
+message UpdatePageRsp {
+    int64 new_page_id = 1;                  // 页面的新ID, 更新操作实际上是将旧页面标记为删除再查询新页面, 方便后续回滚.
+    string page_code = 2;                   // 页面代号
+}
+
+
+message DeletePageReq {
+    int64 page_id = 1;
+}
+
+message DeletePageRsp {
+
+}
+
+
+message Page {
+    int64 page_id = 1;                      // 页面ID
+    string page_code = 2;                   // 页面代号
+    string route = 3;                       // 页面路由
+    string name = 4;                        // 默认名称
+    map<string, string> i18n_name = 5;      // 国际化名称
+    string ext = 6;                         // 拓展信息
+    string schema = 7;                      // 原信息
+    int64 created_at = 8;                   // 创建时间
+	string created_by = 9;                  // 创建人
+    int64 updated_at = 10;                  // 更新时间
+    string updated_by = 11;                 // 更新人
+	int64 deleted_at = 12;                  // 删除时间, 若此值 > 0 则表示已删除, 页面更新并不会直接更新原记录而是将原记录标记为已删除再插入新纪录.
+	string deleted_by = 13;                 // 删除人
+}
+
+message GetPageByIdReq {
+    int64 page_id = 1;                      // 页面ID
+}
+
+message GetPageByIdRsp {
+    Page page = 1;                          // 页面
+}
+
+
+message GetEffectivePageReq {
+    string page_code = 1;                   // 页面代号
+}
+
+message GetEffectivePageRsp {
+    Page page = 1;                          // 页面
+}
+
+message ListPageReq {
+    scommon.Page page = 1;                  // 分页
+
+    string project = 10;                    // 所属工程
+    string route = 11;                      // 页面路由
+    string name = 12;                       // 页面名称
+}
+
+message ListPageRsp {
+    scommon.Page page = 1;                  // 分页
+
+    repeated Page pages = 10;               // 页面
+}

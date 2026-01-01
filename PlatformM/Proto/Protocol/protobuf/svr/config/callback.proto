@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+// social-config
+package comm.svr.config;
+
+option go_package="gitit.cc/social/protobuf/gencode/mgr/pbsconfig";
+
+// 通用配置回调接口
+service ConfigCallback {
+
+    // 活动实例事件
+    rpc OnActivityInstanceEvent(OnActivityInstanceEventReq) returns (OnActivityInstanceEventRsp);
+}
+
+enum ActivityEventType {
+    ACTIVITY_EVENT_TYPE_NONE = 0;
+    ACTIVITY_EVENT_TYPE_CREATE = 10;        // 创建
+    ACTIVITY_EVENT_TYPE_UPDATE = 20;        // 更新
+    ACTIVITY_EVENT_TYPE_DELETE = 30;        // 删除
+}
+
+message OnActivityInstanceEventReq {
+    ActivityEventType event_type = 10;      // 事件类型
+    string template_code = 11;              // 活动模板code
+    string instance_code = 12;              // 活动实例code
+    int64 start_time = 20;                  // 活动实例开始时间
+    int64 end_time = 21;                    // 活动实例结束时间
+}
+message OnActivityInstanceEventRsp {
+}

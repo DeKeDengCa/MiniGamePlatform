@@ -1,0 +1,46 @@
+// smicro:spath=gitit.cc/social/components-service/social-privilege/biz/privilege/handlersvr
+syntax = "proto3";
+
+package svr.privilege;
+
+import "protobuf/api/privilege/v2/privilege.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsprivilege";
+
+
+service PrivilegeSvr {
+  // 批量查询资源详情
+  rpc BatchGetResource(BatchGetResourceReq) returns (BatchGetResourceRsp);
+  // 根据资源key查询
+  rpc GetResourceByKey(GetResourceByKeyReq) returns (GetResourceByKeyRsp);
+}
+
+message BatchGetResourceReq {
+  repeated int64 resource_ids = 1;
+  string def_lan = 2;               // 默认语言
+  bool all_lan = 3;                 // 是否返回全部语言
+}
+
+message Resource {
+  int64 id = 1;
+  api.privilege.v2.Resource resource = 2;
+  api.privilege.v2.CategoryID category_id = 3;
+  api.privilege.v2.CategoryID sub_category_id = 4;
+}
+
+message BatchGetResourceRsp {
+  map<int64, Resource>  resources = 1;
+}
+
+
+message GetResourceByKeyReq {
+  api.privilege.v2.CategoryID category_id = 1;
+  api.privilege.v2.CategoryID sub_category_id = 2;
+  string key = 3;
+  string def_lan = 6;               // 默认语言
+  bool all_lan = 7;                 // 是否返回全部语言
+}
+
+message GetResourceByKeyRsp {
+  Resource resource = 10;
+}

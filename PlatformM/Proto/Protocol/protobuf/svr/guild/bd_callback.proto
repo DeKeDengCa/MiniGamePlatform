@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package comm.svr.guild;
+
+import "protobuf/api/guild/bd.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsguild";
+
+// 执行 sproto -spath gitit.cc/social/components-service/xxxx  bd_callback.proto
+
+// 社交中台BD服务 回调业务的接口
+service BDCallback {
+  // 用户能否绑定BD
+  rpc CanBindBD(CanBindBDReq) returns (CanBindBDRsp) {}
+}
+
+message CanBindBDReq {
+  int64 uid = 1; // 业务UID
+}
+
+message CanBindBDRsp {
+  CanBindBDResult result = 1; // 结果
+}
+
+// 能否绑定BD检查结果
+message CanBindBDResult {
+  int64 uid = 1; // 用户UID
+  bool pass = 2; // 是否检查通过
+  string reason = 3;  // 不通过的原因
+}
+
+

@@ -1,0 +1,499 @@
+// smicro:spath=gitit.cc/social/components-service/social-privilege/biz/bag/handler
+syntax = "proto3";
+
+package api.privilege.v2;
+
+import "protobuf/api/common/common.proto";
+
+option java_package = "com.entertain.sns.api.privilege.v2";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbprivilege";
+
+// 特权资源接口
+// ServiceName: privilege-api
+service PrivilegeV2 {
+
+  // 获取特权资源列表, 并不是自己拥有的而是后台上架了的.
+  rpc ListResource(ListResourceReq) returns (ListResourceRsp);
+
+  // 获取资源分类列表
+  rpc ListCategory(ListCategoryReq) returns (ListCategoryRsp);
+}
+
+
+message ListResourceReq {
+  scommon.Page page = 1;            // 分页参数
+  CategoryID category_id = 10;      // 分类标识
+  CategoryID sub_category_id = 11;  // 二级分类标识
+}
+
+message ListResourceRsp {
+  scommon.Page page = 1;            // 分页参数
+  repeated Resource resources = 10; // 特权资源列表
+}
+
+
+message ListCategoryReq {
+  CategoryID category_id = 10;      // 分类标识
+}
+
+message ListCategoryRsp {
+  repeated Category categories = 10;  // 分类列表
+}
+
+// 素材类型
+enum AssetType {
+  ASSET_TYPE_NONE = 0;  // 无意义
+  ASSET_TYPE_IMG = 2;   // 图片 png/jpg/webp...
+  ASSET_TYPE_MP4 = 4;   // mp4
+  ASSET_TYPE_SVGA = 5;  // svga
+  ASSET_TYPE_GIF = 6;   // gif
+}
+
+// 素材显示区域
+enum AssetArea {
+  ASSET_AREA_NONE = 0; // 无意义
+  ASSET_AREA_HALF = 1; //半屏
+  ASSET_AREA_FULL = 2; //全屏
+}
+
+// 素材信息
+message AssetInfo {
+  string url = 1;       // 资源地址
+  int64 size = 2;       // 资源大小(单位: bytes)
+  AssetType type = 3;   // 资源类型
+  AssetArea area = 4;   // 显示区域
+}
+
+// 生效类型
+enum EffectType {
+  EFFECT_TYPE_NONE = 0;         // 无意义
+  EFFECT_TYPE_BY_DURATION = 1;  // 按时长
+  EFFECT_TYPE_BY_NUM = 2;       // 按数量
+}
+
+// 归属类型, 例如: 用户 / 房间 / ...
+enum TargetType {
+  TARGET_TYPE_NONE = 0; // 无意义
+  TARGET_TYPE_USER = 1; // 用户
+  TARGET_TYPE_ROOM = 2; // 房间
+  TARGET_TYPE_FAMILY = 3; // 家族
+  TARGET_TYPE_CP = 4; // cp
+}
+
+// 特权资源使用策略
+enum UseStrategy {
+  USE_STRATEGY_NONE = 0;  // 无意义
+  USE_STRATEGY_UNIQUE_BY_CATEGORY = 1;  // 一级分类唯一穿戴
+  USE_STRATEGY_UNIQUE_BY_SUB_CATEGORY = 2; // 二级分类下唯一穿戴
+}
+
+// 特权分类标识
+enum CategoryID {
+  CATEGORY_ID_NONE = 0;                   // 无意义
+
+  // 一级分类
+  CATEGORY_ID_HEADWEAR = 10;              // 头像框
+  CATEGORY_ID_VEHICLE = 11;               // 座驾
+  CATEGORY_ID_SCREEN_BUBBLE = 12;         // 公屏气泡
+  CATEGORY_ID_MIC_APERTURE = 13;          // 麦位光圈
+  CATEGORY_ID_HOME_ACTION = 14;           // 主页动效
+  CATEGORY_ID_MEDAL = 15;                 // 勋章
+  CATEGORY_ID_ROOM_BACKGROUND = 16;       // 房间背景
+  CATEGORY_ID_MINI_CARD_BACKGROUND = 17;  // mini资料卡背景
+  CATEGORY_ID_ENTER_ROOM_BAY_WINDOW = 18; // 进房飘窗
+  CATEGORY_ID_ROOM_LIST_BACKGROUND = 19;  // 房间列表背景
+  CATEGORY_ID_PRETTY_NUMBER = 20;         // 用户靓号
+  CATEGORY_ID_PRETTY_NUMBER_ROOM = 21;    // 房间靓号
+  CATEGORY_ID_PRETTY_NUMBER_FAMILY = 25;  // 家族靓号
+  CATEGORY_ID_PRETTY_NUMBER_FAMILY_ROOM = 27;  // 家族房间靓号
+  CATEGORY_ID_NICKNAME_COLOR = 22;        // 昵称颜色
+  CATEGORY_ID_VIP = 23;                   // vip 等级
+  CATEGORY_ID_CP_RING = 24;               // cp戒指
+  CATEGORY_ID_ROOM_BADGE = 26;            // 房间勋章
+  CATEGORY_ID_ROOM_MEMBERSHIP = 28;       // 房间会员
+  CATEGORY_ID_CP_ROOM_BACKGROUND = 29;    // cp小屋背景
+  CATEGORY_ID_OTHER = 100;                // 其他（无需配置图片等资源 属于开关性质的特权）
+
+  // 子分类标识
+  CATEGORY_ID_MEDAL_NORMAL = 15000;               // 用户常规勋章
+  CATEGORY_ID_MEDAL_ACHIEVEMENT = 15010;          // 用户成就勋章
+  CATEGORY_ID_MEDAL_FAMILY_HONOR = 15100;         // 家族荣誉勋章
+  CATEGORY_ID_MEDAL_FAMILY_ACHIEVEMENT = 15110;   // 家族成就勋章
+
+  CATEGORY_ID_ROOM_BACKGROUND_OFFICIAL = 16000;   // 官方房间背景
+  CATEGORY_ID_ROOM_BACKGROUND_NOBLE = 16010;      // 贵族房间背景
+  CATEGORY_ID_OTHER_GIF_AVATAR = 100001;          // GIF头像
+  CATEGORY_ID_OTHER_BLOCK_MESSAGE = 100002;       // 屏蔽陌生人消息
+  CATEGORY_ID_OTHER_ANTI_KICKED = 100003;         // 防踢
+  CATEGORY_ID_OTHER_VIP_EMOJI = 100010;           // VIP表情
+  CATEGORY_ID_OTHER_VIP_RECEPTION = 100011;       // VIP客服
+  CATEGORY_ID_OTHER_VIP_GIFT = 100012;            // VIP礼物
+}
+
+// 特权分类状态
+enum CategoryStatus {
+  CATEGORY_STATUS_NONE = 0;     // 无意义
+  CATEGORY_STATUS_NORMAL = 1;   // 正常
+  CATEGORY_STATUS_DISABLED = 2; // 禁用
+}
+
+// 特权分类
+message Category {
+  message Asset {
+    string name = 1;              // 名称
+    AssetInfo icon = 10;          // 图标
+  }
+  Asset asset = 1;                // 用户语言对应的资源
+  map<string, Asset> assets = 2;  // 国际化资源
+  TargetType target_type = 3;     // 归属类型
+  CategoryID category_id = 4;     // 分类标识
+  UseStrategy use_strategy = 5;   // 分类使用策略
+}
+
+
+// 特权资源状态
+enum ResourceStatus {
+  RESOURCE_STATUS_NONE = 0;     // 无意义
+  RESOURCE_STATUS_ON_SALE = 1;  // 上架
+  RESOURCE_STATUS_OFF_SALE = 2; // 下架
+  RESOURCE_STATUS_DELETED = 3;  // 已删除
+}
+
+// 特权资源
+message Resource {
+  oneof Item {
+    Headwear headwear = 1;                      // 头像框
+    Vehicle vehicle = 2;                        // 座驾
+    ScreenBubble bubble = 3;                    // 公屏气泡
+    RoomBackground room_bg = 4;                 // 房间背景
+    MicAperture mic_aperture = 5;               // 麦位光圈
+    HomeAction home_action = 6;                 // 主页动效
+    Medal medal = 7;                            // 勋章
+    MiniCardBackground mini_card_bg = 8;        // mini资料背景
+    EnterRoomBayWindow bay_window = 9;          // 进房飘窗
+    RoomListBackground room_list_bg = 10;       // 房间列表背景
+    PrettyNumber user_pretty_number = 11;       // 用户靓号
+    PrettyNumber room_pretty_number = 12;       // 个人房间靓号 / 家族房间靓号
+    PrettyNumber family_pretty_number = 23;     // 家族靓号
+    NicknameColor nickname_color = 13;          // 昵称颜色
+    Vip vip = 14;                               // vip 等级
+    GifAvatar gif_avatar = 15;                  // gif头像
+    BlockMessage block_message = 16;            // 屏蔽陌生人消息
+    AntiKicked anti_kicked = 17;                // 防踢
+    VIPEmoji vip_emoji = 18;                    // VIP表情
+    VIPReception vip_reception = 19;            // VIP客服
+    VIPGift vip_gift = 20;                      // VIP礼物
+    CpRing cp_ring = 21;                        // cp戒指
+    RoomBadge room_badge = 22;                  // 房间勋章
+    RoomMembership room_membership = 24;        // 房间会员
+    CPRoomBackground cp_room_bg = 25;           // cp小屋背景
+  }
+}
+
+// 头像框
+message Headwear {
+  message Asset {
+    string name = 1;          // 名称
+    string brief = 2;         // 简介
+    AssetInfo thumb = 10;     // 缩略图
+    AssetInfo image = 11;     // 大图
+    AssetInfo animation = 12; // 动画 资源
+  }
+  Asset asset = 1;                // 用户语言对应的资源
+  map<string, Asset> assets = 2;  // 国际化资源
+  int64 id = 3; // 资源ID
+}
+
+// 座驾
+message Vehicle {
+  message Asset {
+    string name = 1;                      // 名称
+    string brief = 2;                     // 简介
+    AssetInfo image = 10;                 // 大图
+    AssetInfo animation = 11;             // 动画 资源
+    AssetInfo banner = 12;                // 进程横幅
+    repeated string banner_bg_color = 13; //横幅背景颜色
+  }
+  Asset asset = 1;                // 用户语言对应的资源
+  map<string, Asset> assets = 2;  // 国际化资源
+  int64 id = 3; // 资源ID
+}
+
+// 公屏气泡
+message ScreenBubble {
+  message Asset {
+    string name = 1;              // 名称
+    string brief = 2;             // 简介
+    AssetInfo image = 10;         // 图
+    AssetInfo bg = 11;            // 背景图
+    AssetInfo left_top = 12;      // 左上角
+    AssetInfo left_bottom = 13;   // 左下角
+    AssetInfo right_top = 14;     // 右上角
+    AssetInfo right_bottom = 15;  // 右下角
+    string text_color = 16; // 文本颜色
+  }
+  Asset asset = 1;                // 用户语言对应的资源
+  map<string, Asset> assets = 2;  // 国际化资源
+  int64 id = 3; // 资源ID
+}
+
+// cp小屋背景
+message CPRoomBackground {
+  message Asset {
+    string name = 1;            // 名称
+    string brief = 2;           // 简介
+    AssetInfo thumb = 10;       // 缩略图
+    AssetInfo image = 11;       // 大图
+    AssetInfo animation = 12;   // 动画资源
+  }
+  Asset asset = 1;                // 用户语言对应的资源
+  map<string, Asset> assets = 2;  // 国际化资源
+  int64 id = 3; // 资源ID
+}
+
+// 房间背景
+message RoomBackground {
+  message Asset {
+    string name = 1;            // 名称
+    string brief = 2;           // 简介
+    AssetInfo thumb = 10;       // 缩略图
+    AssetInfo image = 11;       // 大图
+    AssetInfo animation = 12;   // 动画资源
+  }
+  Asset asset = 1;                // 用户语言对应的资源
+  map<string, Asset> assets = 2;  // 国际化资源
+  int64 id = 3; // 资源ID
+}
+
+// 麦位光圈
+message MicAperture {
+  message Asset {
+    string name = 1;            // 名称
+    string brief = 2;           // 简介
+    AssetInfo image = 10;       // 大图
+    AssetInfo animation = 11;   // 动画 资源
+  }
+  Asset asset = 1;                // 用户语言对应的资源
+  map<string, Asset> assets = 2;  // 国际化资源
+  int64 id = 3; // 资源ID
+}
+
+// 主页动效
+message HomeAction {
+  message Asset {
+    string name = 1;            // 名称
+    string brief = 2;           // 简介
+    AssetInfo image = 10;       // 大图
+    AssetInfo animation = 11;   // 动画 资源
+  }
+  Asset asset = 1;                // 用户语言对应的资源
+  map<string, Asset> assets = 2;  // 国际化资源
+  int64 id = 3; // 资源ID
+}
+
+// 勋章
+message Medal {
+  message Asset {
+    string name = 1;                // 名称
+    string brief = 2;               // 简介
+    AssetInfo thumb_image = 10;     // 缩略图
+    AssetInfo image = 11;           // 大图
+    AssetInfo thumb_animation = 12; // 缩略 动画 资源
+    AssetInfo animation = 13;       // 动画 资源
+  }
+  Asset asset = 1;                  // 用户语言对应的资源
+  map<string, Asset> assets = 2;    // 国际化资源
+  int64 id = 3;                     // 勋章ID
+}
+
+// mini资料卡背景
+message MiniCardBackground {
+  message Asset {
+    string name = 1;          // 名称
+    AssetInfo image = 10;     // 大图
+    AssetInfo animation = 11; // 动画 资源
+  }
+  Asset asset = 1;                // 用户语言对应的资源
+  map<string, Asset> assets = 2;  // 国际化资源
+  int64 id = 3; // 资源ID
+}
+
+// 进房飘窗
+message EnterRoomBayWindow {
+  message Asset {
+    string name = 1;          // 名称
+    AssetInfo image = 10;     // 大图
+    AssetInfo animation = 11; // 动画 资源
+  }
+  Asset asset = 1;                // 用户语言对应的资源
+  map<string, Asset> assets = 2;  // 国际化资源
+  int64 id = 3; // 资源ID
+}
+
+// 房间列表背景
+message RoomListBackground {
+  message Asset {
+    string name = 1;                  // 名称
+    AssetInfo rectangle_image = 10;   // 长方形背景图
+    AssetInfo square_image = 11;      // 正方形背景图
+  }
+  Asset asset = 1;                // 用户语言对应的资源
+  map<string, Asset> assets = 2;  // 国际化资源
+  int64 id = 3; // 资源ID
+}
+
+// 昵称颜色
+message NicknameColor {
+  message Asset {
+    string name = 1;              // 名称
+    repeated string colors = 10;  // 颜色列表
+    AssetInfo image = 11; // 效果图
+  }
+  Asset asset = 1;                // 用户语言对应的资源
+  map<string, Asset> assets = 2;  // 国际化资源
+  int64 id = 3; // 资源ID
+}
+
+
+// VIP等级
+message Vip {
+  message Asset {
+    string level = 1;               // 等级
+    AssetInfo image = 10;           // 效果图
+  }
+  Asset asset = 1;                  // 用户语言对应的资源
+  map<string, Asset> assets = 2;    // 国际化资源
+  int32 level = 5;                  // 等级
+}
+
+// 靓号使用状态
+enum PrettyNumberUseStatus {
+  PRETTY_NUMBER_USE_STATUS_NONE = 0;    // 无意义
+  PRETTY_NUMBER_USE_STATUS_USING = 1;   // 使用中
+  PRETTY_NUMBER_USE_STATUS_UNUSED = 2;  // 未使用
+}
+
+// 靓号绑定状态
+enum PrettyNumberBindStatus {
+  PRETTY_NUMBER_BIND_STATUS_NONE = 0;   // 无意义
+  PRETTY_NUMBER_BIND_STATUS_BIND = 1;   // 绑定中
+  PRETTY_NUMBER_BIND_STATUS_UNBIND = 2; // 未绑定
+}
+
+// 靓号
+message PrettyNumber {
+  message Asset {
+    AssetInfo icon = 1;   // 图标
+    AssetInfo image = 2;  // 图片
+  }
+
+  Asset asset = 1;                // 用户语言对应的资源
+  map<string, Asset> assets = 2;  // 国际化资源
+  string pretty_number_id = 3;    // 靓号ID
+}
+
+// GIF头像
+message GifAvatar {
+  bool allowed = 1;
+
+  message Asset {
+    string name = 1;               // 名称
+  }
+  Asset asset = 11;                // 用户语言对应的资源
+  map<string, Asset> assets = 12;  // 国际化资源
+}
+
+// 屏蔽陌生人消息
+message BlockMessage {
+  bool allowed = 1;
+
+  message Asset {
+    string name = 1;               // 名称
+  }
+  Asset asset = 11;                // 用户语言对应的资源
+  map<string, Asset> assets = 12;  // 国际化资源
+}
+
+// 防踢
+message AntiKicked {
+  bool allowed = 1;
+
+  message Asset {
+    string name = 1;               // 名称
+  }
+  Asset asset = 11;                // 用户语言对应的资源
+  map<string, Asset> assets = 12;  // 国际化资源
+}
+
+// VIP表情
+message VIPEmoji {
+  bool allowed = 1;
+
+  message Asset {
+    string name = 1;               // 名称
+  }
+  Asset asset = 11;                // 用户语言对应的资源
+  map<string, Asset> assets = 12;  // 国际化资源
+}
+
+// VIP客服
+message VIPReception {
+  bool allowed = 1;
+
+  message Asset {
+    string name = 1;               // 名称
+  }
+  Asset asset = 11;                // 用户语言对应的资源
+  map<string, Asset> assets = 12;  // 国际化资源
+}
+
+// VIP礼物
+message VIPGift {
+  bool allowed = 1;
+
+  message Asset {
+    string name = 1;               // 名称
+  }
+  Asset asset = 11;                // 用户语言对应的资源
+  map<string, Asset> assets = 12;  // 国际化资源
+}
+
+// CP戒指
+message CpRing {
+  message Asset {
+    string name = 1;          // 名称
+    string brief = 2;         // 简介
+    AssetInfo thumb = 10;     // 缩略图
+    AssetInfo image = 11;     // 大图
+    AssetInfo animation = 12; // 动画 资源
+  }
+  Asset asset = 1;                // 用户语言对应的资源
+  map<string, Asset> assets = 2;  // 国际化资源
+  int64 id = 3; // 资源ID
+}
+
+// 房间勋章
+message RoomBadge {
+  message Asset {
+    string name = 1;                // 名称
+    string brief = 2;               // 简介
+    AssetInfo thumb_image = 10;     // 缩略图
+    AssetInfo image = 11;           // 大图
+    AssetInfo thumb_animation = 12; // 缩略 动画 资源
+    AssetInfo animation = 13;       // 动画 资源
+  }
+  Asset asset = 1;                  // 用户语言对应的资源
+  map<string, Asset> assets = 2;    // 国际化资源
+  int64 id = 3;                     // 资源ID
+}
+
+// 房间会员
+message RoomMembership {
+  message Asset {
+    string name = 1;                // 名称
+    AssetInfo image = 10;           // 效果图
+  }
+  Asset asset = 1;                  // 用户语言对应的资源
+  map<string, Asset> assets = 2;    // 国际化资源
+  int32 level = 5;                  // 等级
+}

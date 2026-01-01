@@ -1,0 +1,255 @@
+syntax = "proto3";
+
+package comm.mgr.appcrash;
+
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmappcrash";
+
+// serviceName: social-appcrash
+// smicro:spath=gitit.cc/social/components-service/social-appcrash/biz/appcrash/handlermgr
+service AppCrashMgr {
+  // 获取崩溃列表
+  rpc ListIssue(ListIssueReq) returns (ListIssueRsp);
+
+  // 获取崩溃详情
+  rpc GetIssueDetail(GetIssueDetailReq) returns (GetIssueDetailRsp);
+
+  // 增加问题记录接口
+  rpc AddIssueNote(AddIssueNoteReq) returns (AddIssueNoteRsp);
+
+  // 查询问题记录接口
+  rpc GetIssueNoteList(GetIssueNoteListReq) returns (GetIssueNoteListRsp);
+
+  // 获取崩溃上报列表
+  rpc ListCrashReport(ListCrashReportReq) returns (ListCrashReportRsp);
+}
+// 处理状态
+enum HandleStatus {
+  HANDLE_STATUS_NONE = 0; // 默认值
+  HANDLE_STATUS_UNPROCESSED = 1; // 未处理
+  HANDLE_STATUS_PROCESSED = 2; // 已处理
+  HANDLE_STATUS_IN_PROGRESS = 3; // 处理中
+}
+
+message ListIssueReq {
+  scommon.Page page = 1;
+
+  string anm = 10; // 业务anm
+
+  int64 start_time = 11; // 起始时间戳
+  int64 end_time = 12; // 结束时间戳
+
+  string version_name = 13; // 版本名
+  int32 crash_type = 14; // 错误类型(1:java,2:native,3:anr)
+  HandleStatus handle_status = 15; // 处理状态(1:未处理,2:已处理,3:处理中)
+  string handler_name = 16; // 处理人
+
+  string app_id = 17; // 应用包名
+  string api_level = 18; // API版本
+  string os_version = 19; // 系统版本
+  string did = 20; // 用户DID
+  string pkg_channel = 21; // 包渠道
+  int64 uid = 22; // 用户id
+
+  int64 issue_id = 23; // 问题id
+  int64 crash_report_id = 24; // 崩溃上报id
+  string exception_type = 25; // 崩溃类型简述
+
+  string process_name = 26; // 进程名
+  string thread_name = 27; // 崩溃线程名
+
+  string brand = 28; // 品牌
+  string model = 29; // 机型
+}
+
+message ListIssueRsp {
+  scommon.Page page = 1;
+
+  repeated IssueSummary items = 10; // 崩溃摘要列表
+}
+
+// 问题摘要
+message IssueSummary {
+  string anm = 15; // 业务anm
+  int64 issue_id = 1; // 问题ID
+  string exception_type = 2; // 崩溃类型简述
+  string exception_message = 3; // 崩溃简要信息
+  string top_frame = 4; // Top Frame
+
+  int64 first_report_time = 5; // 首次上报时间
+  int64 last_report_time = 6; // 最后上报时间
+
+  int64 crash_num = 7; // 崩溃发生次数
+  int64 device_count = 8; // 累计影响设备数
+
+  HandleStatus handle_status = 10; // 处理状态(1:未处理,2:已处理,3:处理中)
+  repeated string handler_names = 11; // 处理人姓名
+
+  string min_version_name = 12; // 最小版本名
+  string min_version_code = 13; // 最小版本号
+  string max_version_name = 14; // 最大版本名
+  string max_version_code = 16; // 最大版本号
+
+  int64 last_crash_report_id = 17; // 最后崩溃上报id
+}
+
+message GetIssueDetailReq {
+  int64 issue_id = 1; // 问题ID
+}
+
+message GetIssueDetailRsp {
+  IssueSummary issue_summary = 1;
+  repeated CrashReportVersionSummary crash_report_version_summaries = 2;
+  CrashReport last_crash_report = 3;
+}
+
+// 版本崩溃统计摘要
+message CrashReportVersionSummary {
+  int64 issue_id = 1; // 问题ID
+  string version_name = 2; // 版本名
+  int64 first_report_time = 3; // 首次上报时间
+  int64 last_report_time = 4; // 最近上报时间
+  int64 crash_num = 5; // 崩溃发生次数
+  int64 device_count = 6; // 影响设备数
+  float crash_rate = 7; // 崩溃发生次数占比，表示版本崩溃的比例
+}
+
+// 崩溃报告记录
+message CrashReport {
+  int64 id = 1;  // 上报 ID
+  string app_id = 2;  // 应用包名
+  string version_name = 3;  // 版本名
+  int64 version_code = 4;  // 版本号
+  string api_level = 5;  // API版本
+  string os_version = 6;  // 系统版本
+  string did = 7;  // 用户DID
+  string pkg_channel = 8;  // 包渠道
+  string anm = 9;  // 业务anm
+  int64 crash_time = 10;  // 崩溃发生时间(时间戳)
+  int64 report_time = 11;  // 上报时间(时间戳)
+  int32 crash_type = 12;  // 错误类型(1:java,2:native,3:anr)
+  string process_name = 13;  // 进程名
+  string thread_name = 14;  // 崩溃线程名
+  string thread_id = 15;  // 崩溃线程ID
+  string abi = 16;  // CPU架构
+  int64 usage_time = 17;  // 使用时长(秒)
+  int32 front_and_back_status = 18;  // 前后台状态(0:后台,1:前台)
+  string net = 19;  // 网络状态
+  int32 rooted = 20; // 是否root(0:否,1:是)
+  string brand = 21;  // 品牌
+  string model = 22;  // 机型
+  string pid = 23;  // 进程ID
+  string report_id = 24;  // 报告ID,用于与文件映射
+  int64 total_storage_space = 25;  // 总存储空间(单位:字节)
+  int64 available_storage_space = 26;  // 可用存储空间(单位:字节)
+  int64 total_mem_size = 27;  // 总内存大小(单位:字节)
+  int64 available_mem_size = 28;  // 可用内存大小(单位:字节)
+  string custom_data = 29;  // 自定义数据,可拓展json
+  int64 issue_id = 30;  // 问题id
+  string issue_key = 31;  // 问题key
+  string exception_type = 32;  // 崩溃类型简述
+  string exception_message = 33;  // 崩溃简要信息
+  CrashAttachments crash_attachments = 34;  // 附件,崩溃相关文件
+  int64 created_at = 35;  // 创建时间戳
+  string rom_details = 36;  // ROM详情
+}
+
+message CrashAttachments {
+  string logcat_url = 1; // 系统日志
+  string logcat_retraced_url = 2;
+  string stack_trace_url = 3;
+  string stack_trace_retraced_url = 4;
+  string radio_log_url = 5;
+  string events_log_url = 6;
+  string application_log_url = 7; // 自定义日志
+  string application_log_decoded_url = 8; // 自定义日志(decode后)
+  string application_log_anti_obfuscation_url = 9; // 自定义日志(反混淆后)
+  string threads_status_url = 10; // 线程状态(anr)
+  string threads_status_retraced_url = 11; // 线程状态(anr)
+  string long_msg_url = 12; // long msg(anr)
+  string native_crash_file_url = 13;
+  string native_crash_retraced_file_url = 14;
+}
+
+// 问题的操作类型
+enum OperationType {
+  OPERATION_TYPE_NONE = 0; // 默认值
+  OPERATION_TYPE_REPORT = 1; // 首次上报
+  OPERATION_TYPE_COMMENT = 2; // 添加备注
+  OPERATION_TYPE_STATUS_CHANGE = 3; // 状态变更
+}
+
+// 问题备注/记录的详细信息
+message IssueNote {
+  int64 id = 1; // 记录的唯一主键ID
+  string anm = 2; // 业务anm
+  int64 issue_id = 3; // 对应的问题ID
+  OperationType operation_type = 4; // 操作类型
+  HandleStatus handle_status = 5; // 变更后的处理状态
+  repeated string handler_names = 6; // 变更后的处理人姓名列表
+  string note_content = 7; // 备注的具体内容
+  string operator = 8; // 操作人
+  int64 created_at = 9; // 创建时间戳
+}
+
+// 增加问题记录请求
+message AddIssueNoteReq {
+  string anm = 1; // 业务anm
+  int64 issue_id = 2; // 对应的问题ID
+  OperationType operation_type = 3; // 操作类型
+  HandleStatus handle_status = 4; // 变更后的处理状态
+  repeated string handler_names = 5; // 变更后的处理人姓名列表
+  string note_content = 6; // 备注的具体内容
+  string operator = 7; // 操作人
+}
+
+// 增加问题记录响应
+message AddIssueNoteRsp {
+  int64 id = 3; // 返回新创建的记录ID
+}
+
+// 查询问题记录列表请求
+message GetIssueNoteListReq {
+  int64 issue_id = 1; // 对应的问题ID
+}
+
+// 查询问题记录列表响应
+message GetIssueNoteListRsp {
+  repeated IssueNote issue_notes = 1; // 问题记录列表
+}
+
+message ListCrashReportReq {
+  scommon.Page page = 1;
+
+  string anm = 10; // 业务anm
+
+  int64 start_time = 11; // 起始时间戳
+  int64 end_time = 12; // 结束时间戳
+
+  string version_name = 13; // 版本名
+  int32 crash_type = 14; // 错误类型(1:java,2:native,3:anr)
+
+  string app_id = 17; // 应用包名
+  string api_level = 18; // API版本
+  string os_version = 19; // 系统版本
+  string did = 20; // 用户DID
+  string pkg_channel = 21; // 包渠道
+  int64 uid = 22; // 用户id
+
+  int64 issue_id = 23; // 问题id
+  int64 crash_report_id = 24; // 崩溃上报id
+  string exception_type = 25; // 崩溃类型简述
+
+  string process_name = 26; // 进程名
+  string thread_name = 27; // 崩溃线程名
+
+  string brand = 28; // 品牌
+  string model = 29; // 机型
+}
+
+message ListCrashReportRsp {
+  scommon.Page page = 1;
+
+  repeated CrashReport items = 10; // 崩溃报告列表
+}

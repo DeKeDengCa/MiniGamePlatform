@@ -1,0 +1,32 @@
+// smicro:spath=gitit.cc/social/components-service/social-refund/pkg/risk/
+syntax = "proto3";
+
+package pbrefund;
+
+import "protobuf/svr/refund/risk_common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsrefund";
+option java_package = "com.refund.biz.proto";
+
+service RiskUser {
+  // 查询用户被限制行为
+  rpc GetLimitTypes (GetLimitTypesReq) returns (GetLimitTypesRsp);
+}
+
+message GetLimitTypesReq{
+  int64 uid = 1; // 用户id
+  string recharge_did = 2; // 发起充值时的 did
+  int64 recharge_pay_amount = 3; // 发起充值金额，美分
+  string recharge_ip = 4; // 发起充值时的 ip
+  LimitScene scene = 5;   // 场景
+}
+
+message GetLimitTypesRsp{
+  repeated ActionOpt action_opts = 1; // 被限制的行为
+}
+
+enum LimitScene {
+  LIMIT_SCENE_OTHER = 0;         // 其他非充值场景
+  LIMIT_SCENE_CREATE_ORDER = 10; // 创单
+  LIMIT_SCENE_PAID = 20;         // 支付成功
+}

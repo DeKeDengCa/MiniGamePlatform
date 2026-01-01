@@ -1,0 +1,217 @@
+// smicro:spath=gitit.cc/social/components-service/social-privilege/biz/bag/handlersvr
+syntax = "proto3";
+
+package svr.privilege;
+
+import "protobuf/api/privilege/v2/privilege.proto";
+import "protobuf/api/privilege/v2/bag.proto";
+import "protobuf/api/privilege/v2/resource_package.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsprivilege";
+
+
+service BagSvr {
+  // 批量查询使用中权益 多用户+多权益
+  rpc BatchGetUsingPrivilege(BatchGetUsingPrivilegeReq) returns (BatchGetUsingPrivilegeRsp);
+
+  // 批量查询权益是否在使用中 多用户+多权益
+  rpc BatchIsUsingPrivilege(BatchIsUsingPrivilegeReq) returns (BatchIsUsingPrivilegeRsp);
+
+  // 批量查询背包资源
+  rpc BatchGetBagResource(BatchGetBagResourceReq) returns (BatchGetBagResourceRsp);
+
+  // 批量发放资源到背包
+  rpc AddBagResources(AddBagResourcesReq) returns (AddBagResourcesRsp);
+
+  // 批量-穿戴 / 使用背包资源
+  rpc BatchUseBagResource(BatchUseBagResourceReq) returns (BatchUseBagResourceRsp);
+
+  // 批量-摘下背包资源
+  rpc BatchDisuseBagResource(BatchDisuseBagResourceReq) returns (BatchDisuseBagResourceRsp);
+
+  // 绑定背包资源的target_id
+  rpc BindBagResourceTarget(BindBagResourceTargetReq) returns (BindBagResourceTargetRsp);
+
+  // 批量查询背包资源根据类型
+  rpc BatchGetBagResourceByCategory(BatchGetBagResourceByCategoryReq) returns (BatchGetBagResourceByCategoryRsp);
+
+  // 批量移除资源从背包
+  rpc DeductBagResources(DeductBagResourcesReq) returns (DeductBagResourcesRsp);
+}
+
+message BatchGetUsingPrivilegeReq {
+  string def_lan = 10;                                    // 默认语言
+  bool all_lan = 11;                                      // 返回所有语言的资源
+
+  api.privilege.v2.TargetType target_type = 20;           // 目标类型
+  repeated int64 target_ids = 21;                         // 目标ID: uid / room_id
+
+  repeated api.privilege.v2.CategoryID category_ids = 30; // 背包权益分类标识列表
+}
+
+message BatchGetUsingPrivilegeRsp {
+  map<int64, api.privilege.v2.UsingPrivilege> target_using_privileges = 1; // map<uid / room_id, 使用中的特权>
+}
+
+// 特权是否在使用中
+message IsUsingPrivilege {
+  map<int32, bool> using = 10; // 因为 map 的 key 不允许为枚举, 所以这里只能用 int32, 实际上对应的是 api.privilege.v2.CategoryID.
+}
+
+message BatchIsUsingPrivilegeReq {
+  api.privilege.v2.TargetType target_type = 20;           // 目标类型
+  repeated int64 target_ids = 21;                         // 目标ID: uid / room_id
+
+  repeated api.privilege.v2.CategoryID category_ids = 30; // 背包权益分类标识列表
+}
+
+message BatchIsUsingPrivilegeRsp {
+  map<int64, IsUsingPrivilege> target_is_using_privileges = 1; // map<uid / room_id, 特权是否在使用中>
+}
+
+// 自动佩戴策略
+enum AutoUseStrategy {
+  AUTO_USE_STRATEGY_NONE = 0;        // 不自动佩戴
+  AUTO_USE_STRATEGY_FORCE_USE = 10;  // 强制自动佩戴, 即无论如何都帮用户自动佩戴上.
+  AUTO_USE_STRATEGY_USE_IF_NOT_USING = 20; // 自动佩戴当用户没有佩戴此类型的权益.
+  // 后续可拓展更多策略...
+}
+
+message AddBagResourceItem {
+  string seq_id = 1; // 幂等id
+  int64 uid = 2;  // 下发到uid
+  int64 resource_id = 3; //资源ID
+  int64 num = 4;  //数量
+  int64 expire_secs = 5; // 有效期
+  AutoUseStrategy auto_use_strategy = 6; // 自动佩戴策略
+  int32 using_pos = 7;                   // 限制使用位置，0表示不限制、使用随机位置
+  map<string, string> extra_context = 50; // 用于业务透传
+}
+
+message AddBagResourcesReq {
+  repeated AddBagResourceItem resources = 1;
+}
+
+message AddBagResourceRet {
+  int64 bag_id = 1; // 背包ID
+  int64 resource_id = 2; // 资源ID
+  int64 expired_at = 3; // 资源过期时间
+  int64 remain_num = 4; // 剩余数量
+  api.privilege.v2.CategoryID categoryID = 5;
+  api.privilege.v2.CategoryID sub_category_id = 6;
+  int64 uid = 7;  // 下发的uid
+}
+
+message AddBagResourcesRsp {
+  repeated AddBagResourceRet rets = 1;
+}
+
+message UseBagResource {
+  int64 bag_id = 1;             // 背包ID
+  int64 num = 2;                // 使用数量, 对于时长类型的可以不传.
+  int64 pos = 3;                // 使用位置, 佩戴勋章时需要.
+  int64 uid = 4;                // 用户UID
+  api.privilege.v2.CategoryID category_id = 10;  // 分类标识
+}
+
+message BatchUseBagResourceReq {
+  repeated UseBagResource items = 10;
+}
+
+message BatchUseBagResourceRsp {
+
+}
+
+message DisuseBagResource {
+  int64 bag_id = 1;                             // 背包ID
+  int64 uid = 4;                                // 用户UID
+  api.privilege.v2.TargetType target_type = 5;  // 目标类型
+  int64 target_id = 6;                          // 目标ID
+  api.privilege.v2.CategoryID category_id = 10; // 分类标识
+}
+
+message BatchDisuseBagResourceReq {
+  repeated DisuseBagResource items = 10;
+}
+
+message BatchDisuseBagResourceRsp {
+
+}
+
+message BatchGetBagResourceReq {
+  api.privilege.v2.TargetType target_type = 2;  // 归属类型
+  int64 target_id = 3;  // uid/roomid
+  repeated int64 resource_ids = 4;  // 资源id列表
+}
+
+message BatchGetBagResourceRsp {
+  map<int64, api.privilege.v2.BagResource> bag_resources = 1;
+}
+
+message BindBagResourceTargetReq {
+  int64  uid = 1;
+  api.privilege.v2.TargetType target_type = 2;
+  int64 target_id = 3;
+}
+
+message BindBagResourceTargetRsp {
+
+}
+
+message BatchGetBagResourceByCategoryReq {
+  string lan = 1;                                         // 希望返回资源的语言
+  api.privilege.v2.TargetType target_type = 2;            // 目标类型
+  repeated int64 target_ids = 3;                          // 目标ID: uid / room_id
+  repeated api.privilege.v2.CategoryID category_ids = 10; // 背包权益分类标识列表
+  bool include_expired = 11;                              // 返回包含已经过期的
+}
+
+message BatchGetBagResourceByCategoryRsp {
+  api.privilege.v2.TargetType target_type = 1;                      // 目标类型
+  map<int64, MultiBagResourceGroup> multi_bag_resource_groups = 10; // key 是 target_id 
+}
+
+// 多个背包资源组, 同一个用户/房间的多个背包资源组.
+message MultiBagResourceGroup {
+  api.privilege.v2.TargetType target_type = 1;           // 目标类型
+  int64 target_id = 2;                                   // 目标ID: uid / room_id
+  map<int32, BagResourceGroup> bag_resource_groups = 10; // 背包资源组map, key 是 categori_id
+}
+
+// 背包资源组, 同一个用户/房间的同一个资源类型下的多个背包资源.
+message BagResourceGroup {
+  api.privilege.v2.TargetType target_type = 1;              // 目标类型
+  int64 target_id = 2;                                      // 目标ID: uid / room_id
+  api.privilege.v2.CategoryID category_id = 3;              // 分类ID
+  repeated api.privilege.v2.BagResource bag_resources = 10;
+}
+
+message DeductBagResourcesReq {
+  repeated DeductBagResourceItem resources = 1;
+}
+
+message DeductBagResourceItem {
+  string seq_id = 1; // 幂等id
+  int64 uid = 2;  // 需要扣减的uid
+  int64 resource_id = 3; // 资源ID
+  int64 num = 4;  // 需要扣减的数量
+  int64 expire_secs = 5; // 需要扣减的有效期
+  map<string, string> extra_context = 6; // 用于业务透传
+  api.privilege.v2.CategoryID category_id = 20; // 资源类型ID-指定资源类型扣减
+}
+
+message DeductBagResourcesRsp {
+  repeated DeductBagResourceRet rets = 1;
+}
+
+message DeductBagResourceRet {
+  int64 bag_id = 1; // 背包ID
+  int64 resource_id = 2; // 资源ID
+  int64 expired_at = 3; // 资源过期时间
+  int64 remain_num = 4; // 剩余数量
+  api.privilege.v2.CategoryID categoryID = 5;
+  api.privilege.v2.CategoryID sub_category_id = 6;
+  int64 uid = 7;  // 扣减的uid
+  bool success = 8; // 是否扣减成功
+  string reason_message = 9; // 可选的详细文本说明
+}

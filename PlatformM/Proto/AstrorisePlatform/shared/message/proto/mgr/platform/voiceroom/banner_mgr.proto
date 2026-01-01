@@ -1,0 +1,163 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/menu/handlermgr/
+syntax = "proto3";
+
+import "protobuf/api/common/common.proto";
+import "api/platform/voiceroom/menu.proto";
+
+package mgr.astrorise.voiceroom;
+
+option java_package = "com.gene.biz.proto";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbmenumgr";
+
+service BannerMgr {
+  // 添加banner 
+  rpc AddBanner(AddBannerReq) returns (AddBannerRsp);
+  // 删除banner
+  rpc DelBanner(DelBannerReq) returns (DelBannerRsp);
+  // 更新banner
+  rpc UpdateBanner(UpdateBannerReq) returns (UpdateBannerRsp);
+  // 获取banner
+  rpc GetBanner(GetBannerReq) returns (GetBannerRsp);
+  // 查询banner
+  rpc ListBanner(ListBannerReq) returns (ListBannerRsp);
+
+  // 添加banner分发
+  rpc AddBannerDistribution(AddBannerDistributionReq) returns (AddBannerDistributionRsp);
+  // 删除banner分发
+  rpc DelBannerDistribution(DelBannerDistributionReq) returns (DelBannerDistributionRsp);
+  // 更新banner分发
+  rpc UpdateBannerDistribution(UpdateBannerDistributionReq) returns (UpdateBannerDistributionRsp);
+  // 获取banner分发
+  rpc GetBannerDistribution(GetBannerDistributionReq) returns (GetBannerDistributionRsp);
+  // 查询banner分发
+  rpc ListBannerDistribution(ListBannerDistributionReq) returns (ListBannerDistributionRsp);
+  // 上/下架
+  rpc PublishBannerDistribution(PublishBannerDistributionReq) returns (PublishBannerDistributionRsp);
+}
+
+message BannerInfo {
+  int64 id = 1;                 //  唯一id，add不填
+  string name = 2;             // banner 名称
+  string thumb_image = 3;      // 缩略图
+  string large_image = 4;      // 大图
+  string jump_url = 5;         // 跳转链接
+
+  int64 create_at = 50;         // 创建者，add/update操作忽略，内部自动赋值
+  string create_by = 51;        // 创建unix时间戳，add/update操作忽略，内部自动赋值
+  int64 update_at = 52;         // 更新者，add/update操作忽略，内部自动赋值
+  string update_by = 53;        // 更新unix时间戳，add/update操作忽略，内部自动赋值
+  int64 delete_at = 54;        // 删除者，add/update操作忽略，内部自动赋值
+  string delete_by = 55;       // 删除unix时间戳，add/update操作忽略，内部自动赋值
+}
+
+message AddBannerReq {
+  BannerInfo data = 10;
+}
+message AddBannerRsp {
+  int64 id = 10;
+}
+
+message DelBannerReq {
+  repeated int64 ids = 10;
+}
+message DelBannerRsp {
+  int32 count = 10;
+}
+
+message UpdateBannerReq {
+  BannerInfo data = 10;
+}
+message UpdateBannerRsp {
+  int64 id = 10;
+}
+
+message GetBannerReq {
+  int64 id = 10;
+}
+message GetBannerRsp {
+  BannerInfo data = 10;
+}
+
+message ListBannerReq {
+  scommon.Page page = 1;
+  int64 operate_begin = 10; // 操作时间 查询开始点
+  int64 operate_end = 11;   // 操作时间 查询结束点
+  string operator = 12;     // 操作人
+}
+message ListBannerRsp {
+  scommon.Page page = 1;
+  repeated BannerInfo list = 11;
+}
+
+enum CrowdType {
+  CROWD_TYPE_ALL_PEPOLE = 0;      //默认值，所有人
+  CROWD_TYPE_PORTION_PEPOLE = 1; // 部分人
+  CROWD_TYPE_ZONE = 2;           // 部分区域
+}
+
+message BannerDistribution {
+  int64 id = 1;                         // 唯一id，add时不填，update时必填
+  CrowdType crowd_type = 2;             // 生效人群类型
+  repeated string crowd_value = 3;      // crow d_type：0 为空 1 用户数组 2 区域数组
+  int64 valid_from = 4;                 // 生效时间
+  int64 valid_to = 5;                    // 失效时间
+  api.astrorise.voiceroom.BannerPosition position = 6; // banner 显示位置
+  bool  published = 7;                  // 是否上架
+  int64 banner_info_id =9;              // 关联的banner info id
+
+  int64 create_at = 50;                 // 创建者，add/update操作忽略，内部自动赋值
+  string create_by = 51;                // 创建unix时间戳，add/update操作忽略，内部自动赋值
+  int64 update_at = 52;                 // 更新者，add/update操作忽略，内部自动赋值
+  string update_by = 53;                // 更新unix时间戳，add/update操作忽略，内部自动赋值
+  int64 delete_at = 54;                 // 删除者，add/update操作忽略，内部自动赋值
+  string delete_by = 55;                // 删除unix时间戳，add/update操作忽略，内部自动赋值
+}
+
+message AddBannerDistributionReq {
+  BannerDistribution data = 10;
+}
+message AddBannerDistributionRsp {
+  int64 id = 10;
+}
+
+message DelBannerDistributionReq {
+  repeated int64 ids = 10;
+}
+message DelBannerDistributionRsp {
+  int32 count = 10;
+}
+
+message UpdateBannerDistributionReq {
+  BannerDistribution data = 10;
+}
+message UpdateBannerDistributionRsp {
+  int64 id = 10;
+}
+
+message GetBannerDistributionReq {
+  int64 id = 10;
+}
+message GetBannerDistributionRsp {
+  BannerDistribution data = 10;
+}
+
+message ListBannerDistributionReq {
+  scommon.Page page = 1;
+  int64 operate_begin = 10; // 操作时间 查询开始点
+  int64 operate_end = 11;   // 操作时间 查询结束点
+  string operator = 12;     // 操作人
+}
+
+message ListBannerDistributionRsp {
+  scommon.Page page = 1;
+  repeated BannerDistribution list = 10;
+}
+
+message PublishBannerDistributionReq{
+  int64 id = 10;
+  bool  published = 11;      //是否上架
+}
+
+message PublishBannerDistributionRsp{
+
+}

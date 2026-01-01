@@ -1,0 +1,803 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/room/handler
+syntax = "proto3";
+
+package api.astrorise.voiceroom;
+
+option java_package = "com.entertain.sns.api.gene";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbroom";
+
+import "api/platform/voiceroom/comm.proto";
+import "protobuf/api/common/common.proto";
+import "protobuf/api/adapter/model.proto";
+
+// LiveRoom 直播间相关接口
+// serviceName: astrorise-voiceroom
+service LiveRoom {
+
+  // 刷新rtc token
+  rpc RefreshRtcToken(RefreshRtcTokenReq) returns (RefreshRtcTokenRsp);
+
+  // 刷新rtm token
+  rpc RefreshRtmToken(RefreshRtmTokenReq) returns (RefreshRtmTokenRsp);
+
+  // 创建房间，用户第一次进自己房间，返回 code LIVE_ROOM_NOT_CREATE，然后走创建房间流程
+  rpc Create(CreateReq) returns (CreateRsp);
+
+  // 批量查询房间列表
+  rpc BatchGetRooms(BatchGetRoomsReq) returns (BatchGetRoomsRsp);
+
+  // 查询自己的房间信息
+  rpc MyRoom(MyRoomReq) returns (MyRoomRsp);
+
+  // 查询我管理房间信息
+  rpc MyManageRooms(MyManageRoomsReq) returns (MyManageRoomsRsp);
+
+  // 进入房间
+  rpc Enter(EnterReq) returns (EnterRsp);
+
+  // 重连
+  rpc Reenter(ReenterReq) returns (ReenterRsp);
+
+  // 获取房间信息，包括房间信息和状态信息
+  rpc GetRoomState(GetRoomStateReq) returns (GetRoomStateRsp);
+
+  // 离开房间
+  rpc Leave(LeaveReq) returns (LeaveRsp);
+
+  // 踢出房间
+  rpc KickOff(KickOffReq) returns (KickOffRsp);
+
+  // 查询房间支持进房权限
+  rpc ListRoomPerm(ListRoomPermReq) returns (ListRoomPermRsp);
+
+  // 修改房间权限
+  rpc ChangeRoomPerm(ChangeRoomPermReq) returns (ChangeRoomPermRsp);
+
+  // 查询支持的房间模式列表
+  rpc ListLayout(ListLayoutReq) returns (ListLayoutRsp);
+
+  // 修改房间布局
+  rpc ChangeLayout(ChangeLayoutReq) returns (ChangeLayoutRsp);
+
+  // 修改房间模式(废弃)
+  rpc ChangeRoomMode(ChangeRoomModeReq) returns (ChangeRoomModeRsp);
+
+  // 修改房间模式
+  rpc ChangeRoomModeV2(ChangeRoomModeV2Req) returns (ChangeRoomModeV2Rsp);
+
+  // 修改上麦模式
+  rpc ChangeSeatPerm(ChangeSeatPermReq) returns (ChangeSeatPermRsp);
+
+  // 修改麦位积分开关
+  rpc ChangeSeatScoreSwitch(ChangeSeatScoreSwitchReq) returns (ChangeSeatScoreSwitchRsp);
+
+  // 房间管理员列表
+  rpc ListRoomAdmin(ListRoomAdminReq) returns (ListRoomAdminRsp);
+
+  // 设置房间管理员
+  rpc SetRoomAdmin(SetRoomAdminReq) returns (SetRoomAdminRsp);
+
+  // 移除房间管理员
+  rpc RemoveRoomAdmin(RemoveRoomAdminReq) returns (RemoveRoomAdminRsp);
+
+  // 修改房间名称
+  rpc SetRoomName(SetRoomNameReq) returns (SetRoomNameRsp);
+
+  // 修改房间公告
+  rpc SetRoomIntro(SetRoomIntroReq) returns (SetRoomIntroRsp);
+
+  // 修改房间封面
+  rpc SetRoomCover(SetRoomCoverReq) returns (SetRoomCoverRsp);
+
+  // 设置房间背景
+  rpc SetRoomBackground(SetRoomBackgroundReq) returns (SetRoomBackgroundRsp);
+
+  // 设置房间语言
+  rpc SetRoomLanguage(SetRoomLanguageReq) returns (SetRoomLanguageRsp);
+
+  // 批量查询房间用户信息
+  rpc BatchGetRoomUser(BatchGetRoomUserReq) returns (BatchGetRoomUserRsp);
+
+  // 查询用户当前所在房间
+  rpc GetUserCurrentRoom(GetUserCurrentRoomReq) returns (GetUserCurrentRoomRsp);
+
+  // ↓↓↓↓↓↓ 以下为【房间麦位协议】 ↓↓↓↓↓↓
+  // ~~~~~~~~~~~~~~~~~~~~ 公共操作（房主和用户） ~~~~~~~~~~~~~~~
+
+  // 麦位列表
+  rpc ListSeat(ListSeatReq) returns (ListSeatRsp);
+
+  // 上麦/换麦
+  rpc EnterSeat(EnterSeatReq) returns (EnterSeatRsp);
+
+  // 下麦
+  rpc LeaveSeat(LeaveSeatReq) returns (LeaveSeatRsp);
+
+  // 开麦：麦上用户将自己麦位的麦克风开启，若被房主/管理员禁音，则无法开麦
+  rpc OpenMic(OpenMicReq) returns (OpenMicRsp);
+
+  // 闭麦：麦上用户将自己麦位的麦克风关闭
+  rpc CloseMic(CloseMicReq) returns (CloseMicRsp);
+
+  // 申请上麦
+  rpc ApplyEnterSeat(ApplyEnterSeatReq) returns (ApplyEnterSeatRsp);
+
+  // 获取申请上麦状态
+  rpc GetApplyEnterSeatStatus(GetApplyEnterSeatStatusReq) returns (GetApplyEnterSeatStatusRsp);
+
+  // 取消申请上麦
+  rpc CancelApplyEnterSeat(CancelApplyEnterSeatReq) returns (CancelApplyEnterSeatRsp);
+
+  // 接受邀请上麦
+  rpc AcceptSeatInvitation(AcceptSeatInvitationReq) returns (AcceptSeatInvitationRsp);
+
+  // 拒绝邀请上麦
+  rpc RejectSeatInvitation(RejectSeatInvitationReq) returns (RejectSeatInvitationRsp);
+
+  // ~~~~~~~~~~~~~~~~~~~~ 管理操作 ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  // 麦位封锁：将该麦位进行封锁，封锁后用户无法点击进行上麦
+  rpc LockSeat(LockSeatReq) returns (LockSeatRsp);
+
+  // 解除封锁：将该麦位进行解封，解封后用户可点击进行上麦
+  rpc UnlockSeat(UnlockSeatReq) returns (UnlockSeatRsp);
+
+  // 麦位禁音：将该麦位的麦克风禁音，禁音后该麦位仍可进行上下麦，但无法进行发音
+  rpc MuteSeat(MuteSeatReq) returns (MuteSeatRsp);
+
+  // 解除麦位禁音：将该麦位的禁音进行解除，解除后用户在该麦位可进行发音
+  rpc UnmuteSeat(UnmuteSeatReq) returns (UnmuteSeatRsp);
+
+  // 踢下麦：将麦上用户踢出麦位，但用户仍在该房间内，没有被踢出房间
+  rpc KickSeat(KickSeatReq) returns (KickSeatRsp);
+
+  // 抱上麦：将房间内的用户邀请上麦，支持需/无需该用户本人同意，默认为需本人同意
+  rpc PickSeat(PickSeatReq) returns (PickSeatRsp);
+
+  // 申请上麦用户列表
+  rpc ApplyEnterSeatUserList(ApplyEnterSeatUserListReq) returns (ApplyEnterSeatUserListRsp);
+
+  // 申请上麦审批-同意
+  rpc ApproveApplyEnterSeat(ApproveApplyEnterSeatReq) returns (ApproveApplyEnterSeatRsp);
+
+  // 申请上麦审批-拒绝
+  rpc RejectApplyEnterSeat(RejectApplyEnterSeatReq) returns (RejectApplyEnterSeatRsp);
+
+  // ↑↑↑↑↑↑ 以上为【房间麦位协议】 ↑↑↑↑↑↑
+
+  // 查询房间在线的人列表
+  rpc ListOnlineUser(ListOnlineUserReq) returns (ListOnlineUserRsp);
+
+  // 获取当前房间允许使用的房间玩法.
+  rpc GetAvailablePlaying(GetAvailablePlayingReq) returns (GetAvailablePlayingRsp);
+
+  // 获取房间可用语言列表
+  rpc GetRoomLanguageList (GetRoomLanguageListReq) returns (GetRoomLanguageListRsp);
+
+  // 提交进房申请（用户侧）
+  rpc CreateEnterRoomApplication (CreateEnterRoomApplicationReq) returns (CreateEnterRoomApplicationRsp);
+  // 查询进房申请列表（房主/管理员）
+  rpc ListEnterRoomApplication (ListEnterRoomApplicationReq) returns (ListEnterRoomApplicationRsp);
+  // 同意进房申请（房主/管理员）
+  rpc ApproveEnterRoomApplication(ApproveEnterRoomApplicationReq) returns (ApproveEnterRoomApplicationRsp);
+  // 拒绝进房申请（房主/管理员）
+  rpc RejectEnterRoomApplication(RejectEnterRoomApplicationReq) returns (RejectEnterRoomApplicationRsp);
+}
+
+// 刷新rtc token
+message RefreshRtcTokenReq{
+  int64 room_id = 1;// 房间ID
+}
+
+message RefreshRtcTokenRsp {
+  RtcToken token = 1;
+}
+
+// 刷新rtc token
+message RefreshRtmTokenReq{
+  int64 room_id = 1;// 房间ID
+}
+
+message RefreshRtmTokenRsp {
+  RtmToken token = 1;
+}
+
+message CreateReq {
+  string name = 1;                        // 房间名称
+  string intro = 2;                       // 房间公告
+  api.astrorise.voiceroom.RoomPerm room_perm = 3;        // 房间权限
+  string layout_code = 4[deprecated = true];                 // 房间布局模式code(废弃)
+  string password = 5;                    // 房间密码
+  int64 room_mode_publish_id = 6[deprecated = true]; //房间模式上架id(废弃)
+  string language_code = 7; // 语言Code
+  api.astrorise.voiceroom.RoomModeType room_mode_type = 8; // 房间模式类型
+  RoomModeParams mode_params = 9;// 不同模式的附加参数
+}
+
+message CreateRsp {
+  int64 room_id = 1;                      // 房间号
+}
+
+// 批量获取房间信息
+message BatchGetRoomsReq {
+  repeated int64 rids = 1;                // 房间号
+  api.astrorise.voiceroom.RoomInfo selector = 10;
+}
+
+message BatchGetRoomsRsp {
+  map<int64, api.astrorise.voiceroom.RoomInfo>  rooms = 1;    // 房间信息
+}
+
+message MyRoomReq {
+}
+
+message MyRoomRsp {
+  api.astrorise.voiceroom.RoomInfo room_info = 1;
+  api.astrorise.voiceroom.RoomInfo family_room_info = 2;
+}
+
+message MyManageRoomsReq {
+  scommon.Page page = 1;
+}
+
+message MyManageRoomsRsp {
+  scommon.Page page = 1;
+  api.astrorise.voiceroom.RoomInfo my_room = 10; // 我的房间信息
+  repeated api.astrorise.voiceroom.RoomInfo my_manage_rooms = 11; // 我的管理房间信息
+}
+
+message EnterReq {
+  int64 room_id = 1;                  // 房间ID
+  /**
+   * enter_source
+   *  - recommend_list 推荐列表
+   *  - hot_list 热门列表
+   *  - banner banner
+   *  - push 推送
+   *  - 个人资料页 user_profile
+   *  - 其他动态返回的房间信息或者列表，后端都返回一个 source，进房时透传过来
+   */
+  string enter_source = 2;            // 进房来源
+  string password = 3;                // 如果是加密房，带上密码
+  string invite_token = 4;            // 通过分享邀请进入密码房时的 token.
+}
+
+
+message EnterRsp {
+  RtcToken rtc_token = 1;                        // rtc token
+  api.astrorise.voiceroom.RoomDetail room_detail = 2;           // 房间信息
+  api.astrorise.voiceroom.RoomUserInfo room_user_info = 3;      // 用户信息
+  api.astrorise.voiceroom.RoomStateInfo room_state_info = 4;    // 房间实时状态信息
+  map<string, string> room_convention = 5;       // 平台公约 多语言显示
+  api.astrorise.voiceroom.RoomUserInfo owner_user_info = 6;     // 房主信息
+}
+
+message ReenterReq {
+  int64 room_id = 1;                            // 房间号
+}
+
+message ReenterRsp {
+  RtcToken rtc_token = 1;                       // rtc token
+  api.astrorise.voiceroom.RoomDetail room_detail = 2;          // 房间信息
+  api.astrorise.voiceroom.RoomUserInfo room_user_info = 3;     // 用户信息
+  api.astrorise.voiceroom.RoomStateInfo room_state_info = 4; // 房间实时状态信息
+}
+
+message GetRoomStateReq {
+  int64 room_id = 1;
+}
+
+message GetRoomStateRsp {
+  api.astrorise.voiceroom.RoomDetail room_detail = 1;          // 房间信息
+  api.astrorise.voiceroom.RoomStateInfo room_state_info = 2; // 房间实时状态信息
+  api.astrorise.voiceroom.RoomUserInfo owner = 3;            // 房主信息
+}
+
+
+// 离开房间，房间id通过登录用户uid来获取
+message LeaveReq {
+  int64 room_id = 1;        // 房间号
+}
+
+message LeaveRsp {
+}
+
+message KickOffReq {
+  int64 room_id = 1;          // 房间ID
+  int64 target_uid = 2;       // 被踢用户uid
+  int64 block_time = 3;       // 拉黑时长 单位-秒，-1 永久
+}
+
+message KickOffRsp {}
+
+message ChangeRoomPermReq {
+  int64 room_id = 1;                         // 房间id，虽然通过uid能查到，这里带上房间id，如果以后其他人也能修改或者一个人有多个房间时可以区分
+  api.astrorise.voiceroom.RoomPerm room_perm = 2;           // 房间权限
+  string password = 3;                       // 房间密码，修改为密码房时需要
+}
+
+message ChangeRoomPermRsp {
+  int64 timestamp = 1;                             // 时间戳 毫秒
+  api.astrorise.voiceroom.RoomSettings room_settings = 10;                 // 房间配置管更
+}
+
+message ChangeLayoutReq {
+  int64 room_id = 1;                            // 房间id，虽然通过uid能查到，这里带上房间id，如果以后其他人也能修改或者一个人有多个房间时可以区分
+  string layout_code = 2;                   // 房间布局模式code
+}
+
+message ChangeLayoutRsp {
+  int64 timestamp = 1;                             // 时间戳 毫秒
+  api.astrorise.voiceroom.RoomSettings room_settings = 10;                 // 房间配置管更
+  api.astrorise.voiceroom.SeatList seat_list = 2;                  // 变更后的麦位列表，这里会返回空数据，如果以后做麦位保留，会返回保留的麦位列表
+}
+
+
+message ChangeRoomModeReq {
+  int64 room_id = 1;//房间id
+  int64 room_mode_publish_id = 2;//房间模式上架id
+}
+
+message ChangeRoomModeRsp {
+  int64 timestamp = 1;// 时间戳 毫秒
+  api.astrorise.voiceroom.RoomSettings room_settings = 2;// 房间配置变更
+  api.astrorise.voiceroom.RoomStateInfo room_state_info = 3;// 房间的实时状态信息
+}
+
+message ChangeRoomModeV2Req {
+  int64 room_id = 1; // 房间id
+  api.astrorise.voiceroom.RoomModeType room_mode_type = 2; // 房间模式类型
+  RoomModeParams mode_params = 3; // 不同模式的附加参数
+}
+message ChangeRoomModeV2Rsp {
+  int64 timestamp = 1;// 时间戳 毫秒
+  api.astrorise.voiceroom.RoomSettings room_settings = 2; // 房间配置变更
+  api.astrorise.voiceroom.RoomStateInfo room_state_info = 3; // 房间的实时状态信息
+}
+message RoomModeParams {
+  oneof params {
+    VoiceChatModeParams voice_chat = 1;
+    FateMatchModeParams fate_match = 2;
+    GameLiveModeParams game_live = 3;
+  }
+}
+message VoiceChatModeParams {
+  string layout_code = 1; // 布局code标识;eg:chat_10,partner_9,partner_10,cp
+}
+message FateMatchModeParams{
+}
+message GameLiveModeParams{
+}
+
+
+
+message ChangeSeatPermReq {
+  int64 room_id = 1;                              // 房间id，虽然通过uid能查到，这里带上房间id，如果以后其他人也能修改或者一个人有多个房间时可以区分
+  api.astrorise.voiceroom.SeatPerm seat_perm = 2;                // 上麦权限
+}
+
+message ChangeSeatPermRsp {
+  int64 timestamp = 1;                             // 时间戳 毫秒
+  api.astrorise.voiceroom.RoomSettings room_settings = 10;                 // 房间配置管更
+}
+
+message ChangeSeatScoreSwitchReq {
+  int64 room_id = 1;  // 房间id
+  api.astrorise.voiceroom.SeatScoreSwitch switch = 2;  //更新开关状态
+}
+
+message ChangeSeatScoreSwitchRsp {
+  int64 timestamp = 1;                             // 时间戳 毫秒
+  api.astrorise.voiceroom.RoomSettings room_settings = 10;                 // 房间配置管
+}
+
+message ListRoomAdminReq {
+  int64 room_id = 1;                   // 房间id，虽然通过uid能查到，这里带上房间id，如果以后其他人也能修改或者一个人有多个房间时可以区分
+}
+
+message ListRoomAdminRsp {
+  repeated api.astrorise.voiceroom.RoomUserInfo admin_list = 1;        // 管理员列表
+}
+
+
+
+message SetRoomAdminReq {
+  int64 room_id = 1;                       // 房间id，虽然通过uid能查到，这里带上房间id，如果以后其他人也能修改或者一个人有多个房间时可以区分
+  int64 target_uid = 2;                    // 用户ID
+}
+
+message SetRoomAdminRsp {
+}
+
+message RemoveRoomAdminReq {
+  int64 room_id = 1;                       // 房间id，虽然通过uid能查到，这里带上房间id，如果以后其他人也能修改或者一个人有多个房间时可以区分
+  int64 target_uid = 2;                    // 用户ID
+}
+
+message RemoveRoomAdminRsp {// 移除房间管理
+}
+
+message SetRoomNameReq {
+  int64 room_id = 1;                       // 房间id，虽然通过uid能查到，这里带上房间id，如果以后其他人也能修改或者一个人有多个房间时可以区分
+  string name = 2;                          // 房间名称
+}
+message SetRoomNameRsp{
+  int64 timestamp = 1;                        // 时间戳 毫秒
+  api.astrorise.voiceroom.RoomInfo room_info = 10;              // 房间信息
+}
+
+
+message SetRoomIntroReq {
+  int64 room_id = 1;                        // 房间id，虽然通过uid能查到，这里带上房间id，如果以后其他人也能修改或者一个人有多个房间时可以区分
+  string intro = 2;                          // 房间公告
+}
+
+message SetRoomIntroRsp {
+  int64 timestamp = 1;                        // 时间戳 毫秒
+  api.astrorise.voiceroom.RoomInfo room_info = 10;              // 房间信息
+}
+
+message SetRoomCoverReq {
+  int64 room_id = 1;                        // 房间id
+  string cover = 2;                          // 房间封面url
+}
+
+message SetRoomCoverRsp{
+  int64 timestamp = 1;                        // 时间戳 毫秒
+  api.astrorise.voiceroom.RoomInfo room_info = 10;              // 房间信息
+}
+
+message SetRoomBackgroundReq {
+  int64 room_id = 1;      // 房间ID
+  string bg_img = 2;      // 房间背景
+  string bg_svga = 3;     // 房间
+
+  int64 goods_id = 10;    // 背景权益商品ID
+}
+
+message SetRoomBackgroundRsp {
+  int64 timestamp = 1;                        // 时间戳 毫秒
+  api.astrorise.voiceroom.RoomInfo room_info = 10;              // 房间信息
+}
+
+message SetRoomLanguageReq {
+  int64 room_id = 1; // 房间id
+  string language_code = 2; // 语言Code
+}
+
+message SetRoomLanguageRsp{
+  int64 timestamp = 1; // 时间戳 毫秒
+  api.astrorise.voiceroom.RoomInfo room_info = 10; // 房间信息
+}
+
+message BatchGetRoomUserReq {
+  int64 room_id = 1;                                   // 房间ID
+  repeated int64 uids = 2;                             // 用户ID
+  api.astrorise.voiceroom.RoomUserInfo selector = 10;                 // 字段选择器
+  repeated UserInfoExtField user_info_ext_fields = 30; // 业务拓展信息(UserInfo.biz_ext)需要的字段
+}
+
+message BatchGetRoomUserRsp {
+  map<int64, api.astrorise.voiceroom.RoomUserInfo> users = 1;         // 用户信息
+}
+
+message GetUserCurrentRoomReq {
+  int64 uid = 1;// 用户ID
+}
+
+message GetUserCurrentRoomRsp {
+  int64 room_id = 1;// 房间ID,值为0:没在房间里
+}
+
+
+// rtc token
+message RtcToken {
+  api.astrorise.voiceroom.RtcProvider rtc_provider = 1;//供应商
+  string app_id = 2;//App ID
+  string token = 3;//token
+  int64  token_expire = 4;//Token 的有效时长（秒）
+}
+
+// rtm token
+message RtmToken {
+  api.astrorise.voiceroom.RtmProvider rtm_provider = 1;//供应商
+  string app_id = 2;//App ID
+  string token = 3;//token
+  int64  token_expire = 4;//Token 的有效时长（秒）
+}
+
+// ↓↓↓↓↓↓ 以下为【房间麦位协议】 ↓↓↓↓↓↓
+
+// 麦位列表
+message ListSeatReq {
+  int64 room_id = 1;// 房间ID
+}
+message ListSeatRsp {
+  api.astrorise.voiceroom.SeatList seat_list = 1;// 麦位列表
+}
+
+// 上麦
+message EnterSeatReq {
+  int64 room_id = 1;// 房间ID
+  int64 seat_index = 2;// 麦位序号
+  int64 seat_index_old = 3;// 旧麦位序号;换麦场景
+}
+message EnterSeatRsp {
+  api.astrorise.voiceroom.SeatList seat_list = 1;// 麦位列表
+}
+
+// 下麦
+message LeaveSeatReq {
+  int64 room_id = 1;// 房间ID
+  int64 seat_index = 2;// 麦位序号
+}
+message LeaveSeatRsp {
+  api.astrorise.voiceroom.SeatList seat_list = 1;// 麦位列表
+}
+
+// 麦上用户打开麦克风
+message OpenMicReq {
+  int64 room_id = 1;// 房间ID
+  int64 seat_index = 2;// 麦位序号
+}
+message OpenMicRsp {
+  api.astrorise.voiceroom.SeatList seat_list = 1;// 麦位列表
+}
+
+// 麦上用户关闭自己的麦克风
+message CloseMicReq {
+  int64 room_id = 1;// 房间ID
+  int64 seat_index = 2;// 麦位序号
+}
+message CloseMicRsp {
+  api.astrorise.voiceroom.SeatList seat_list = 1;// 麦位列表
+}
+
+// 申请上麦
+message ApplyEnterSeatReq {
+  int64 room_id = 1;// 房间ID
+  int64 seat_index = 2;// 指定座位序号
+}
+message ApplyEnterSeatRsp {
+}
+
+// 获取申请上麦状态
+message GetApplyEnterSeatStatusReq {
+  int64 room_id = 1;// 房间ID
+}
+message GetApplyEnterSeatStatusRsp {
+  bool applied = 1;// 是否有申请上麦
+}
+
+// 取消申请上麦
+message CancelApplyEnterSeatReq {
+  int64 room_id = 1;// 房间ID
+}
+message CancelApplyEnterSeatRsp {
+}
+
+// 用户接受邀请上麦
+message AcceptSeatInvitationReq {
+  int64 room_id = 1;// 房间ID
+  int64 seat_index = 2;// 指定座位序号
+}
+message AcceptSeatInvitationRsp {
+  api.astrorise.voiceroom.SeatList seat_list = 1;// 麦位列表
+}
+
+// 用户拒绝邀请上麦
+message RejectSeatInvitationReq {
+  int64 room_id = 1;// 房间ID
+  int64 seat_index = 2;// 指定座位序号
+}
+message RejectSeatInvitationRsp {
+}
+
+// ~~~~~~~~~~~~~~~~~~~~ 管理操作 ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+// 麦位封锁
+message LockSeatReq {
+  int64 room_id = 1;// 房间ID
+  int64 seat_index = 2;//指定麦位序号
+}
+message LockSeatRsp {
+  api.astrorise.voiceroom.SeatList seat_list = 1;// 麦位列表
+}
+
+// 解除麦位封锁
+message UnlockSeatReq {
+  int64 room_id = 1;// 房间ID
+  int64 seat_index = 2;// 指定麦位序号
+}
+message UnlockSeatRsp {
+  api.astrorise.voiceroom.SeatList seat_list = 1;// 麦位列表
+}
+
+// 麦位禁音
+message MuteSeatReq {
+  int64 room_id = 1;// 房间ID
+  int64 seat_index = 2;//指定麦位序号
+}
+message MuteSeatRsp {
+  api.astrorise.voiceroom.SeatList seat_list = 1;// 麦位列表
+}
+
+// 解除麦位禁音
+message UnmuteSeatReq {
+  int64 room_id = 1;// 房间ID
+  int64 seat_index = 2;// 指定麦位序号
+}
+message UnmuteSeatRsp {
+  api.astrorise.voiceroom.SeatList seat_list = 1;// 麦位列表
+}
+
+// 用户禁音
+message MuteSeatUserReq {
+  int64 room_id = 1;// 房间ID
+  int64 seat_index = 2;// 指定麦位序号
+  int64 uid = 3;// 用户id
+}
+message MuteSeatUserRsp {
+  api.astrorise.voiceroom.SeatList seat_list = 1;// 麦位列表
+}
+
+// 解除用户禁音
+message UnmuteSeatUserReq {
+  int64 room_id = 1;// 房间ID
+  int64 seat_index = 2;// 指定麦位序号
+  int64 uid = 3;// 用户id
+}
+message UnmuteSeatUserRsp {
+  api.astrorise.voiceroom.SeatList seat_list = 1;// 麦位列表
+}
+
+// 踢下麦
+message KickSeatReq {
+  int64 room_id = 1;// 房间ID
+  int64 seat_index = 2;// 麦位序号
+  int64 uid = 3;// 用户id
+}
+message KickSeatRsp {
+  api.astrorise.voiceroom.SeatList seat_list = 1;// 麦位列表
+}
+
+// 抱上麦
+message PickSeatReq {
+  int64 room_id = 1;// 房间ID
+  int64 uid = 2;// 用户id
+  int64 seat_index = 3;// 指定麦位序号
+}
+message PickSeatRsp {
+  api.astrorise.voiceroom.SeatList seat_list = 1;// 麦位列表
+}
+
+// 申请上麦用户列表
+message ApplyEnterSeatUserListReq {
+  scommon.Page page = 1;
+  int64 room_id = 10;// 房间ID
+}
+message ApplyEnterSeatUserListRsp {
+  scommon.Page page = 1;
+  repeated comm.api.adapter.UserInfo user_infos = 10;// 用户列表
+}
+
+// 申请上麦审批-同意
+message ApproveApplyEnterSeatReq {
+  int64 room_id = 1;// 房间ID
+  int64 uid = 2;// 申请上麦用户uid
+}
+message ApproveApplyEnterSeatRsp {
+  api.astrorise.voiceroom.SeatList seat_list = 1;// 麦位列表
+}
+
+// 申请上麦审批-拒绝
+message RejectApplyEnterSeatReq {
+  int64 room_id = 1;// 房间ID
+  int64 uid = 2;// 申请上麦用户uid
+}
+message RejectApplyEnterSeatRsp {
+}
+
+// ↑↑↑↑↑↑ 以上为【房间麦位协议】 ↑↑↑↑↑↑
+
+// 获取在线的人列表
+message ListOnlineUserReq {
+  scommon.Page page = 1;
+  int64 room_id = 2; // 房间ID
+  repeated UserInfoExtField user_info_ext_fields = 30; // 业务拓展信息(UserInfo.biz_ext)需要的字段
+}
+message ListOnlineUserRsp {
+  scommon.Page page = 1;
+  repeated RoomUserInfo room_user_infos = 10;
+}
+
+message ListLayoutReq {
+  int64 room_id = 1;
+}
+
+message ListLayoutRsp {
+  repeated RoomLayout layout_list = 1;          // 房间模式列表，返回第一个为默认布局方式
+}
+
+// 房间玩法枚举
+enum RoomPlaying {
+  ROOM_PLAYING_NONE = 0;
+  ROOM_PLAYING_PK = 10;                         // PK 玩法
+  ROOM_PLAYING_LUCKY_BAG = 20;                  // 红包玩法
+  // 更多玩法...
+}
+message GetAvailablePlayingReq {
+  int64 room_id = 10;
+  repeated RoomPlaying supported_playings = 11; // 客户端当前版本支持的房间玩法.
+}
+message GetAvailablePlayingRsp {
+  repeated RoomPlaying available_playings = 10; // 当前房间允许使用的房间玩法.
+}
+
+message ListRoomPermReq{
+  int64 room_id = 1;
+}
+message ListRoomPermRsp {
+  repeated PermissionOption enter_permissions = 1;
+}
+message PermissionOption {
+  api.astrorise.voiceroom.RoomPerm permission_type = 1; // 权限级别枚举值
+  bool available = 2; // 权限是否可用
+}
+
+
+message GetRoomLanguageListReq {
+  bool include_all = 1; // 是否在返回的语言列表中包含 "All" 选项。 如果为 true，则列表的第一个元素是 Code: "" / DisplayName: "All"
+}
+message GetRoomLanguageListRsp {
+  repeated LanguageOption languages = 1; // 语言列表数据
+}
+
+message LanguageOption {
+  string code = 1; // 语言简码，作为传参值 (例如: "en", "zh", "ms")
+  string short_name = 2; // 语言的缩写名称 (例如: "EN", "ZH", "MS")
+  string native_name = 3; // 语言的自称 (例如: "English", "中文", "Bahasa Melayu")
+}
+
+message CreateEnterRoomApplicationReq {
+  int64 room_id = 1;
+}
+message CreateEnterRoomApplicationRsp {
+  CreateEnterRoomApplicationResult result = 1;
+  string toast_msg = 2; // 文案
+}
+enum CreateEnterRoomApplicationResult {
+  CREATE_ENTER_ROOM_APPLICATION_RESULT_NONE = 0;
+  CREATE_ENTER_ROOM_APPLICATION_RESULT_SUCCESS = 1; // 成功
+  CREATE_ENTER_ROOM_APPLICATION_RESULT_DUPLICATE = 2; // 重复申请
+  CREATE_ENTER_ROOM_APPLICATION_RESULT_ROOM_CLOSED = 3; // 房间已关闭
+}
+
+message ListEnterRoomApplicationReq {
+  scommon.Page page = 1;
+  int64 room_id = 10; // 房间ID
+}
+message ListEnterRoomApplicationRsp {
+  scommon.Page page = 1;
+  repeated EnterRoomApplicationItem items = 10; // 用户列表
+}
+message EnterRoomApplicationItem {
+  comm.api.adapter.UserInfo user_info = 10; // 用户信息
+  bool followed_room = 11; // 是否关注该房间
+}
+
+// 申请进房审批-同意
+message ApproveEnterRoomApplicationReq {
+  int64 room_id = 1;// 房间ID
+  int64 uid = 2;// 申请用户uid(-1:全部用户)
+}
+message ApproveEnterRoomApplicationRsp {
+}
+
+// 申请进房审批-拒绝
+message RejectEnterRoomApplicationReq {
+  int64 room_id = 1;// 房间ID
+  int64 uid = 2;// 申请用户uid(-1:全部用户)
+}
+message RejectEnterRoomApplicationRsp {
+}

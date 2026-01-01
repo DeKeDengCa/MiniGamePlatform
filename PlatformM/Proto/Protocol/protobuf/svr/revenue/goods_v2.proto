@@ -1,0 +1,86 @@
+// smicro:spath=gitit.cc/social/components-service/social-revenue/goods/handler_svr_goods.go
+
+syntax = "proto3";
+
+package pbgoodssvr;
+
+import "protobuf/api/revenue/common.proto";
+import "protobuf/svr/revenue/common.proto";
+import "protobuf/api/pay/pay.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsrevenue/pbgoodssvr";
+option java_package = "com.revenue.biz.proto";
+
+
+service GoodsSvrV2 {
+  // 用户订单查询
+  rpc ListUserOrder(ListUserOrderReq) returns (ListUserOrderRsp);
+  // 获取用户累计充值金额
+  rpc GetUserRechargeAmount(GetUserRechargeAmountReq) returns (GetUserRechargeAmountRsp);
+
+  // 查询某个sku购买次数
+  rpc UserBuyCount(UserBuyCountReq) returns (UserBuyCountRsp);
+
+  // 查询sku列表
+  rpc ListSku(ListSkuReq) returns (ListSkuRsp);
+
+  // 根据id查询
+  rpc BatchGetSku(BatchGetSkuReq) returns (BatchGetSkuRsp);
+}
+
+message ListUserOrderReq{
+  int64 uid = 1;             // 用户ID，优先从公参取，服务端内部请求则取该字段
+  int64 start_time = 2;      // 开始时间
+  int64 end_time = 3;        // 结束时间
+  pbrevenue.PayStatus pay_status = 4;  // 支付状态
+  int32 limit = 5;           // 查询多少条，0 则查全部
+}
+
+message ListUserOrderRsp{
+  repeated pbrevenue.GoodsOrderInfo list = 1; // 订单列表
+}
+
+message GetUserRechargeAmountReq {
+  int64 uid = 1;             // 用户ID，优先从公参取，服务端内部请求则取该字段
+  int64 start_time = 2;      // 开始时间
+  int64 end_time = 3;        // 结束时间
+  pbrevenue.CurrencyType currency_type = 4; // 货币类型，如果是none 则返回美元总充值金额
+  pbsrevenue.CacheCtrl cache_ctrl = 10;     // 缓存控制
+}
+
+message GetUserRechargeAmountRsp {
+  pbrevenue.CurrencyType currency_type = 1;
+  pbrevenue.Unit unit = 2;// 货币单位，目前只有美元
+  int64 amount =3;
+}
+
+
+message UserBuyCountReq {
+  int64 uid = 1;           // 用户ID
+  int64 goods_id = 2;      // 商品ID
+}
+
+message UserBuyCountRsp {
+  int32 count = 1;        // 购买次数
+  bool online = 2;        // 当前是否上架
+}
+
+message ListSkuReq {
+  pbspay.ListSkuReq base_req = 1;
+  int64 uid = 20;         // 用户ID(不传则用 in.UID)
+  string did = 21;        // 设备ID(不传则用 in.Did)
+  string lan = 22;        // 语言码(不传则用 in.Lan)
+}
+
+message ListSkuRsp {
+  pbspay.ListSkuRsp base_rsp = 1;
+}
+
+
+message BatchGetSkuReq {
+  repeated int64 goods_ids = 1; // 商品id列表
+}
+
+message BatchGetSkuRsp {
+  map<int64, pbspay.SkuInfo> goods_map = 1; // 商品信息，key为商品id
+}

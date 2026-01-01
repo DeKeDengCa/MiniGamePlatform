@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package api.astrorise.social.recommend;
+
+import "protobuf/api/adapter/model.proto";
+import "protobuf/api/common/common.proto";
+import "api/platform/common.proto";
+
+// smicro:spath=gitit.cc/social/astrorise/arplatform/s_social/biz/recommend/handler
+option go_package = "gitit.cc/social/astrorise/arprotobuf/gencode/api/social/pbrecommend";
+
+// serviceName: astrorise.platform.social
+service Recommend {
+  // 战后关注引导
+  rpc GameSettleFollowGuide(GameSettleFollowGuideReq) returns (GameSettleFollowGuideRsp);
+
+  // 用户推荐
+  rpc Recommend(RecommendReq) returns (RecommendRsp);
+}
+
+message GameSettleFollowGuideReq {
+  repeated int64 teammate_uids = 1; // 队友uids
+}
+
+message GameSettleFollowGuideRsp {
+  map<int64, comm.api.adapter.UserInfo> user_info_map = 1;
+}
+
+enum RecommendScene {
+  RECOMMEND_SCENE_NONE = 0;
+  RECOMMEND_SCENE_SEARCH = 1; // 搜索页推荐
+  RECOMMEND_SCENE_IM = 2; // im页推荐
+}
+
+message RecommendReq {
+  scommon.Page page = 1;
+
+  RecommendScene scene = 10;  // 推荐场景
+  int32 game_id = 11; // 游戏id
+}
+
+message RecommendItem {
+  comm.api.adapter.UserInfo user_info = 1;
+
+  int64 level = 10; // 等级
+  api.astrorise.platform.UserOnlineStatus online_status = 11; // 在线状态
+}
+message RecommendRsp {
+  scommon.Page page = 1;
+
+  repeated RecommendItem items = 10;
+}

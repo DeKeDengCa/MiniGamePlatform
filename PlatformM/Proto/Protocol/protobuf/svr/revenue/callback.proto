@@ -1,0 +1,116 @@
+syntax = "proto3";
+
+package pbsrevenue;
+
+import "protobuf/api/revenue/common.proto";
+import "protobuf/api/revenue/gift.proto";
+import "protobuf/svr/revenue/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsrevenue";
+option java_package = "com.revenue.biz.proto";
+
+// 营收中台回调服务
+service CallbackSvr {
+  // 送礼预处理
+  rpc PreSendGift(PreSendGiftReq) returns (PreSendGiftRsp) {}
+
+  // deprecated 废弃
+  // 检查是否能给指定用户送礼, 由业务决定加哪些送礼限制, 营收中台在调用失败时统一认为都可以赠送.
+  rpc CanSendGift(CanSendGiftReq) returns (CanSendGiftRsp) {}
+
+  // 获取业务自定义送礼模式的收礼信息
+  rpc GetCustomizedReceiveGiftInfo(GetCustomizedReceiveGiftInfoReq) returns (GetCustomizedReceiveGiftInfoRsp) {}
+
+  // 返回给客户端礼物列表前回调业务进行过滤和填充等操作
+  rpc PreListGifts(PreListGiftsReq) returns (PreListGiftsRsp) {}
+}
+
+// 送礼预处理请求
+message PreSendGiftReq {
+  int64 sender_uid = 1;                 // 送礼人
+  repeated int64 receiver_uids = 2;     // 收礼人
+  pbrevenue.GiftInfo send_gift = 3;     // 送出的礼物
+  pbrevenue.GiftScene scene = 5;        // 赠送场景
+  pbrevenue.GiftStrategy strategy = 6;  // 赠送策略
+  string room_id = 7;                   // 房间ID
+
+  pbrevenue.GiftInfo received_gift = 20;                      // 实际收到的礼物，例如送盲盒礼物会开出其他礼物
+  map<int64, pbrevenue.GiftProfit> receiver_profit_map = 21;  // 收礼人收益
+}
+
+// 送礼预处理返回
+message PreSendGiftRsp {
+  pbrevenue.SendGiftResult result = 1;                        // 送礼结果，如果不允许送礼，异常信息将透传给C端
+  map<int64, pbrevenue.GiftProfit> receiver_profit_map = 21;  // 收礼人收益，实际收益将以该返回为准
+  NotifyMode notify_mode = 2;                                 // 通知方式
+}
+
+// 送礼限制
+enum SendGiftLimit {
+  SEND_GIFT_LIMIT_NONE = 0;       // 无限制, 即可以送礼
+  SEND_GIFT_LIMIT_BANNED = 1;     // 收礼人已被封禁
+  SEND_GIFT_LIMIT_LOGOUT = 2;     // 收礼人已经注销
+  SEND_GIFT_LIMIT_BLOCKED = 3;    // 送礼人拉黑了收礼人
+  SEND_GIFT_LIMIT_BE_BLOCKED = 4; // 送礼人被收礼人拉黑了
+  SEND_GIFT_LIMIT_OTHERS = 99;    // 其他原因
+}
+
+// 能否送礼
+message CanSendGift {
+  SendGiftLimit limit = 1;  // 送礼限制
+  string message = 2;       // 补充说明, 可选
+}
+
+// 检查是否能给指定用户送礼
+message CanSendGiftReq {
+  int64 sender_uid = 1;             // 送礼人
+  repeated int64 receiver_uids = 2; // 收礼人
+  pbrevenue.GiftInfo gift = 3;      // 礼物信息
+}
+
+// 检查是否能给指定用户送礼
+message CanSendGiftRsp {
+  map<int64, CanSendGift> can_send_gifts = 1; // 收礼人以及对应送礼限制, 没返回的收礼人也认为可以赠送.
+  pbrevenue.SendGiftResult result = 2;        // 送礼结果，如果送礼不成功，异常信息将透传给C端
+}
+
+// 业务自定义送礼模式的收礼信息
+message CustomizedReceiveGiftInfo {
+  int64 receiver_uid = 1; // 收礼人uid
+  string room_id = 2;     // 收礼人所在的房间ID
+}
+
+// 获取业务自定义送礼模式的收礼信息
+message GetCustomizedReceiveGiftInfoReq {
+  int64 send_uid = 10;               // 送礼人UID
+  int64 gift_info_id = 11;           // 礼物ID
+  int32 quantity = 12;               // 赠送数量
+  pbrevenue.GiftScene scene = 13;              // 赠送场景
+  pbrevenue.GiftStrategy strategy = 14;        // 消耗策略
+  pbrevenue.GiftBatchType batch_type = 15;     // 批量类型
+  repeated int64 receiver_uids = 16; // 收礼人列表, 多个收礼人时表示每人送 quantity 个.
+  string send_room_id = 17;          // 送礼人所在房间 ID
+  string customized_value = 18;      // 业务自定义的礼物批量送礼类型拓展参数, 最好定义成 JSON 结构字符串方便后续的拓展.
+  map<int32, string> expand = 19;    // 拓展字段, key 为拓展字段枚举的数字值.
+  map<string, string> context = 20; // 透传给业务的上下文, 对于营收中台没有意义.
+}
+
+// 获取业务自定义送礼模式的收礼信息
+message GetCustomizedReceiveGiftInfoRsp {
+  repeated CustomizedReceiveGiftInfo receive_gift_infos = 10; // 收礼信息
+  string customized_result = 11; // 业务与客户端之间自定义的批量送礼返回值, 最好定义成 JSON 结构字符串方便后续的拓展.
+  int32 error_code = 12; // 错误码, 业务与客户端之间定义的错误码.
+  string error_message = 13; // 错误信息, 业务与客户端之间定义的错误信息.
+}
+
+// 返回给客户端礼物列表前回调业务进行过滤和填充等操作
+message PreListGiftsReq {
+  int64 uid = 10;                               // 用户ID
+  pbrevenue.GiftScene scene = 20;               // 礼物显示场景
+  string scene_id = 21;                         // 礼物显示场景ID, 如果是房间场景则是房间ID.
+  repeated pbrevenue.GiftInfo gifts = 30;       // 礼物列表
+}
+// 返回给客户端礼物列表前回调业务进行过滤和填充等操作
+message PreListGiftsRsp {
+  repeated pbrevenue.GiftInfo gifts = 30;       // 礼物列表, 如果不过滤可以原样返回即可
+}

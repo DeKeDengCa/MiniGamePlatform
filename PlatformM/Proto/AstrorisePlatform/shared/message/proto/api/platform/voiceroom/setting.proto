@@ -1,0 +1,82 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/setting/handler
+
+syntax = "proto3";
+
+package api.astrorise.voiceroom;
+
+option java_package="com.entertain.sns.api.gene.setting";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbsetting";
+
+// serviceName: astrorise-voiceroom
+service Setting {
+  // 更改用户设置
+  rpc SetUserSetting(SetUserSettingReq) returns (SetUserSettingRsp);
+  // 获取用户设置
+  rpc GetUserSetting(GetUserSettingReq) returns (GetUserSettingRsp);
+  // 获取分类下所有用户设置
+  rpc ListUserSetting(ListUserSettingReq) returns (ListUserSettingRsp);
+}
+
+
+message SetUserSettingReq {
+  UserSetting setting = 10;
+}
+
+message SetUserSettingRsp {
+}
+
+
+
+message GetUserSettingReq {
+  UserSettingKey key = 10;
+}
+
+message GetUserSettingRsp {
+  UserSettingValue value = 10;
+}
+
+
+
+message ListUserSettingReq {
+  UserSettingCategory category = 10;
+}
+
+message ListUserSettingRsp {
+  repeated UserSetting settings = 10;
+}
+
+
+
+// 用户设置分类
+enum UserSettingCategory {
+  USER_SETTING_CATEGORY_NONE = 0;
+  USER_SETTING_CATEGORY_IM = 10001;             // IM功能
+}
+
+// 用户设置key
+enum UserSettingKey {
+  USER_SETTING_KEY_NONE = 0;
+
+  // bool类型: 10000-19999
+  // IM功能段: 10000-10050
+  USER_SETTING_KEY_IM_BLOCK_MESSAGE = 10001;    // 屏蔽陌生人消息
+
+  // int64类型: 20000-29999
+  // ...
+
+  // string类型: 30000-39999
+  // ...
+}
+
+message UserSettingValue {
+  oneof Value {
+    bool bool_val = 10;
+    int64 int64_val = 20;
+    string string_val = 30;
+  }
+}
+
+message UserSetting {
+  UserSettingKey key = 10;      // 设置key
+  UserSettingValue value = 11;  // 设置value
+}

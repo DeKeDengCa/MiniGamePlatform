@@ -1,0 +1,27 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/user/handlermgr
+syntax = "proto3";
+
+package mgr.astrorise.voiceroom;
+
+import "api/platform/voiceroom/album.proto";
+
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbalbummgr";
+
+service AlbumMgr {
+
+  // 批量获取用户相册
+  rpc BatchGetUserAlbum(BatchGetUserAlbumReq) returns (BatchGetUserAlbumRsp);
+}
+
+message Album {
+  int64 uid = 1;
+  repeated api.astrorise.voiceroom.Photo photos = 2;
+}
+
+message BatchGetUserAlbumReq {
+  repeated int64 uids = 10;
+}
+
+message BatchGetUserAlbumRsp {
+  repeated Album albums = 10;
+}

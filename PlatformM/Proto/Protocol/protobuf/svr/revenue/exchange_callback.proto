@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package pbsrevenue;
+
+import "protobuf/api/revenue/common.proto";
+import "protobuf/svr/revenue/message.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsrevenue";
+option java_package = "com.revenue.biz.proto";
+
+// 营收中台兑换功能回调服务
+service ExchangeCallbackSvr {
+
+  // 回调业务判断能否执行兑换
+  rpc CanExchange(CanExchangeReq) returns (CanExchangeRsp);
+}
+
+message CanExchangeReq {
+  ExchangeType exchange_type = 1;
+  string anm = 2;
+  int64 uid = 3;                            
+	int64 target_uid = 4;
+}
+
+message CanExchangeRsp {
+  int32 error_code = 1; // 错误码, 0 表示成功, 否则都表示失败.
+  string error_msg = 2; // 错误消息
+}

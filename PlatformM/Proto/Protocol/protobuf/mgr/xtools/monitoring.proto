@@ -1,0 +1,99 @@
+syntax = "proto3";
+
+package pbxtools;
+
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmgrxtools";
+
+// 监控相关
+// smicro:spath=gitit.cc/social/components-service/xtools/handler/monitoring
+service Monitoring {
+  // 获取prometheus节点，改由后端统一配置
+  rpc ListNodes(ListNodesReq) returns (ListNodesRsp);
+
+  // 获取promehteus label
+  //    a. job,时间段 为必选
+  //    b. label分三个维度：code，instance，uri。维度之间互相关联
+  //    c. uri只能一层一层的展开：uri0 -> uri1 -> uri2
+  rpc GetLabels(GetLabelsReq) returns (GetLabelsRsp);
+
+  // 获取常用查询标签列表
+  rpc GetQueryLabels(GetQueryLabelsReq) returns (GetQueryLabelsRsp);
+
+  // 保存常用查询标签
+  rpc SaveQueryLabel(SaveQueryLabelReq) returns (SaveQueryLabelRsp);
+
+  // 删除常用查询标签
+  rpc DeleteQueryLabel(DeleteQueryLabelReq) returns (DeleteQueryLabelRsp);
+}
+
+
+message ListNodesReq {
+  string app = 10;                                            // 查询业务，为空就返回全量
+}
+message Node {
+  string app = 1;                                             // 根据app来获取，如果获取不到，则取默认：anm == ""
+  string addrs = 2;                                           // prometheus 节点地址：http://172.21.128.166:9000
+}
+message ListNodesRsp {
+  repeated  Node nodes = 10;
+}
+
+message UriLabel {
+  string key = 1;                                             // 标签名：uri0, uri1,...
+  repeated string values = 2;                                 // 如果为空，则代表all
+  repeated int64 top = 3;                                     // 前n条查询标签
+}
+message Labels {
+  repeated string code = 10;                                   // 用户选择的code，为空，则代表all
+  repeated string instance = 11;                              // 用户选择的instance，为空，则代表all
+  repeated UriLabel uris = 12;                                // 用户选的uri标签数组，为空则为all：一层层的铺开的，在有多个uri的情况下，则应答的uri比请求的uris多一层。按照顺序来填写，uri0必须放在第一个。
+  string histogram_label = 13;                                // 用户选择的直方图指标
+}
+message  GetLabelsReq {
+  string app = 10;                                            // 业务
+  string service = 11;                                        // 服务，也叫 job
+  string start = 12;                                          // UTC开始时间，如：2025-01-13T04:40:22.237Z
+  string end = 13;                                            // UTC结束时间，如：2025-01-13T05:40:22.238Z
+  Labels labels = 14;                                         // 用户选择的 code，instance，uri，
+  string metric_name = 15;                                    // 指标名
+}
+message GetLabelsRsp {
+  Labels labels = 10;                                          // 获取到的标签
+}
+
+// 常用查询标签
+message QueryLabel {
+  int64 id = 10;  // ID
+  string query_name = 11;                                     // 查询名
+  Labels labels = 12;                                         // 用户选择的 code，instance，uri，
+  int64 top = 13;                                             // 前n条
+}
+message SaveQueryLabelReq {
+  string app = 10;                                            // 业务
+  string service = 11;                                        // 服务，也叫 job
+  string metric_name = 13;                                    // 指标名
+  QueryLabel query_label = 14;                                // 查询标签
+}
+
+message SaveQueryLabelRsp {
+  int64 id = 10;  // 对应的记录ID
+}
+
+message GetQueryLabelsReq {
+  string app = 10;                                            // 业务
+  string service = 11;                                        // 服务，也叫 job
+  string metric_name = 12;                                    // 指标名
+}
+
+message GetQueryLabelsRsp {
+  repeated QueryLabel query_labels = 10;
+}
+
+message  DeleteQueryLabelReq {
+  int64 id = 10;  // 对应的记录ID
+}
+
+message DeleteQueryLabelRsp {
+}

@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+import "protobuf/api/adapter/model.proto";
+import "api/platform/common.proto";
+import "api/platform/msg.proto";
+import "api/platform/social/chat.proto";
+
+package api.astrorise.social.notify;
+
+option go_package = "gitit.cc/social/astrorise/arprotobuf/gencode/api/social/pbnotify";
+
+message Notify {
+  NotifyFollow follow = 1;  // 关注通知
+
+  api.astrorise.platform.EventMessage message = 10; // 事件消息
+  NotifyChatGroupMsg chat_group_msg = 11; // 世界频道聊天信令
+}
+
+// 关注通知
+message NotifyFollow {
+  int64 fan_uid = 1;  // 粉丝uid
+}
+
+message NotifyChatGroupMsg {
+  string msg_id = 1; // 消息ID
+  int64 millisecond = 2; // 时间戳-毫秒
+  comm.api.adapter.UserInfo sender = 3; // 发送方信息-群聊消息时使用
+  int32 team_id = 5;  // 队伍id
+  api.astrorise.social.chat.Text txt = 6;
+  api.astrorise.social.chat.Voice voice = 7;
+  api.astrorise.social.chat.GroupMsgType msg_type = 8;
+}
+
+enum NotifyScope {
+  NOTIFY_SCOPE_NONE = 0;
+  NOTIFY_SCOPE_SINGLE = 1;  // 单播
+  NOTIFY_SCOPE_BROADCAST = 2; // 广播
+  NOTIFY_SCOPE_GLOBAL = 3;  // 全服
+}

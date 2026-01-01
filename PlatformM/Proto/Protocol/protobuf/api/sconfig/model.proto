@@ -1,0 +1,81 @@
+syntax="proto3";
+
+package sconfig.model;
+
+import "protobuf/api/sconfig/options.proto";
+
+option java_package="com.entertain.sns.sconfig.model";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbsconfig";
+option swift_prefix="SconfigModel";
+
+// 用来接收时间，前端提交上来的时间格式是 {"ts":1234567,"zone":"Asia/Shanghai"}
+message Time {
+    option (sconfig.schema.model_name) = "time";
+    int64 ts = 1;
+    string zone = 2;
+}
+
+// 文件上传
+message File {
+    option (sconfig.schema.model_name) = "file";
+    string url = 1;
+}
+
+// 特权/礼物选择
+message Privilege {
+    option (sconfig.schema.model_name) = "privilege";
+    int64 type = 1;  // 特权类型，各个业务定
+    int64 id = 2;    // 特权ID，各个业务定
+
+    bool use_time = 10; // 是否是时长类型的特权
+}
+
+// 奖励选择，相对于特权选择来说就是多了个数量
+message Prize {
+    option (sconfig.schema.model_name) = "prize";
+    Privilege privilege = 1;
+
+    // 奖励的数量，如果是数量类型就是个数，如果是时长类型，就是秒。
+    // 会有一些场景，时长类型的奖励，还需要个数，比如给公会长发10个有效期为30天的
+    // 头像框。这个时候可以自己定义一个message，里面有一个Prize加一个count
+    int64 number = 10;
+}
+
+// 用来接收配置的版本信息
+message ConfigVersion {
+    int64 ver = 1;
+}
+
+// 员工信息
+message Staff {
+    option (sconfig.schema.model_name) = "staff";
+    string union_id = 1;
+    string name = 2;
+    string nick_name = 3;
+    string email = 4;
+    string user_id = 5;
+}
+
+// 颜色选择
+message Color {
+    option (sconfig.schema.model_name) = "color";
+    string color = 1;
+}
+
+// 多语言
+message Langs {
+    option (sconfig.schema.model_name) = "langs";
+    map<string, string> langs = 1;
+}
+
+// 数值类型ID
+message IntID {
+    option (sconfig.schema.model_name) = "int_id";
+    int64 id = 1;
+}
+
+// 字符类型ID
+message StrID {
+    option (sconfig.schema.model_name) = "str_id";
+    string id = 1;
+}

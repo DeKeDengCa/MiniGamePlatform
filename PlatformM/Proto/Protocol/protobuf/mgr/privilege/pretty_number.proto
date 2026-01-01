@@ -1,0 +1,83 @@
+// smicro:spath=gitit.cc/social/components-service/social-privilege/biz/prettynumber/handlermgr
+
+syntax = "proto3";
+
+package comm.mgr.privilege;
+
+import "protobuf/api/privilege/v2/privilege.proto";
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmprivilege";
+
+service PrettyNumberMgr {
+
+  // 列表
+  rpc ListPrettyNumbers(ListPrettyNumbersReq) returns (ListPrettyNumbersRsp);
+
+  // 创建靓号
+  rpc CreatePrettyNumber(CreatePrettyNumberReq) returns (CreatePrettyNumberRsp);
+
+  // 绑定
+  rpc BindPrettyNumber(BindPrettyNumberReq) returns (BindPrettyNumberRsp);
+
+  // 解绑
+  rpc UnBindPrettyNumber(UnBindPrettyNumberReq) returns (UnBindPrettyNumberRsp);
+}
+
+
+message MgrPrettyNumber {
+  int64 id = 1;
+  string pretty_number = 2;         // 靓号
+  api.privilege.v2.TargetType target_type = 3; // 归属类型
+  int64 target_id = 4; //归属id
+  api.privilege.v2.PrettyNumber assets = 5; //资源
+  int64 expired_at = 6; // 过期时间戳-秒
+  api.privilege.v2.PrettyNumberUseStatus use_status = 7;  // 使用状态
+  api.privilege.v2.PrettyNumberBindStatus bind_status = 8;  // 绑定状态
+  string remark = 9; //备注
+
+  int64 ctime = 22;  //创建时间
+  int64 utime = 23;  //更新时间
+  string creator = 24; //创建人
+  string editor = 25; //编辑
+}
+
+// 靓号列表
+message ListPrettyNumbersReq {
+  scommon.Page page = 1;
+
+  api.privilege.v2.TargetType target_type = 10;             // 归属类型
+  int64 target_id = 11;                                     // uid / room_id
+  string show_id = 12;                                      // 靓号ID
+  api.privilege.v2.PrettyNumberUseStatus status = 13;       // 靓号状态
+  api.privilege.v2.PrettyNumberBindStatus bind_status = 14; // 绑定状态
+}
+
+message ListPrettyNumbersRsp {
+  scommon.Page page = 1;
+  repeated MgrPrettyNumber pretty_numbers = 10;
+}
+
+// 创建靓号
+message CreatePrettyNumberReq {
+  MgrPrettyNumber pretty_number = 1;
+}
+
+message CreatePrettyNumberRsp {
+}
+
+// 绑定靓号
+message BindPrettyNumberReq {
+  MgrPrettyNumber pretty_number = 1;
+}
+
+message BindPrettyNumberRsp {
+}
+
+message UnBindPrettyNumberReq {
+  int64  id = 1; // 靓号记录ID
+}
+
+message UnBindPrettyNumberRsp {
+
+}

@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package pbsrevenue;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsrevenue";
+option java_package = "com.revenue.biz.proto";
+
+// 收益分成
+// serviceName: api.micro.social.revenue
+// smicro:spath=gitit.cc/social/components-service/social-revenue/handler-svr/profitsvr
+service ProfitSvr {
+
+    // 获取收益分成比例
+    rpc GetProfitConfig(GetProfitConfigReq) returns (GetProfitConfigRsp);
+}
+
+message ProfitConfig {
+    // 普通礼物收益分成比例(x%)
+    int64 profit_rate = 1;
+
+    // 幸运礼物收益分成比例(x%)
+    int64 lucky_gift_profit_rate = 2;
+
+    //陪陪礼物收益分成比例(x%)
+    int64 accompany_gift_profit_rate = 3;
+}
+
+message SpecialProfitConfig {
+    repeated int64 guild_ids = 1;
+    repeated int64 uids = 2;
+    ProfitConfig profit_config = 3;
+}
+
+message GetProfitConfigReq {
+
+}
+
+message GetProfitConfigRsp {
+    ProfitConfig profit_config = 10;
+    ProfitConfig show_time_anchor_profit_config = 11; // 秀场主播分成配置
+    ProfitConfig voice_room_hall_anchor_profit_config = 12; // 语音厅主播分成配置
+    ProfitConfig voice_room_hall2_anchor_profit_config = 13; // 语音厅2主播分成配置
+    repeated SpecialProfitConfig special_profit_configs = 14; // 白名单主播分成配置
+}

@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+// 这个package 不改了，各端都用的很多
+package scommon;
+
+option java_package="com.entertain.sns.scommon";
+option go_package="gitit.cc/social/protobuf/gencode/api/pbcom";
+option swift_prefix="SCommon";
+
+// 通用的分页设置
+message Page {
+  int64 total = 1;    // 总数，客户端很多场景需要展示总数
+  int64 offset = 2;   // 从0开始，客户端带上offset，服务端返回数据的时候要修改offset的值，加上当前数据的条目数
+  int64 limit = 3;    // 客户端填充，表示请求多少，-1表示请求所有（服务的要判断是否允许），0表示由服务的决定分页大小
+  bool  has_more = 4; // 是否还有更多，服务端填
+
+  // 对于同一个页面，初次请求的时候不用填，后续的请求填服务端的响应即可。
+  // 用于表征一次会话，不同的会话不能混用
+  string session = 10;
+}
+
+// 通用的排序设置, 建议使用 Sorts.
+message Sort {
+  // 排序顺序
+  enum Order {
+    ORDER_NONE = 0; // 无意义
+    ORDER_ASC = 1;  // 正序
+    ORDER_DESC = 2; // 反序
+  }
+  // 服务端会定义一个枚举用于表征所有可以做排序的字段，这里的field填对应的枚举值。
+  //
+  // 设计考量: 这里定义成 int32 而不是 string 来直接传递排序字段名称是为了增加使用门槛让使用者思考字段是否应该拿来排序,
+  // 通常具体的接口需要将可以排序的字段通过枚举定义出来, 前端传枚举的数字值, 后端映射到排序字段名称, 以便思考字段是否有索引.
+  int32 field = 1;  // 排序字段
+  Order order = 2;  // 排序顺序
+}
+
+// 通用的排序设置列表, 支持多个字段排序.
+message Sorts {
+  repeated Sort sorts = 1;
+}

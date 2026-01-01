@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package comm.svr.guild;
+
+import "protobuf/api/guild/bd.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsguild";
+option java_package = "com.guild.biz.anchor";
+
+// ServiceName: rpc.micro.social.guild
+// smicro:spath=gitit.cc/social/components-service/social-guild/handler-svr/bdsvr
+service BDSvr {
+  // 根据uid查询bd
+  rpc BatchGetBDByUID(BatchGetBDByUIDReq) returns (BatchGetBDByUIDRsp);
+
+  // 绑定BD旗下成员
+  rpc BindBDMember(BindBDMemberReq) returns (BindBDMemberRsp);
+
+  // 批量查询BD成员根据用户UID
+  rpc ListBDMemberByUids(ListBDMemberByUidsReq) returns (ListBDMemberByUidsRsp);
+
+  // 获取BD旗下成员数量
+  rpc CountBDMember(CountBDMemberReq) returns (CountBDMemberRsp);
+}
+message BatchGetBDByUIDReq {
+  repeated int64 uids = 1;             // 最多100个，超出截断
+}
+
+message BatchGetBDByUIDRsp {
+  map<int64, BD> bd_map = 1;          // uid -> bd
+}
+
+message BD {
+  int64 id = 1;                       // BD ID
+  int64 uid = 2;                      // BD用户
+  comm.api.guild.BDType type = 3;     // BD类型
+}
+
+message BindBDMemberReq {
+  int64 bd_id = 1; // BD ID
+  int64 member_uid = 2; // 成员UID
+  comm.api.guild.BDMemberType member_type = 3; // 成员类型(10:用户,20:币商)
+  comm.api.guild.BDMemberBindWay bind_way = 4; // 绑定方式(10:系统自动,20:BD用户手动,30:运营手动)
+  int64 registered_at = 5; // 成员注册时间
+}
+
+message BindBDMemberRsp {
+  int64 id = 1; // 成员ID
+}
+
+message ListBDMemberByUidsReq{
+  repeated int64 uids = 1;
+}
+
+message ListBDMemberByUidsRsp{
+  repeated BDMember members = 1; // 成员列表
+}
+
+// BD 成员
+message BDMember {
+  int64 id = 1;                                         // 主键
+  int64 bd_id = 2;                                      // bd 的 ID
+  int64 bd_uid = 3;                                     // bd 的 uid
+  int64 member_uid = 4;                                 // 成员UID
+  comm.api.guild.BDMemberType member_type = 5;          // 成员类型
+  string member_cou = 6;                                // 成员国家
+  string member_info = 7;                               // 成员的信息 (JSON 字符串, 对应 BDMemberInfoXXX 结构体)
+  int64 member_info_update_time = 8;                    // 修改成员信息时间
+  string member_level = 9;                              // 成员等级, 审核通过时指定
+  comm.api.guild.BDMemberBindWay bind_way = 10;         // 绑定方式, BD手动/系统自动/运营手动
+  int64 bind_at = 11;                                   // 绑定时间
+  string bind_by = 12;                                  // 绑定人, oms 上绑定才有值
+  comm.api.guild.BDMemberAuditStatus audit_status = 13; // 审核状态
+  string audit_reason = 14;                             // 审核原因
+  int64 audit_at = 15;                                  // 审核时间
+  string audit_by = 16;                                 // 审核人
+}
+
+message CountBDMemberReq {
+  int64 bd_uid = 1; // bd 的 uid
+  repeated comm.api.guild.BDMemberType member_types = 2; // 成员类型
+  repeated comm.api.guild.BDMemberAuditStatus audit_statuses = 3; // 审核状态
+  bool filter_expired = 4; // 未审核状态是否过滤已过期的成员,仅查询条件中指定了BD_MEMBER_AUDIT_STATUS_NONE状态时生效
+}
+message CountBDMemberRsp {
+  int64 count = 1;
+}

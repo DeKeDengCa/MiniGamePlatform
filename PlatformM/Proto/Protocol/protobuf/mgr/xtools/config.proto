@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+package pbxtools;
+
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmgrxtools";
+
+// 配置
+// smicro:spath=gitit.cc/social/components-service/xtools/handler
+service Config {
+  // 新增配置
+  rpc CreateConfig(CreateConfigReq) returns (CreateConfigRsp);
+
+  // 编辑配置
+  rpc EditConfig(EditConfigReq) returns (EditConfigRsp);
+
+  // 删除配置
+  rpc RemoveConfig(RemoveConfigReq) returns (RemoveConfigRsp);
+
+  // 查询配置列表
+  rpc ListConfig(ListConfigReq) returns (ListConfigRsp);
+
+  // 查询配置历史版本列表
+  rpc ListConfigHistory(ListConfigHistoryReq) returns (ListConfigHistoryRsp);
+}
+
+message CreateConfigReq {
+  int64 service_id = 1;// 服务Id
+  string key = 2;      // 配置key
+  string value = 3;    // 配置value
+  string desc = 4;     // 配置说明
+}
+message CreateConfigRsp {
+  int64 config_id = 1; // 配置Id
+}
+
+message EditConfigReq {
+  int64 config_id = 1; // 配置Id
+  string value = 2;    // 配置value
+  string desc = 3;     // 配置说明
+}
+message EditConfigRsp {
+}
+
+message RemoveConfigReq {
+  int64 config_id = 1;  // 配置Id
+}
+message RemoveConfigRsp {
+}
+
+message ListConfigReq {
+  scommon.Page page = 1;
+  int64 service_id = 2;   // 服务Id
+  string service_name = 3;// 服务名称(如果有值,则服务Id失效)
+  string key = 4;         // 配置key
+}
+message ListConfigRsp {
+  scommon.Page page = 1;
+  repeated ConfigInfo configs = 10;
+}
+message ConfigInfo {
+  int64 config_id = 1;    // 配置Id
+  int64 service_id = 2;   // 服务Id
+  string service_name = 3;// 服务名称
+  string key = 4;         // 配置key
+  string value = 5;       // 配置value
+  string desc = 6;        // 配置说明
+  string creator = 7;     // 创建人
+  int64 created_at = 8;   // 创建时间
+  string updater = 9;     // 更新人
+  int64 updated_at = 10;  // 更新时间
+}
+
+message ListConfigHistoryReq {
+  scommon.Page page = 1;
+  int64 config_id = 2;    // 配置Id
+}
+message ListConfigHistoryRsp {
+  scommon.Page page = 1;
+  repeated ConfigHistoryInfo configHistories = 2;
+}
+message ConfigHistoryInfo {
+  int64 config_history_id = 1;// 配置历史Id
+  int64 config_id = 2;        // 配置Id
+  int64 service_id = 3;       // 服务Id
+  string service_name = 4;    // 服务名称
+  string key = 5;             // 配置key
+  string value = 6;           // 配置value
+  string desc = 7;            // 配置说明
+  int64 version = 8;          // 版本
+  string creator = 9;         // 创建人
+  int64 created_at = 10;      // 创建时间
+}

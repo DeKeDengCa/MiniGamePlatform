@@ -1,0 +1,185 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/feedback/handlermgr
+syntax = "proto3";
+
+package mgr.astrorise.voiceroom;
+
+import "protobuf/api/common/common.proto";
+import "api/platform/voiceroom/comm.proto";
+
+option java_package = "com.gene.biz.proto";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbfeedbackmgr";
+
+service FeedbackMgr {
+  // 举报分类-列表
+  rpc ListFeedbackCategory(ListFeedbackCategoryReq) returns (ListFeedbackCategoryRsp);
+  // 举报分类-新增
+  rpc CreateFeedbackCategory(CreateFeedbackCategoryReq) returns (CreateFeedbackCategoryRsp);
+  // 举报分类-修改
+  rpc UpdateFeedbackCategory(UpdateFeedbackCategoryReq) returns (UpdateFeedbackCategoryRsp);
+  // 举报分类-删除
+  rpc DeleteFeedbackCategory(DeleteFeedbackCategoryReq) returns (DeleteFeedbackCategoryRsp);
+
+  // 举报用户-列表
+  rpc ListFeedbackUser(ListFeedbackUserReq) returns (ListFeedbackUserRsp);
+  // 举报房间-列表
+  rpc ListFeedbackRoom(ListFeedbackRoomReq) returns (ListFeedbackRoomRsp);
+  // 举报-处理举报
+  rpc HandleFeedback(HandleFeedbackReq) returns (HandleFeedbackRsp);
+}
+
+// 举报分类-适用场景
+enum FeedbackCategoryScene {
+  FEEDBACK_CATEGORY_SCENE_NONE = 0;
+  FEEDBACK_CATEGORY_SCENE_ALL = 1;//所有
+  FEEDBACK_CATEGORY_SCENE_USER = 2;//用户
+  FEEDBACK_CATEGORY_SCENE_ROOM = 3;//房间
+}
+
+// 举报分类-状态
+enum FeedbackCategoryStatus {
+  FEEDBACK_CATEGORY_STATUS_NONE = 0;
+  FEEDBACK_CATEGORY_STATUS_NORMAL = 1;//正常
+  FEEDBACK_CATEGORY_STATUS_DELETED = 2;//已删除
+}
+
+enum FeedbackHandleStatus{
+  FEEDBACK_HANDLE_STATUS_NONE = 0;
+  FEEDBACK_HANDLE_STATUS_HANDLED = 1;//已处理
+  FEEDBACK_HANDLE_STATUS_UNHANDLED = 2;//未处理
+}
+
+//举报分类
+message FeedbackCategory{
+  int64 id = 1;
+  string name = 2;//举报分类名称(缺省名称)
+  repeated api.astrorise.voiceroom.I18n name_i18n = 3;//举报分类名称-多语言
+  int32 position = 4;//排序
+  FeedbackCategoryScene scene = 5;//适用场景
+  int64 created_at = 10;//创建时间戳
+  string creator = 11;//创建人
+  int64 updated_at = 12;//更新时间戳
+  string updater = 13;//更新人
+  int64 deleted_at = 14;//删除时间(0:未删除,>0:已删除)
+}
+
+message ListFeedbackCategoryReq {
+  scommon.Page page = 1;
+
+  FeedbackCategoryStatus status = 10;//状态
+}
+message ListFeedbackCategoryRsp {
+  scommon.Page page = 1;
+  repeated FeedbackCategory feedback_categories = 10;
+}
+
+message CreateFeedbackCategoryReq {
+  string name = 1;//举报分类名称(缺省名称)
+  repeated api.astrorise.voiceroom.I18n name_i18n = 2;//举报分类名称-多语言
+  int32 position = 3;//排序
+  FeedbackCategoryScene scene = 4;//适用场景
+}
+message CreateFeedbackCategoryRsp {
+  int64 id = 1;
+}
+
+message UpdateFeedbackCategoryReq {
+  int64 id = 1;
+  string name = 2;//举报分类名称(缺省名称)
+  repeated api.astrorise.voiceroom.I18n name_i18n = 3;//举报分类名称-多语言
+  int32 position = 4;//排序
+  FeedbackCategoryScene scene = 5;//适用场景
+}
+message UpdateFeedbackCategoryRsp {
+}
+
+message DeleteFeedbackCategoryReq {
+  int64 id = 1;
+}
+message DeleteFeedbackCategoryRsp {
+}
+
+message ListFeedbackUserReq {
+  scommon.Page page = 1;
+
+  int64 id = 11;//举报Id
+  int64 reporter_id = 12;//举报用户Id
+  int64 user_id = 13;//被举报用户Id
+
+  int64 report_time_start = 14;//举报时间-开始
+  int64 report_time_end = 15;//举报时间-结束
+
+  string handler_name = 16;//处理人
+  int64 handle_time_start = 17;//处理时间-开始
+  int64 handle_time_end = 18;//处理时间-结束
+  FeedbackHandleStatus handle_status = 19;
+
+}
+message ListFeedbackUserRsp {
+  scommon.Page page = 1;
+  repeated FeedbackUser feedback_users = 10;
+  repeated FeedbackCategory feedback_categories = 11;
+}
+
+//举报用户
+message FeedbackUser{
+  int64 id = 1;//举报Id
+  int64 reporter_id = 2;//举报用户Id
+  string reporter_nickname = 3;//举报用户昵称
+  int64 user_id = 4;//被举报用户Id
+  string user_nickname = 5;//被举报用户昵称
+  repeated int64 feedback_category_ids = 6;//举报分类ids
+  repeated string report_img_urls = 7;//举报图片
+  string report_description = 8;//举报描述
+  int64 report_time = 9;//举报时间
+  FeedbackHandleStatus handle_status = 10;//处理状态
+  string handler_name = 11;//处理人
+  int64 handle_time = 12;//处理时间
+  string handle_remark = 13;//处理结论
+}
+
+message ListFeedbackRoomReq {
+  scommon.Page page = 1;
+
+  int64 id = 11;//举报Id
+  int64 reporter_id = 12;//举报用户Id
+  int64 room_id = 13;//被举报房间Id
+
+  int64 report_time_start = 14;//举报时间-开始
+  int64 report_time_end = 15;//举报时间-结束
+
+  string handler_name = 16;//处理人
+  int64 handle_time_start = 17;//处理时间-开始
+  int64 handle_time_end = 18;//处理时间-结束
+  FeedbackHandleStatus handle_status = 19;
+}
+message ListFeedbackRoomRsp {
+  scommon.Page page = 1;
+  repeated FeedbackRoom feedback_rooms = 10;
+  repeated FeedbackCategory feedback_categories = 11;
+}
+
+//举报房间
+message FeedbackRoom{
+  int64 id = 1;//举报Id
+  int64 reporter_id = 2;//举报用户Id
+  string reporter_nickname = 3;//举报用户昵称
+  int64 room_id = 4;//被举报房间Id
+  int64 room_owner_id = 5;//被举报房间房主Id
+  string room_owner_nickname = 6;//被举报房间房主昵称
+  repeated int64 feedback_category_ids = 7;//举报分类id
+  repeated string report_img_urls = 8;//举报图片
+  string report_description = 9;//举报描述
+  int64 report_time = 10;//举报时间
+  FeedbackHandleStatus handle_status = 11;//处理状态
+  string handler_name = 12;//处理人
+  int64 handle_time = 13;//处理时间
+  string handle_remark = 14;//处理结论
+}
+
+message HandleFeedbackReq {
+  int64 id = 1;//举报Id
+  string handle_remark = 2;//处理结论
+}
+message HandleFeedbackRsp {
+}
+

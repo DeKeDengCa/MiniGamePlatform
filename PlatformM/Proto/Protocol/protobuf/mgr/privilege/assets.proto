@@ -1,0 +1,75 @@
+// smicro:spath=gitit.cc/social/components-service/social-privilege/biz/assetmgr/handlermgr
+
+syntax = "proto3";
+
+package comm.mgr.privilege;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/privilege/v2/privilege.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmprivilege";
+
+// 资源管理
+service AssetMgr {
+
+  // 新增资源
+  rpc AddAsset(AddAssetReq) returns (AddAssetRsp);
+
+  // 删除资源
+  rpc DeleteAsset(DeleteAssetReq) returns (DeleteAssetRsp);
+
+  // 资源列表
+  rpc ListAssets(ListAssetsReq) returns (ListAssetsRsp);
+}
+
+// 资源类型
+enum MgrAssetType {
+  MGR_ASSET_TYPE_NONE = 0;          // 无意义
+  MGR_ASSET_TYPE_PRETTY_NUMBER = 1; // 靓号资源
+}
+
+// 资源状态
+enum MgrAssetStatus {
+  MGR_ASSET_STATUS_NONE = 0;      // 无意义
+  MGR_ASSET_STATUS_ON_SALE = 1;   // 上架
+  MGR_ASSET_STATUS_OFF_SALE = 2;  // 下架
+  MGR_ASSET_STATUS_DELETED = 3;   // 已删除
+}
+
+// AssetsInfo 资源信息
+message MgrAssetInfo {
+  int64 id = 1;
+
+  oneof Assets {
+    api.privilege.v2.PrettyNumber pretty_number = 100;
+  }
+}
+
+message AddAssetReq {
+  MgrAssetType type = 1;
+  MgrAssetInfo asset = 2;
+}
+
+message AddAssetRsp {
+
+}
+
+message DeleteAssetReq {
+  int64 id = 1;
+}
+
+message DeleteAssetRsp {
+
+}
+
+message ListAssetsReq {
+  scommon.Page page = 1;
+
+  MgrAssetType type = 10;
+}
+
+message ListAssetsRsp {
+  scommon.Page page = 1;
+
+  repeated MgrAssetInfo assets = 10;
+}

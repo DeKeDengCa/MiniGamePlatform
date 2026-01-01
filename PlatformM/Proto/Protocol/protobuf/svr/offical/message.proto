@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package comm.svr.offical;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsoffical";
+
+// 账号类型
+enum AccountInfoAccountType {
+  ACCOUNT_INFO_ACCOUNT_TYPE_NONE = 0; // 无
+  ACCOUNT_INFO_ACCOUNT_TYPE_PHONE_NUM = 1; // 手机号码（包含国家代码，例如：+8613912345678）
+  ACCOUNT_INFO_ACCOUNT_TYPE_THIRD_ACCOUNT = 2; // 第三方账号（例如：邮箱）
+  ACCOUNT_INFO_ACCOUNT_TYPE_DID = 3; // 设备Id
+}
+
+// AccountInfoMessage 用户注册使用的账号信息消息 topic: social-offical-account-info
+message AccountInfoMessage {
+  string app_name = 1; // app名称 也就是 anm
+  string sub_anm = 99; // 业务子代号
+  int64 uid = 2;// 用户id
+  AccountInfoAccountType account_type = 3;// 账号类型
+  string account_id = 4;// 账号id(手机号码/第三方账号)
+}
+

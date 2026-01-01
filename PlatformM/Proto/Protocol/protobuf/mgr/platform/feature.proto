@@ -1,0 +1,177 @@
+syntax = "proto3";
+
+package comm.mgr.platform.feature;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/common/common-net.proto";
+
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/appfeature/handlermgr
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/platform/pbmfeature";
+
+// app特征
+service AppFeaturesMgr {
+  // 版本管理,无update
+  rpc AddAuditVerc(AddAuditVercReq) returns (AddAuditVercRsp);
+  rpc ListAuditVerc(ListAuditVercRep) returns (ListAuditVercRsp);
+  rpc DeleteAuditVerc(DeleteAuditVercRep) returns (DeleteAuditVercRsp);
+  rpc DeleteBlacklistByVerc(DeleteBlacklistByVercReq) returns (DeleteBlacklistByVercRsp);
+
+  // 用户管理，无update
+  rpc AddAuditUser(AddAuditUserRep) returns (AddAuditUserRsp);
+  rpc ListAuditUser(ListAuditUserRep) returns (ListAuditUserRsp);
+  rpc DeleteAuditUser(DeleteAuditUserRep) returns (DeleteAuditUserRsp);
+
+  // 获取包名
+  rpc GetPkgs(GetPkgsReq) returns (GetPkgsRsp);
+
+  // 删除拉黑的did
+  rpc DeleteAppFeatureAttrDid(DeleteAppFeatureAttrDidRep) returns (DeleteAppFeatureAttrDidRsp);
+}
+
+enum AppFeatureStatus {
+  APP_FEATURE_STATUS_NONE = 0;
+  APP_FEATURE_STATUS_VALID = 1;                 // 有效
+  APP_FEATURE_STATUS_DELETED = 2;               // 已删除
+}
+
+enum VercFirstPubStatus {
+  VERC_FIRST_PUB_STATUS_NONE = 0;
+  VERC_FIRST_PUB_STATUS_FIRST = 1;            // 版本第一次发布
+  VERC_FIRST_PUB_STATUS_NO_FIRST = 2;         // 版本非第一次发布
+}
+
+message AppFeatureVerc {
+  int64 id = 1;                                 // add时忽略
+  int64 verc = 2;                               // 版本号
+  scommon.OSType os_type = 3;                   // 系统：1 ANDROID 2 ios
+  string pkg = 4;                               // 包名
+  VercFirstPubStatus  first_pub_status = 5;     // 是否第一次发布
+
+  int64 create_at = 10;                         // 创建时间,unix时间戳
+  string create_by = 11;
+  string create_id = 12;
+  int64 update_at = 13;                         // 更新时间,unix时间戳
+  string update_by = 14;
+  string update_id = 15;
+  AppFeatureStatus delete_status = 16;          // 是否已经删除
+}
+
+message AddAuditVercReq {
+  repeated  int64 vercs = 10;                    // 多个版本号
+  scommon.OSType os_type = 11;                   // 系统：1 ANDROID 2 ios
+  string pkg = 12;                                // 包名
+  VercFirstPubStatus  first_pub_status = 13;      // 是否第一次发布
+}
+message AddAuditVercRsp {
+  int64 id = 10;
+}
+
+message ListAuditVercRep {
+  scommon.Page page = 1;
+
+  int64 id = 10;                                 // 主键查询
+  int64 verc = 11;                               // 精确匹配
+  scommon.OSType os_type = 12;                   // 系统：1 ANDROID 2 ios
+  AppFeatureStatus delete_status = 13;           // 是否已经删除
+  int64 create_at_begin = 14;                    // 创建开始时间
+  int64 create_at_end = 15;                      // 创建结束时间
+  string pkg = 16;                               // 包名
+  VercFirstPubStatus  first_pub_status = 17;     // 是否第一次发布
+}
+message ListAuditVercRsp {
+  scommon.Page page = 1;
+
+  repeated AppFeatureVerc data = 10;
+}
+
+message DeleteAuditVercRep {
+  repeated  int64 ids = 10;                       // 删除多个id
+}
+message DeleteAuditVercRsp {
+}
+
+message DeleteBlacklistByVercReq {
+  int64 verc = 10;          // 版本号
+  int64 published_at = 20;  // 版本在应用市场发布的时间
+}
+
+message DeleteBlacklistByVercRsp {
+  repeated int64 uids = 10;   // 取消拉黑的 uid 列表
+  repeated string dids = 20;  // 取消拉黑的 did 列表
+}
+
+message AppFeatureAuditUser{
+  int64 id = 1;                                   // add操作忽略
+  int64 uid = 2;
+  string did = 3;
+  string ip = 4;
+  string isp = 5;
+  string cou = 6;
+  string mod = 7;
+  string from = 8;                                // 来源，内容由后端组成。ostype-特征key:特征value
+
+  // 以下数据 在add操作中忽略
+  int64 create_at = 10;                           // 创建时间,unix时间戳
+  string create_by = 11;
+  string create_id = 12;
+  int64 update_at = 13;                           // 更新时间,unix时间戳
+  string update_by = 14;
+  string update_id = 15;
+  AppFeatureStatus delete_status = 16;            // 是否已经删除
+}
+
+message AddAuditUserRep{
+  repeated AppFeatureAuditUser auditoer_users = 10;         // 有可能仅有一个uid，但是也有可能有其他信息
+}
+message AddAuditUserRsp{
+  int64 id = 10;
+}
+
+message ListAuditUserRep{
+  scommon.Page page = 1;
+
+  int64 id = 10;                                               // 主键查询
+  int64 uid = 11;                                              // 精确匹配
+  AppFeatureStatus delete_status = 12;                         // 是否已经删除
+  int64 create_at_begin = 13;                                  // 创建开始时间
+  int64 create_at_end = 14;                                    // 创建结束时间
+  string did = 15;                                             // 根据did搜索
+  int64 from_verc = 20;                                        // 由于审核中版本拉黑
+  string from_did = 21;                                        // 由于DID传染拉黑
+  bool from_manual = 22;                                       // 手动拉黑
+}
+message ListAuditUserRsp{
+  scommon.Page page = 1;
+
+  repeated AppFeatureAuditUser data = 10;
+}
+
+message DeleteAuditUserRep{
+  repeated  int64 ids = 10;                                    // 删除多个id
+}
+message DeleteAuditUserRsp{
+
+}
+
+message GetPkgsReq{
+  string sockpuppet = 10 ;                                    // 马甲名，如果没有，则不填
+  scommon.OSType os_type = 11;                                // 0 - 所有包 1 - android包名 2- ios包名
+  string anm = 12;                                            // 业务名
+  string sub_anm = 13;                                        // 业务子代号
+}
+message GetPkgsRsp{
+  repeated PkgOstype pkgs = 10;        // 包名列表
+}
+
+message PkgOstype {
+  string pkg = 1;
+  scommon.OSType os_type = 2;
+}
+
+message DeleteAppFeatureAttrDidRep{
+  string did = 1;
+}
+
+message DeleteAppFeatureAttrDidRsp{
+
+}

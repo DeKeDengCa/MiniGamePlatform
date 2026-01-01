@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package pbsaccount;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsaccount";
+
+// 执行 sproto -spath gitit.cc/social/components-service/code_path  third_account_callback.proto
+
+service ThirdAccountCallback {
+  // 第三方账号删除
+  rpc ThirdAccountDeletion(ThirdAccountDeletionReq) returns (ThirdAccountDeletionRsp);
+  // 第三方账号状态查询
+  rpc ThirdAccountStatus(ThirdAccountStatusReq) returns (ThirdAccountStatusRsp);
+}
+
+// 第三方账号类型枚举
+enum ThirdPartyAccountType {
+  THIRD_PARTY_ACCOUNT_TYPE_UNKNOWN = 0; // 未知类型
+  THIRD_PARTY_ACCOUNT_TYPE_FACEBOOK = 2;  // Facebook
+  THIRD_PARTY_ACCOUNT_TYPE_SNAPCHAT = 3;  // Snapchat
+  THIRD_PARTY_ACCOUNT_TYPE_GOOGLE = 4;  // Google
+  THIRD_PARTY_ACCOUNT_TYPE_TWITTER = 5; // Twitter
+  THIRD_PARTY_ACCOUNT_TYPE_APPLE = 6; // Apple
+  THIRD_PARTY_ACCOUNT_TYPE_TIKTOK = 8; // TikTok
+}
+
+message ThirdAccountDeletionReq {
+  ThirdPartyAccountType account_type = 1; // 第三方账号类型;当前只支持 Facebook
+  string pkg = 2; // 包名
+  string account_id = 3; // 第三方账号ID
+  string deletion_reason = 4; // 删除原因
+}
+
+message ThirdAccountDeletionRsp {
+}
+
+message ThirdAccountStatusReq {
+  ThirdPartyAccountType account_type = 1; // 第三方账号类型
+  string pkg = 2; // 包名
+  string account_id = 3; // 第三方账号ID
+}
+
+message ThirdAccountStatusRsp {
+  string status_description = 1; // 状态描述
+}

@@ -1,0 +1,74 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/menu/handler/
+syntax = "proto3";
+
+package api.astrorise.voiceroom;
+
+option java_package="com.entertain.sns.api.gene";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbmenu";
+
+// 菜单服务
+// serviceName: astrorise-voiceroom
+service Menu {
+
+  // 获取应用底部菜单 tab 配置
+  rpc GetTabs(GetTabsReq) returns (GetTabsRsp);
+
+  // 获取应用 banner 配置
+  rpc GetBanners(GetBannersReq) returns (GetBannersRsp);
+}
+
+// tab 配置
+message Tab {
+  map<string, string> i18n_names = 10;  // 国际化菜单名称, 中文: zh, 英文: en, 阿语: ar, ...
+
+  string selected_color = 20;           // 选中态字体颜色
+  string unselected_color = 21;         // 非选中态字体颜色
+
+  string icon_zip = 30;                 // 图标文件压缩包, 客户端当前采用 lottie 组件实现.
+  string unselected_icon_url = 31;  // 未选中icon
+  string selected_icon_url = 32;  // 选中icon
+  string unselected_bg_url = 33;  // 未选中背景图
+  string selected_bg_url = 34;  // 选中背景图
+
+  int32 weight = 40;                    // 权重, 越大越靠左
+
+  string page_url = 50;                 // 页面地址
+}
+
+message GetTabsReq {
+
+}
+message GetTabsRsp {
+  repeated Tab tabs = 10;
+}
+
+// banner 显示位置
+enum BannerPosition {
+  BANNER_POSITION_NONE = 0;
+  BANNER_POSITION_HOME = 10; // 首页顶部
+  BANNER_POSITION_ROOM = 20; // 房间右下角运营位
+  BANNER_POSITION_RANK = 30; // 房内榜单位
+  BANNER_POSITION_MESSAGE = 40; // 消息页右下角运营位
+}
+
+// banner 配置
+message Banner {
+  string name = 10;             // banner 名称
+
+  BannerPosition position = 20; // banner 显示位置
+
+  string thumb_image = 30;      // 缩略图
+  string large_image = 31;      // 大图
+
+  int64 valid_from = 40;        // 生效时间
+  int64 valid_to = 41;          // 失效时间
+
+  string jump_url = 50;         // 跳转链接
+}
+
+message GetBannersReq {
+  BannerPosition position = 10;
+}
+message GetBannersRsp {
+  repeated Banner banners = 10;
+}

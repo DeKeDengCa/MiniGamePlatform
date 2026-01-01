@@ -1,0 +1,23 @@
+/UserSettings
+/.vs
+/.vscode
+/Bundles
+/Library
+/Logs
+/obj
+/Temp
+/*.vsconfig
+/*.csproj
+/*.sln
+/yoo
+/.cursor
+/openspec
+/enable-full-context-menu.reg
+/disable-full-context-menu.reg
+/Assets/StreamingAssets
+/Assets/Test
+/Assets/Test.meta
+/HybridCLRData
+/Assets/Spine Examples
+/.tools
+/.claude

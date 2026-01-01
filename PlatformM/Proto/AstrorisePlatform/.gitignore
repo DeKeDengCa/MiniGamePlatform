@@ -1,0 +1,5 @@
+/shared/config/output_bin/
+/shared/config/output_cli/
+/shared/config/output_json/
+/shared/config/output_svr/
+.idea

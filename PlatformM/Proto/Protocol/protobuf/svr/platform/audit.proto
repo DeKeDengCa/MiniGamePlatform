@@ -1,0 +1,92 @@
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/audit/handlersvr
+syntax = "proto3";
+
+package comm.svr.platform.audit;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/platform/pbsaudit";
+
+service AuditSvr {
+
+  // 提交审批任务
+  rpc Submit(SubmitReq) returns (SubmitRsp) {}
+
+  // 撤销审批任务
+  rpc Revoke(RevokeReq) returns (RevokeRsp) {}
+}
+
+message AuditTask {
+  string category = 2;  // 审批工单分类, 业务自行将审批工单分门别类.
+  string data = 3;      // 审批工单透传数据, 中台不关心此数据, 只是简单透传给前端显示.
+  string reason = 4;    // 申请原因
+}
+
+message AuditCard {
+  string card_key = 1;  // 卡片标识, 简单卡片: markdown 表格卡片: table
+  string card_data = 2; // 卡片数据, 简单卡片对应 MarkdownCard 的 JSON 字符, 表格卡片对应 TableCard 的 JSON 字符串.
+}
+
+message MarkdownCard {
+  string title = 1;     // 卡片标题
+  string markdown = 2;  // 卡片内容, 支持 markdown 格式.
+}
+
+message Table {
+  repeated string data = 1;     // 表格数据, 将数据序列化成 JSON 字符串.
+  repeated TableMeta meta = 2;  // 表格元数据
+}
+
+message TableMeta {
+  string alias_name = 1;  // 表头名字
+  string data_type = 2;   // 数据类型
+  string alias = 3;       // 字段名
+  int32 weight = 4;       // 表格宽度权重
+}
+
+message TableCard {
+  string title = 1;         // 卡片标题
+  string head_markdown = 2; // 表格上方内容
+  Table table = 3;          // 表格
+  string foot_markdown = 4; // 表格下方内容
+}
+
+message AuditLayer {
+  repeated AuditStaff staffs = 1; // 审批人
+}
+
+message AuditStaff {
+  string user_id = 1;   // 审批人钉钉 user_id
+  string union_id = 2;  // 审批人钉钉 union_id
+  string name = 3;      // 审批人姓名
+  string nick_name = 4; // 审批人昵称
+  string email = 5;     // 审批人邮箱
+}
+
+message SubmitReq {
+  string seq_id = 10;                     // 幂等ID
+
+  AuditTask audit_task = 20;              // 审批任务
+
+  AuditCard audit_card = 30;              // 审批卡片
+
+  repeated AuditLayer audit_layers = 40;  // 审批层级
+
+  string submit_by = 50;                  // 提交人
+  int64 submit_at = 51;                   // 提交时间
+  string submit_id = 52;                  // 提交人union_id
+
+  string callback_url = 60;               // 回调地址, 支持 gRPC 和 http
+  string context = 61;                    // 透传上下文
+}
+
+message SubmitRsp {
+  string task_id = 10;  // 审批任务跟踪ID
+}
+
+
+message RevokeReq {
+  string task_id = 10;  // 审批任务跟踪ID
+}
+
+message RevokeRsp {
+
+}

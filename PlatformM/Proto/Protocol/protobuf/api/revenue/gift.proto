@@ -1,0 +1,717 @@
+syntax = "proto3";
+
+package pbrevenue;
+
+import "protobuf/api/revenue/common.proto";
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbrevenue";
+option java_package = "com.entertain.sns.pbrevenue";
+
+// 礼物服务
+// serviceName: api.micro.social.revenue
+// smicro:spath=gitit.cc/social/components-service/social-revenue/gift
+service Gift {
+  // 获取礼物面板
+  rpc GetGiftPanel(GetGiftPanelReq) returns (GetGiftPanelRsp) {}
+
+  // 获取礼物包裹
+  rpc GetGiftBag(GetGiftBagReq) returns (GetGiftBagRsp) {}
+
+  // 赠送礼物
+  rpc SendGift(SendGiftReq) returns (SendGiftRsp) {}
+
+  // 查询礼物记录
+  rpc ListGiftRecord(ListGiftRecordReq) returns (ListGiftRecordRsp) {}
+
+  // 获取特殊礼物的统计数据
+  rpc GetGiftStats(GetGiftStatsReq) returns (GetGiftStatsRsp) {}
+
+  // 分页获取收送礼统计
+  rpc ListGiftStats(ListGiftStatsReq) returns (ListGiftStatsRsp) {}
+
+  // 获取业务自定义送礼信息
+  rpc GetCustomizedSendGiftInfo(GetCustomizedSendGiftInfoReq) returns (GetCustomizedSendGiftInfoRsp) {}
+
+  // 领取礼物
+  rpc ClaimGift(ClaimGiftReq) returns (ClaimGiftRsp) {}
+
+  // 查询礼物玩法信息
+  rpc GetGiftPlayInfo(GetGiftPlayInfoReq) returns (GetGiftPlayInfoRsp) {}
+
+  // 离线资源信息查询
+  rpc GetGiftOfflineResInfo(GetGiftOfflineResInfoReq) returns (GetGiftOfflineResInfoResp) {}
+
+  // 获取礼物tab列表
+  rpc GetGiftTabs(GetGiftTabsReq) returns (GetGiftTabsRsp) {}
+
+  // 获取tab下礼物列表
+  rpc ListTabGifts(ListTabGiftsReq) returns (ListTabGiftsRsp);
+
+  // 获取房间维度送礼统计
+  rpc ListRoomGiftStats(ListRoomGiftStatsReq) returns (ListRoomGiftStatsRsp);
+
+  // 获取礼物列表
+  rpc ListGifts(ListGiftsReq) returns (ListGiftsRsp);
+
+  // 获取有效的包裹礼物列表
+  rpc ListGiftBag(ListGiftBagReq) returns (ListGiftBagRsp);
+
+  // 获取失效的包裹礼物列表
+  rpc ListInvalidGiftBag(ListInvalidGiftBagReq) returns (ListInvalidGiftBagRsp);
+}
+
+message GetGiftPanelReq {
+  GiftScene scene = 1;                // 礼物面板显示场景
+  int64 version = 2;                  // 客户端当前数据版本
+  map<string, string> extension = 3;  // 拓展字段, 房间模式key: room_mode
+}
+
+message GetGiftPanelRsp {
+  repeated GiftTab gift_tabs = 1; // 礼物列表
+  int64 version = 2; // 服务端最新数据版本
+  repeated GiftBag gift_bags = 3; // 礼物包裹
+}
+
+message GetGiftBagReq {
+  GiftScene scene = 1;
+}
+
+message GetGiftBagRsp {
+  repeated GiftBag gift_bags = 1;
+}
+
+// 礼物包裹状态
+enum GiftBagState {
+  GIFT_BAG_STATE_NONE = 0;
+  GIFT_BAG_STATE_VALID = 10;      // 有效
+  GIFT_BAG_STATE_SENT = 20;       // 已赠送
+  GIFT_BAG_STATE_EXPIRED = 30;    // 已过期
+}
+
+message GiftBag {
+  GiftInfo gift_info = 1;         // 礼物信息
+  int32 quantity = 2;             // 数量
+  int64 gift_bag_id = 3;          // 礼物包裹ID
+  int64 expired_at = 4;           // 失效时间点, 为 0 表示不会失效, 是单位为秒的 UNIX 时间戳.
+  int64 sent_at = 5;              // 赠送时间点, 为 0 表示还未赠送, 是单位为秒的 UNIX 时间戳.
+  GiftBagState state = 10;        // 礼物包裹状态
+}
+
+message SendGiftReq {
+  // 拓展字段枚举
+  enum ExpandKey {
+    EXPAND_KEY_NONE = 0;
+    EXPAND_KEY_FAMILY_ID = 1;           // 家族 ID
+    EXPAND_KEY_CP_ID = 2;               // CP ID
+    EXPAND_KEY_CP_INVITE_MESSAGE = 3;   // CP 礼物，组CP邀请文案
+    EXPAND_KEY_IM_GROUP_ID = 4;         // 群聊场景group_id
+    EXPAND_KEY_GIFT_BAG_ID = 10;        // 礼物包裹ID, 即赠送指定礼物包裹的礼物.
+  }
+  int64 gift_Info_Id = 1;           // 礼物ID
+  int32 quantity = 2;               // 赠送数量
+  GiftScene scene = 3;              // 赠送场景
+  GiftStrategy strategy = 4;        // 消耗策略
+  GiftBatchType batch_type = 5;     // 批量类型
+  repeated int64 receiver_uids = 6; // 收礼人列表, 多个收礼人时表示每人送 quantity 个.
+  string room_id = 7;               // 房间 ID
+  map<int32, string> expand = 8;    // 拓展字段, key 为拓展字段枚举的数字值.
+  map<string, string> context = 9;  // 透传给业务的上下文, 对于营收中台没有意义.
+  string customized_id = 10;        // 对于业务自定义的礼物批量送礼类型, 客户端通过 GetCustomizedSendGiftInfo 接口获得的 customer_id 返回值.
+}
+
+message SendGiftRsp {
+  repeated Balance balances = 1; // 账户余额
+
+  bool combo_switch = 10; //连击开关
+  int32 combo_interval_secs = 11; //连击间隔
+
+  SendGiftResult result = 20; // 送礼结果
+}
+
+// 送礼结果，如果异常需要toast和跳转,
+// @todo 需要废弃的结构，会产生歧义，即将用common里的代替，新代码勿用
+message SendGiftResult {
+  int64 code = 1;                 // 0表示成功，其他则异常
+  map<string, string> toast = 2;  // toast文案，国家代号->文案
+  string jump_url = 3;            // 跳转
+}
+
+message GetGiftStatsReq {
+  int64 gift_Info_Id = 1;
+}
+
+message GetGiftStatsRsp {
+  int32 need_count = 1;
+  int32 send_count = 2;
+}
+
+message ListGiftStatsReq {
+  // 收送礼类型
+  enum GiftStatsType {
+    GIFT_STATS_TYPE_NONE = 0;
+    GIFT_STATS_TYPE_SEND = 1;    // 送礼
+    GIFT_STATS_TYPE_RECEIVE = 2; // 收礼
+  }
+  // 统计周期
+  enum GiftStatsPeriod {
+    GIFT_STATS_PERIOD_NONE = 0;
+    GIFT_STATS_PERIOD_ALL = 1;      // 全部时间
+    GIFT_STATS_PERIOD_DIY = 2;      // 自定义
+    GIFT_STATS_PERIOD_DAILY = 3;    // 本日
+    GIFT_STATS_PERIOD_WEEKLY = 4;   // 本周
+    GIFT_STATS_PERIOD_MONTHLY = 5;  // 本月
+  }
+  scommon.Page page = 1;
+  int64 target_uid = 2;       // 支持客态查看
+  GiftStatsType type = 3;     // 收送礼类型
+  GiftStatsPeriod period = 4; // 统计周期
+  string start_date = 5;      // 自定义时间的起始日期
+  string end_date = 6;        // 自定义时间的结束日期
+}
+
+message ListGiftStatsRsp {
+  scommon.Page page = 1;
+  int64 total_count = 2;
+  repeated GiftStats gift_stats = 3;
+}
+
+// 赠送优先策略
+enum GiftStrategy {
+  GIFT_STRATEGY_NONE = 0;
+  GIFT_STRATEGY_BAG_ONLY = 1; // 只消耗包裹
+  GIFT_STRATEGY_PURCHASE_ONLY = 2; // 只购买礼物
+}
+
+message ListGiftRecordReq {
+  scommon.Page page = 1;
+  GiftKind kind = 2;
+  string room_id = 3; // 房间id;有值会导致kind条件失效
+  int64 min_time_sent = 4; // 送礼起始时间
+  int64 max_time_sent = 5; // 送礼结束时间
+  repeated GiftType gift_types = 6; // 礼物类型
+}
+
+message ListGiftRecordRsp {
+  scommon.Page page = 1;
+  repeated GiftRecord gift_records = 2;
+}
+
+// 获取业务自定义送礼信息
+message GetCustomizedSendGiftInfoReq {
+  SendGiftReq send_gift_req = 10; // 送礼请求
+  string customized_value = 11; // 业务自定义的礼物批量送礼类型拓展参数, 最好定义成 JSON 结构字符串方便后续的拓展.
+}
+
+// 获取业务自定义送礼信息
+message GetCustomizedSendGiftInfoRsp {
+  string customized_id = 10;        // 本次业务自定义礼物批量赠送类型的ID标识, 后续需要通过 SendGift 接口的 customized_id 带给服务端.
+  string customized_result = 11;    // 业务与客户端之间自定义的批量送礼返回值, 最好定义成 JSON 结构字符串方便后续的拓展.
+  int32 receive_room_count = 12;    // 本次送礼涉及的收礼房间数
+  int32 receive_user_count = 13;    // 本次送礼涉及的收礼用户数
+  int64 total_spend_amount = 14;    // 本次送礼总共所需货币数量
+}
+
+
+// 礼物等级
+enum GiftLevel {
+  GIFT_LEVEL_LOW = 0; // 低
+  GIFT_LEVEL_MIDDLE = 1; // 中
+  GIFT_LEVEL_HIGH = 2; // 高
+}
+
+// 收送礼分类
+enum GiftKind {
+  GIFT_KIND_NONE = 0;
+  GIFT_KIND_SEND = 1; // 送礼
+  GIFT_KIND_RECEIVE = 2; // 收礼
+}
+
+message GiftRecord {
+  int64 id = 1; // 记录 ID
+  GiftInfo gift_info = 2; // 礼物信息
+  int32 quantity = 3; // 礼物数量
+  UserInfo sender = 4; // 送礼人
+  UserInfo receiver = 5; // 收礼人
+  int64 time_sent = 6; // 送礼时间
+}
+
+// 礼物场景
+enum GiftScene {
+  GIFT_SCENE_NONE = 0;
+  GIFT_SCENE_ROOM = 1;            // 房间
+  GIFT_SCENE_IM = 2;              // IM
+  GIFT_SCENE_CARNIVAL = 3;        // 嘉年华
+  GIFT_SCENE_CAFE = 4;            // 清吧房
+  GIFT_SCENE_VIDEO_CALL_1V1 = 5;  // 1v1 视频通话
+  GIFT_SCENE_VIRTUAL_ROOM = 6;    // 虚拟房
+  GIFT_SCENE_CP_HOUSE = 7;        // CP小屋
+  GIFT_SCENE_IM_GROUP = 8;        // 群聊
+}
+
+// 礼物类型
+enum GiftType {
+  GIFT_TYPE_NONE = 0;
+  GIFT_TYPE_NORMAL = 1; // 普通礼物
+  GIFT_TYPE_HEADWEAR = 2; // 头像框礼物
+  GIFT_TYPE_STORE = 3; // 商城礼物
+  GIFT_TYPE_SPONSOR = 4; // 冠名礼物
+  GIFT_TYPE_LUCKY = 5; // 幸运礼物
+  GIFT_TYPE_SPECIAL = 6; // 特殊礼物
+  GIFT_TYPE_FLY_MIC = 7; // 飞麦礼物
+  GIFT_TYPE_MYSTERY_BOX = 8; //盲盒礼物
+  GIFT_TYPE_MYSTERY_BOX_PRIZE = 9; // 盲盒礼物奖品礼物
+  GIFT_TYPE_ACCOMPANY = 10; // 陪陪礼物
+  GIFT_TYPE_GUARDIAN_ACTIVATION = 11; // 守护礼物-开通礼物
+  GIFT_TYPE_GUARDIAN_EXCLUSIVE = 12;  // 守护礼物-专属礼物
+  GIFT_TYPE_CP_RING = 13;  // CP礼物-戒指
+  GIFT_TYPE_PK = 14;  // PK礼物
+  GIFT_TYPE_REBATE = 15;  // 返利礼物
+}
+
+// 礼物标签, 例如: 限时, 七夕 ...
+message GiftTag {
+  // 标签名称
+  string name = 1;
+  // 标签图标
+  string icon = 2;
+  // <语言, 标签图标>
+  map<string, string> icon_i18n = 4;
+}
+
+// 礼物名称, 包含国际化支持
+message GiftName {
+  // 缺省名称
+  string name = 1;
+  // <国际码, 名称>
+  map<string, string> names = 2;
+}
+
+// 礼物价格
+message GiftPrice {
+  // 币种
+  CurrencyType currency_type = 1;
+  // 现价
+  int32 price = 2;
+  // 原价, 如果有...
+}
+
+// 礼物样式尺寸
+enum GiftAssetsSize {
+  GIFT_ASSETS_SIZE_ADAPTIVE = 0; // 自适应, 根据实际素材尺寸而定.
+  GIFT_ASSETS_SIZE_FULLSCREEN = 1; // 全屏
+}
+
+// 礼物冠名信息
+message GiftSponsorInfo {
+  repeated UserInfo sponsors = 1; // 冠名用户信息
+  int64 start_time = 2; // 冠名开始时间
+  int64 end_time = 3; // 冠名结束时间
+}
+
+
+// 礼物样式
+message GiftAssets {
+  // 礼物图标
+  string icon = 1;
+  // svga动画
+  string svga = 2;
+  // 视频动画
+  string video = 3;
+  // 动画尺寸
+  GiftAssetsSize size = 4;
+  // 飞麦动画
+  string fly_svga = 5;
+  // 冠名信息
+  GiftSponsorInfo sponsor = 6;
+
+  bool ani_offline_res = 20;          // 是否动画离线资源下载
+  string ani_offline_res_id = 21;     // 动画离线资源ID, 需要根据 svga 和 video 字段判断该资源的文件类型.
+}
+
+// 离线资源信息查询
+message GetGiftOfflineResInfoReq {}
+
+// 离线资源信息查询
+message GetGiftOfflineResInfoResp {
+  int64 total = 1; // 离线资源总数
+}
+
+// 礼物 banner
+message GiftBanner {
+  int32 width = 1;
+  int32 height = 2;
+  string image = 3;
+  string link = 4;
+  repeated UserInfo sponsors = 5;
+  map<string, string> i18n_image = 6;
+  string dot_id = 7; // 礼物 banner 连接打开埋点 ID
+  JumpType jump_type = 8;   // 跳转方式
+  int64 id = 10;            // banner id
+}
+
+// 礼物限制类型
+enum GiftLimitType {
+  GIFT_LIMIT_TYPE_NONE = 0; // 无限制, 普通礼物
+  GIFT_LIMIT_TYPE_VIP = 1; // VIP 礼物
+  GIFT_LIMIT_TYPE_ARISTOCRACY = 2; // 贵族礼物
+  GIFT_LIMIT_TYPE_USER_LEVEL = 10;  // 用户等级
+  GIFT_LIMIT_TYPE_FANS_LEVEL = 20;  // 粉丝团等级
+  GIFT_LIMIT_TYPE_CP_LEVEL = 30;    // 只能送给CP且CP等级需要到达对应等级
+  GIFT_LIMIT_TYPE_FRIEND_ONLY = 40; // 只能赠送给好友
+}
+
+// 礼物限制
+message GiftLimit {
+  // 过期时间
+  int64 deadline = 1;
+  // 限制类型
+  GiftLimitType type = 2;
+  // 结合限制类型的限制等级, 如果 type 是 VIP, level = 3, 则表示需要 VIP 3 级以上才能使用
+  int32 level = 3;
+  // 礼物限制图标
+  GiftTag tag = 4;
+  // 特殊礼物的归属人
+  int64 belong_uid = 5;
+  // 礼物是否已受限, 如果已受限则 type 和 level 就是受限原因. 
+  bool limited = 100;
+}
+
+// 礼物批量赠送类型
+enum GiftBatchType {
+  GIFT_BATCH_TYPE_SINGLE = 0; // 只能选择收礼人
+  GIFT_BATCH_TYPE_ALL_ON_MIC = 1; // 支持 选择收礼人 和 送全麦
+  GIFT_BATCH_TYPE_ALL_IN_ROOM = 2; // 支持 选择收礼人、送全麦 和 送房间在线用户
+  GIFT_BATCH_TYPE_CUSTOMIZED_CAFE = 3; // 业务自定义的清吧房礼物批量赠送类型
+}
+
+// 礼物有效时长, 部分礼物类型才有, 例如: 头像框
+message GiftDuration {
+  // 后端计算好的有效期说明
+  string duration = 1;
+  // 真实的有效期秒数
+  int64 seconds = 2;
+}
+
+// 礼物跳转类型
+enum GiftJumpType {
+  GIFT_JUMP_TYPE_NONE = 0; // 无跳转
+  GIFT_JUMP_TYPE_H5 = 1; // 跳到 H5 页面
+  // 后续可以拓展: 半窗 H5 ...
+}
+
+// 礼物玩法类型
+enum GiftPlayType {
+  GIFT_PLAY_TYPE_NONE = 0; //普通礼物，无特殊玩法
+  GIFT_PLAY_TYPE_PROBABILITY = 10; // 概率玩法，按配置概率抽取
+  GIFT_PLAY_TYPE_LOTTERY = 20; // 抽奖玩法
+  GIFT_PLAY_TYPE_PK = 30; // pk玩法
+  GIFT_PLAY_TYPE_REBATE = 40; // 返利玩法
+}
+
+// 礼物跳转, 部分礼物类型才有, 礼物: 商场礼物
+message GiftJump {
+  GiftJumpType type = 1;
+  string link = 2;
+}
+
+// 礼物显示的必要条件类型
+enum GiftRequirementType {
+  GIFT_REQUIREMENT_TYPE_NONE = 0;
+  GIFT_REQUIREMENT_TYPE_MIN_VERSION = 1;  // 客户端最小版本号(包含), 对应 in.Verc
+  GIFT_REQUIREMENT_TYPE_MAX_VERSION = 2;  // 客户端最大版本号(包含), 对应 in.Verc
+  GIFT_REQUIREMENT_TYPE_ROOM_MODES = 3;   // 房间模式, 由业务自己定义, 多个模式用英文逗号分隔.
+  GIFT_REQUIREMENT_TYPE_MAX_REGISTER_DAYS = 4; // 最大注册天数, 即注册天数小于此值的用户才显示.
+}
+
+// 礼物显示的必要条件
+message GiftRequirement {
+  GiftRequirementType type = 1;
+  string value = 2;
+}
+
+// 礼物隐藏类型
+enum GiftHiddenType {
+  GIFT_HIDDEN_TYPE_NONE = 0;
+  GIFT_HIDDEN_TYPE_AUDIT = 1;   // 审核期间隐藏
+}
+
+// 礼物隐藏开关
+message GiftHiddenSwitch {
+  GiftHiddenType type = 1;      // 隐藏类型
+  bool hidden = 2;              // 是否隐藏
+}
+
+// 礼物Tab
+message GiftTab {
+  // 缺省名称
+  string name = 1;
+  // <国际码, 名称>
+  map<string, string> names = 2;
+  // 礼物列表
+  repeated GiftInfo gift_infos = 3;
+  // tab ID
+  int64 id = 4;
+  // 下级Tab, 如果数组为空则表示没有下级Tab.
+  repeated GiftTab sub_tabs = 5;
+  // 父级TabID
+  int64 parent_id = 6;
+  // 礼物显示的必要条件
+  repeated GiftRequirement requirements = 10;
+  // 礼物隐藏开关
+  repeated GiftHiddenSwitch hidden_switches = 11;
+}
+
+
+// 概率礼物玩法配置
+message GiftPlayProbability {
+  message GiftProbability {
+    int64 gift_id = 1;  // 礼物ID
+    int64 probability = 2; // 概率值，全部概率值之和为100
+  }
+
+  enum GiftSortType {
+    SORT_TYPE_NONE = 0; // 默认按giftID排序
+    SORT_TYPE_PRICE_ASC = 1; // 按价格升序
+    SORT_TYPE_PRICE_DESC = 2; // 按价格降序
+    SORT_TYPE_PROBABILITY_ASC = 3; // 按概率生效
+    SORT_TYPE_PROBABILITY_DESC = 4; // 按概率降序
+  }
+
+  repeated GiftProbability list = 1;
+  int64 animation_secs = 2; // 玩法动画时长-秒
+  GiftSortType sort = 3; // 排序规则
+}
+
+// 礼物玩法
+message GiftPlay {
+  GiftPlayType type = 1;
+  GiftPlayProbability  probability = 2;
+  // 业务自定义扩展信息
+  map<string, string> expand = 10;
+  int64 lottery_id = 20; // 抽奖配置ID
+  int64 pk_score = 30; // pk分数
+  int64 rebate_diamond = 40; // 送礼返利钻石
+}
+
+
+// 礼物信息
+message GiftInfo {
+  int64 id = 1;
+  int64 version = 2;
+  GiftType type = 3;
+  repeated GiftTag tags = 4;
+  GiftName name = 5;
+  GiftPrice price = 6;
+  GiftAssets assets = 7;
+  GiftBanner banner = 8;
+  GiftLimit limit = 9;
+  GiftBatchType batch_type = 10;
+  GiftDuration duration = 11;
+  GiftJump jump = 12;
+  GiftLevel level = 13;
+  GiftTab tab = 14;
+  string sid = 15;        // 礼物标识，保持测试和正式环境配置一致
+  GiftPlay play = 16; // 礼物玩法
+  string biz_ext = 17; // 礼物的业务拓展信息 JSON 字符串, 根据业务名找到对应的结构体 GiftBizExtXXX 来解析，例如: GiftBizExtDarling
+  int32 tier = 18;     // 阶级
+  int64 privilege_resource_id = 19; // 礼物对应的特权资源ID
+  int64 receive_claim_ttl = 20; // 手动收礼过期时间-秒
+  bool published = 50; // 是否上架中
+}
+
+// 收送礼统计
+message GiftStats {
+  GiftInfo gift_info = 1;
+  int64 count = 2;
+}
+
+// 送礼金额等级
+message GiftAmountLevel {
+  int64 amount = 1; // 金额
+  int32 level = 2;  // 等级
+}
+
+// 礼物玩法信息
+message GetGiftPlayInfoReq {
+  int64 gift_id = 1; //礼物ID
+}
+
+message GetGiftPlayInfoRsp {
+  GiftPlayType type = 1; // 礼物玩法类型
+  GiftPlayProbability probability = 2; // 概率配置
+  int64 pk_score = 3; // pk分数
+  int64 rebate_diamond = 4; // 送礼返利钻石
+
+  repeated GiftInfo gifts = 10; // 礼物列表
+  GiftInfo gift = 11; // 入参礼物信息
+}
+
+message GiftPlayResult {
+  GiftPlayType type = 1;
+  GiftInfo picked = 2;  // 玩法选中礼物信息
+  repeated GiftInfo gifts = 3; // 玩法配置礼物列表
+  PickedCurrency picked_currency = 4; // 玩法中抽中的货币
+  map<string, string> expand = 10; // 玩法扩展信息
+}
+
+// 玩法中抽中的货币
+message PickedCurrency {
+  CurrencyType currency_type = 1; // 币种
+  int64 amount = 2;               // 金额
+}
+
+// 送礼通知
+message NotifySendGift {
+  string seq_id = 1; // 记录 ID
+  GiftInfo gift_info = 2; // 礼物信息
+  int32 quantity = 3; // 礼物数量
+  UserInfo sender = 4; // 送礼人
+  repeated UserInfo receivers = 5; // 收礼人
+  int64 time_sent = 6; // 送礼时间
+  GiftStrategy strategy = 7; // 赠送策略
+  GiftBatchType batch_type = 8; // 礼物批量赠送类型
+  map<int32, string> expand = 9; // 拓展字段, key 为拓展字段枚举的数字值.
+  map<string, string> context = 10; // 透传给业务的上下文, 对于营收中台没有意义.
+  GiftScene scene = 11; // 送礼场景
+  string room_id = 12; // 送礼的房间ID
+  bytes biz_sender = 13; //送礼人信息业务透传(各自业务端用户信息pb解析)
+  GiftAmountLevel amount_level = 14; // 送礼金额等级
+}
+
+// 幸运礼物中奖通知
+message NotifyLuckyGiftWinning {
+  string seq_id = 1;              // 唯一ID
+  UserInfo user_info = 2;         // 中奖用户
+  CurrencyType currency_type = 3; // 货币类型
+  int64 amount = 4;               // 中奖货币数
+  string room_id = 5;             // 中奖房间ID
+}
+
+// 通知
+message Notify {
+  NotifySendGift send_gift = 1;
+  NotifyLuckyGiftWinning lucky_gift_winning = 2;
+}
+
+
+message ClaimGiftReq {
+  // 幂等id
+  string seq_id = 1;
+}
+
+message ClaimGiftRsp {
+}
+
+
+// 礼物收益
+message GiftProfit {
+  // 币种
+  CurrencyType currency_type = 1;
+  // 数额
+  int64 amount = 2;
+  // 免费数额
+  int64 free_amount = 3;
+}
+
+
+message GiftReceiveStrategyClaim {
+  // 允许领取的过期时间
+  int64 expire_at = 1;
+}
+
+// 礼物接收策略
+enum GiftReceiveStrategy {
+  // 默认: 即送即收（送出和收到是同一个动作，不分割的）
+  GIFT_RECEIVE_STRATEGY_NONE = 0;
+  // 需要手动领取
+  GIFT_RECEIVE_STRATEGY_CLAIM = 1;
+  // 按礼物玩法结果（实际收礼）计算收益
+  GIFT_RECEIVE_STRATEGY_PLAY_RESULT = 2;
+}
+
+// 礼物接收状态
+enum GiftReceiveStatus {
+  GIFT_RECEIVE_STATUS_NONE = 0;  // 0-未收到
+  GIFT_RECEIVE_STATUS_CLAIMED = 1; // 1-已领取
+  GIFT_RECEIVE_STATUS_REFUND = 2; // 2-已退回（需要退款）
+}
+
+message GetGiftTabsReq {
+  GiftScene scene = 1;                // 礼物面板显示场景
+  int64 version = 2;                  // 客户端当前数据版本
+  map<string, string> extension = 3;  // 拓展字段, 房间模式key: room_mode
+}
+
+message GetGiftTabsRsp {
+  repeated GiftTab gift_tabs = 1; // 礼物tab列表-不包含礼物列表
+  int64 version = 2; // 服务端最新数据版本
+}
+
+message ListTabGiftsReq {
+  scommon.Page page = 1;
+
+  int64 tab_id = 10; // tab ID
+  GiftScene scene = 11; // 礼物显示场景
+  string scene_id = 12; // 礼物显示场景ID, 如果是房间场景则传房间ID.
+}
+
+message ListTabGiftsRsp {
+  scommon.Page page = 1;
+
+  repeated GiftInfo gift_infos = 10; // 礼物列表
+}
+
+message ListRoomGiftStatsReq {
+  string room_id = 1; // 房间id
+  string start_date = 2; // 自定义时间的起始日期;格式:yyyy-MM-dd
+  string end_date = 3; // 自定义时间的结束日期;格式:yyyy-MM-dd
+  repeated GiftType gift_types = 4; // 礼物类型
+}
+
+message ListRoomGiftStatsRsp {
+  repeated RoomGiftStatsRecord items = 1;
+}
+
+message RoomGiftStatsRecord {
+  string room_id = 1; // 房间id
+  string date = 2; // 日期;格式:yyyy-MM-dd
+  pbrevenue.GiftType gift_type = 3; // 礼物类型
+  int64 send_count = 4; // 送礼数量
+  int64 amount = 5; // 送礼消耗总金额
+}
+
+message ListGiftsReq {
+  repeated int64 ids = 1; // 礼物id列表
+  BizExtArgs biz_ext_args = 2; // 业务拓展信息(biz_ext)字段的查询
+}
+
+message ListGiftsRsp {
+  repeated GiftInfo gift_infos = 1; // 礼物列表
+}
+
+message BizExtArgs {
+  WishGiftType wish_gift_type = 1; // 是否为心愿礼物
+}
+
+message ListGiftBagReq {
+  scommon.Page page = 1;            // 分页参数
+  GiftScene scene = 10;             // 礼物显示场景
+  string scene_id = 12;             // 礼物显示场景ID, 如果是房间场景则传房间ID.
+}
+
+message ListGiftBagRsp {
+  scommon.Page page = 1;            // 分页参数
+  repeated GiftBag gift_bags = 10;  // 礼物包裹列表
+}
+
+message ListInvalidGiftBagReq {
+  scommon.Page page = 1;            // 分页参数
+  GiftScene scene = 10;             // 礼物显示场景
+  string scene_id = 12;             // 礼物显示场景ID, 如果是房间场景则传房间ID.
+}
+
+message ListInvalidGiftBagRsp {
+  scommon.Page page = 1;            // 分页参数
+  repeated GiftBag gift_bags = 10;  // 礼物包裹列表
+}

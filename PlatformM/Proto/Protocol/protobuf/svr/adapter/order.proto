@@ -1,0 +1,31 @@
+// smicro:spath=gitit.cc/social/echo/handle/svr
+syntax = "proto3";
+
+package pbsadapter;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsadapter";
+
+message RefundMessage {
+  int64 timestamp = 1;                // 时间戳
+  string business_id = 2;             // 业务名
+  string order_no = 3;                // 退款单号, 由苹果/谷歌推送过来的退款单号, 作为唯一标识
+  int64 uid = 4;                      // 退款用户
+  string country_name = 5;            // 用户所属国家
+  string channel = 6;                 // 退款渠道
+  string sub_channel = 7;             // 退款子渠道
+  string reason = 8;                  // 退款原因
+  string bankcard_no = 9;            // 银行卡号
+  int64 amount_dollar_cent = 10;     // 订单金额(美分)
+  int64 amount_consumption = 11;     // 订单消费货币数额, 对应业务的消费货币
+  int64 recharged_at = 12;           // 充值时间
+  int64 refunded_at = 13;            // 退款时间
+  string remark = 14;                // 备注
+  string ip = 15;                    // 订单IP
+  string did = 16;                   // 设备ID
+  string client_type = 17;           // 客户端类型：android, ios
+  string charge_type = 18;           // 充值货币类型: coin-金币, gold_ticket-金票
+  int64 charge_value = 19;           // 充值货币数量
+  int32 before_status = 20;          // 退款前订单状态：1未付款 2已付款 3退款 4风控卡单
+  int32 now_status = 21;             // 当前状态：1未付款 2已付款 3退款 4风控卡单
+  string pay_type = 22;              // 支付方式（渠道，apple_pay google_pay）
+}

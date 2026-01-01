@@ -1,0 +1,19 @@
+{
+    "name": "BBQHotUpdate",
+    "rootNamespace": "Astorise.MiniGames.BBQ",
+    "references": [
+        "Framework",
+        "UniTask",
+        "YooAsset",
+        "AOT"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

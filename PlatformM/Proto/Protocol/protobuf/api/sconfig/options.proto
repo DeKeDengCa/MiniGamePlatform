@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package sconfig.schema;
+
+import "google/protobuf/descriptor.proto";
+
+option java_package="com.entertain.sns.sconfig.schema";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbsconfig";
+
+
+// 枚举值扩展信息
+message EnumValue {
+  string name = 1;   // 名字，只有定义了名字的才会显示到下拉框里面
+}
+
+// 字段的扩展信息
+message InputItem {
+  string name = 1;  // 输入框的前导，只有定义了这个才会生成
+  string help = 2;  // 帮助信息
+  string def = 3;   // 默认值
+  bool   opt = 4;   // 是否可选
+  bool   ml = 5;    // 是否是多行输入，string类型才支持
+  bool   kid = 6;   // 是否是表单的主键，只有table类型（repeated message)才有意义
+  string min = 10;
+  string max = 11;
+  bool   table = 12; // 是否用表单的形式展示，只有repeated object的才支持
+
+  // 下拉选择器，为了简化处理，只有int64/string两种类型支持。支持以下格式：
+  // "[a:b, c:d]"
+  //    固定值下拉列表，前面的是name（下拉框展示的名字），后面的是value（提交的配置值）
+  //    e.g. [User:10, Room:20]
+  // "@key:xxxx"
+  //    通过动态接口获取下拉列表，返回的值必须是[]struct{Name string, Value any} Value是int64/string
+  //    e.g. “@key:foo”，那么sconf.ListSelectorOptions的参数key=foo（一定要在初始化sconf时注入该option）
+  // "@key:serviceName/bizKey/xxxx"
+  //    支持跨服务和跨配置复用下拉列表
+  //    e.g. “@key:gene-api/rank/foo”，那么将从gene-api服务获取rank配置下key=foo的下拉列表
+  string selector = 20;
+}
+
+// 模块信息
+message ModelInfo {
+  string name = 1;  // 模块名称
+  bool   table = 2; // 是否用表单的形式展示，只有repeated object的才支持
+  string help = 3;  // 配置项的帮助信息
+}
+
+extend google.protobuf.FileOptions {
+  string biz_name = 20240421;
+  string biz_key = 20240422;
+}
+
+
+extend google.protobuf.FieldOptions {
+  ModelInfo model = 20240421;
+  InputItem input = 20240422;
+}
+
+// 扩展枚举值定义字段
+extend google.protobuf.EnumValueOptions {
+  // 用来定义枚举显示的名字
+  EnumValue enum = 20240421;
+}
+
+extend google.protobuf.MessageOptions {
+  string model_name = 20240421; // 仅用于model.proto里面公共定义的名称
+  string cfg_name = 20240422;   // 用于客户端的配置项名字
+  string model_type = 20240423; // 指定特殊类型
+}

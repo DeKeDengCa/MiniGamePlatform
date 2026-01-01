@@ -1,0 +1,127 @@
+syntax = "proto3";
+
+package comm.svr.guild;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/svr/guild/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsguild";
+option java_package = "com.guild.biz.info";
+
+service SocialGuildInfo {
+  // 多参数分页查询主播信息
+  // Deprecated, 由于多参数且分页查询带来的查询复杂度和难以缓存问题, 请根据情况使用下面的两个查询接口.
+  rpc ListGuild(ListGuildReq) returns (ListGuildRsp) {}
+  // 根据会长UID批量查询公会信息, 结果非实时, 存在短时间缓存.
+  rpc ListGuildByOwnerUids(ListGuildOwnerUidsReq) returns (ListGuildOwnerUidsRsp) {}
+  // 根据公会ID批量查询公会信息, 结果非实时, 存在短时间缓存.
+  rpc ListGuildByIds(ListGuildByIdsReq) returns (ListGuildByIdsRsp) {}
+  // 根据会长UID删除公会
+  rpc RemoveGuildByOwnerUid(RemoveGuildByOwnerUidReq) returns (RemoveGuildByOwnerUidRsp) {}
+  // 根据邀请码批量查询公会信息, 结果非实时, 存在短时间缓存.
+  rpc ListGuildByInvitecodes(ListGuildByInvitecodesReq) returns (ListGuildByInvitecodesRsp) {}
+}
+
+// 公会分类
+message GuildCategory {
+  int64 category_id = 1; // 分类ID
+  map<string, string> category_name = 2; // 分类名称, 目前只有 EN
+}
+
+// 公会等级
+message GuildGrade {
+  int64 grade_id = 1; // 等级ID
+  string grade_name = 2; // A / B / C
+}
+
+// 工会信息
+message Guild {
+  int64 id = 1; // 公会ID
+  string name = 2; // 公会名称
+  string logo = 3; // 公会LOGO
+  string profile = 4; // 公会宣言
+  int64 manager_id = 5; // 管理员即运营ID
+  GuildCategory category = 6; // 公会分类
+  GuildGrade grade = 7; // 公会等级
+  int64 owner_uid = 8; // 公会长UID
+  string owner_name = 9; // 公会长姓名
+  Country owner_country = 10; // 公会长国家
+  string owner_whatsapp = 11; // 公会长 whatsapp
+  string owner_mobile = 12; // 公会长手机号
+  string owner_email = 13; // 公会长邮箱
+  repeated string owner_id_cards = 14; // 公会长身份证照片
+  int32 other_app_scale = 15; // 公会长其他 app 主播规模
+  repeated string other_app_screenshots = 16; // 公会长其他 app 截图
+  bool official = 17; // 是否为官方公会
+  bool frozen = 18; // 公会是否已冻结
+  int64 frozen_at = 19; // 公会冻结时间
+  int64 created_at = 20; // 公会创建时间
+  int64 updated_at = 21; // 公会更新时间
+  string invitecode = 30; // 邀请码
+  string extra = 31; // 业务独有信息
+  GuildTransfer last_transfer = 32; // 最后一次转让记录
+}
+
+message ListGuildReq {
+  scommon.Page page = 1;           // 分页参数
+  repeated int64 owner_uids = 10;  // 公会长UID
+  repeated int64 guild_ids = 11;   // 公会ID
+}
+
+message ListGuildRsp {
+  scommon.Page page = 1;        // 分页参数
+  repeated Guild guilds = 10;   // 公会列表
+}
+
+message ListGuildOwnerUidsReq {
+  repeated int64 owner_uids = 10;  // 公会长UID
+}
+
+message ListGuildOwnerUidsRsp {
+  repeated Guild guilds = 10;   // 公会列表
+}
+
+message ListGuildByIdsReq {
+  repeated int64 guild_ids = 10;   // 公会ID
+}
+
+message ListGuildByIdsRsp {
+  repeated Guild guilds = 10;   // 公会列表
+}
+
+message RemoveGuildByOwnerUidReq {
+  int64 owner_uid = 10;            // 会长UID
+  string reason = 11;              // 删除原因
+  bool owner_join_official = 12;   // 会长是否加入官方公会;false:不加入,true:加入
+}
+
+message RemoveGuildByOwnerUidRsp {
+}
+
+message ListGuildByInvitecodesReq {
+  repeated string invitecodes = 10; // 邀请码
+}
+
+message ListGuildByInvitecodesRsp {
+  repeated Guild guilds = 10;   // 公会列表
+}
+
+// 公会拓展信息, 用于反序列化公会的拓展信息 JSON 字符串.
+message GuildExtra {
+
+  // darling 业务的
+  message Darling {
+    string sexual_orientation = 1; // 性取向, 同性: same_sex, 异性: opposite_sex
+    string live_type = 2;          // 直播类型, 语音房: voice_room, 秀场: show_time, 语音厅: voice_room_hall
+  }
+
+  // ... 其他业务的
+}
+
+// 公会转让记录
+message GuildTransfer {
+  int64 guild_id = 1;       // 公会ID
+  int64 old_owner_uid = 2;  // 旧公会长UID
+  int64 new_owner_uid = 3;  // 新公会长UID
+  int64 operated_at = 4;    // 转让时间
+}

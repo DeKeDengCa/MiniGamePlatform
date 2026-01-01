@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package api.astrorise.platform.feature;
+
+import "protobuf/api/common/common-net.proto";
+
+// smicro:spath=gitit.cc/social/astrorise/arplatform/s_features/biz/common/handler
+option go_package = "gitit.cc/social/astrorise/arprotobuf/gencode/api/feature/pbcommon";
+
+// ********************************接口******************************
+service Common {
+    //  --- 群聊 ------
+    // 目前只有世界聊天，扩展留着而已
+    // 加入群聊,加入群聊比较复杂，需要客户端在连上非直连长链的时候，要调这个接口
+    // 如果没有加入频道，是收不到信令的
+    rpc JoinGroup(JoinGroupReq) returns (JoinGroupRsp);
+    // 退出群聊
+    rpc QuitGroup(QuitGroupReq) returns (QuitGroupRsp);
+}
+
+// ================================================ 枚举 ================================================
+enum ChatType {
+    Unknown = 0;
+    CHAT_TYPE_PRIVATE = 1; // 1v1私聊
+    CHAT_TYPE_TEAM_GROUP = 2; // 组队群聊
+    CHAT_TYPE_WORLD_GROUP = 3; // 世界群聊
+}
+
+// ================================================ 结构体 ================================================
+message JoinGroupReq {
+    ChatType chat_type = 1;
+    int32 game_id = 2;  // 游戏id
+}
+
+message JoinGroupRsp {}
+
+
+message QuitGroupReq {
+    ChatType chat_type = 1;
+    int32 game_id = 2;
+}
+
+message QuitGroupRsp {}

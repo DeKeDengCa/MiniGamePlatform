@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package comm.api.cp;
+
+option java_package = "com.entertain.sns.comm.api.cp";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbcp";
+
+enum CPStatus {
+  CP_STATUS_UNKNOWN = 0;
+  CP_STATUS_INVITED = 1;    // 邀请中
+  CP_STATUS_MARRIED = 2;    // 已结婚
+  CP_STATUS_DIVORCED = 3;   // 已离婚
+}
+
+enum CPInviteStatus {
+  CP_INVITE_STATUS_UNKNOWN = 0;
+  CP_INVITE_STATUS_INVITED = 1;    // 邀请中
+  CP_INVITE_STATUS_APPROVED = 2;   // 已同意
+  CP_INVITE_STATUS_REJECTED = 3;   // 已拒绝
+  CP_INVITE_STATUS_EXPIRED = 4;    // 已过期
+}
+
+enum CPDivorceStatus {
+  CP_DIVORCE_STATUS_UNKNOWN = 0;    // 没有离婚申请
+  CP_DIVORCE_STATUS_APPLIED = 1;    // 离婚申请中
+  CP_DIVORCE_STATUS_APPROVED = 2;   // 已同意
+  CP_DIVORCE_STATUS_REJECTED = 3;   // 已拒绝
+  CP_DIVORCE_STATUS_EXPIRED = 4;    // 已过期
+}
+
+enum CPInviteMessageType {
+  CP_INVITE_MESSAGE_TYPE_NONE = 0;
+  CP_INVITE_MESSAGE_TYPE_INVITE = 1;        // cp 邀请
+  CP_INVITE_MESSAGE_TYPE_APPROVE = 2;       // cp 同意邀请
+  CP_INVITE_MESSAGE_TYPE_REJECT = 3;        // cp 拒绝邀请
+  CP_INVITE_MESSAGE_TYPE_DIVORCE_APPLY = 4; // cp 离婚申请
+  CP_INVITE_MESSAGE_TYPE_FORCE_DIVORCE = 5; // cp 强制离婚通知
+  CP_INVITE_MESSAGE_TYPE_DIVORCE_APPROVE = 6; // cp 同意离婚
+  CP_INVITE_MESSAGE_TYPE_DIVORCE_REJECT = 7;  // cp 拒绝离婚
+}
+
+enum CPEventType {
+  CP_EVENT_TYPE_NONE = 0;
+  CP_EVENT_TYPE_MARRIED = 1; // 结婚
+  CP_EVENT_TYPE_DIVORCE = 2; // 离婚
+}

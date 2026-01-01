@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package pbsdingtalk;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsdingtalk";
+
+// ChatBotSvr 机器人发消息
+// smicro:spath=gitit.cc/social/protocode/svr/dingtalk
+service ChatBotSvr {
+  // 发送人与机器人会话中机器人消息
+  rpc SendOneToOneMessage(SendOneToOneMessageReq) returns (SendOneToOneMessageRsp);
+}
+
+message SendOneToOneMessageReq {
+  string app_name = 1;    // 应用名(用来匹配钉钉的应用账号信息)
+  string user_id = 2;     // 接收机器人消息的用户的userId
+  string msg_key = 3;     // 消息模板key
+  string msg_param = 4;   // 消息模板参数
+}
+
+message SendOneToOneMessageRsp {
+  string process_query_key = 1; // 消息id
+}

@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package pbsfamily;
+
+import "protobuf/api/family/family-comm.proto";
+import "protobuf/api/common/common-net.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsfamily";
+option java_package = "com.family.biz.proto";
+
+// 中台回调业务
+service FamilyCb {
+  // CanCreate 是否能创建家族
+  rpc CanCreate(CanCreateReq) returns (CanCreateRsp);
+  // CanEditFamilyInfo 是否能编辑家族信息
+  rpc CanEditFamilyInfo(CanEditFamilyInfoReq) returns (CanEditFamilyInfoRsp);
+  // CanDisbandFamily 是否能解散家族
+  rpc CanDisbandFamily(CanDisbandFamilyReq) returns (CanDisbandFamilyRsp);
+  // CanJoin 是否能加入家族
+  rpc CanJoin(CanJoinReq) returns (CanJoinRsp);
+  // CanSetRole 是否能设置角色
+  rpc CanSetRole(CanSetRoleReq) returns (CanSetRoleRsp);
+}
+
+message CanCreateReq {
+  comm.api.family.FamilyBaseInfo base_info = 10; // 家族基础信息
+}
+
+message CanCreateRsp {
+  scommon.Result result = 1;  // 结果
+  comm.api.family.FamilyBaseInfo base_info = 10; // 家族基础信息
+}
+
+message CanEditFamilyInfoReq {
+  comm.api.family.FamilyBaseInfo base_info = 10; // 家族基础信息
+  comm.api.family.FamilyBaseInfo selector = 11;  // 用来标明更新什么字段-selector字段非缺省值,表示需要更新info里对应值
+}
+
+message CanEditFamilyInfoRsp {
+  scommon.Result result = 1;  // 结果
+  comm.api.family.FamilyBaseInfo base_info = 10;
+  comm.api.family.FamilyBaseInfo selector = 11;
+}
+
+message CanDisbandFamilyReq {
+  comm.api.family.FamilyBaseInfo base_info = 10; // 家族基础信息
+}
+
+message CanDisbandFamilyRsp {
+  scommon.Result result = 1;  // 结果
+}
+
+message CanJoinReq {
+  int64 family_id = 10;  // 家族ID
+}
+
+message CanJoinRsp {
+  scommon.Result result = 1;  // 结果
+}
+
+message CanSetRoleReq {
+  int64 target_uid = 10; // 目标用户ID
+  comm.api.family.FamilyRoleType original_role =11; // 原始角色
+  comm.api.family.FamilyRoleType target_role = 12; // 目标角色
+}
+
+message CanSetRoleRsp {
+  scommon.Result result = 1;  // 结果
+}
+

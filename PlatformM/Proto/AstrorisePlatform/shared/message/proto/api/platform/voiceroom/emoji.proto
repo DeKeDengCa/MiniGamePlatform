@@ -1,0 +1,83 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/emoji/handler/
+syntax = "proto3";
+
+package api.astrorise.voiceroom.emoji;
+
+option java_package="com.entertain.sns.api.gene.emoji";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbemoji";
+
+// 表情
+// serviceName: astrorise-voiceroom
+service EmojiApi {
+
+    // 获取表情
+    rpc GetEmojis(GetEmojisReq) returns (GetEmojisRsp);
+
+    // 发送表情
+    rpc SendEmoji(SendEmojiReq) returns (SendEmojiRsp);
+    
+}
+
+// 表情分类
+message EmojiTab {
+    int64 tab_id = 1;                   // 表情分类ID
+    string icon = 10;                   // 表情分类图标
+    repeated Emoji emojis = 50;         // 表情分类下的所有表情
+}
+
+// 表情种类
+enum EmojiKind {
+    EMOJI_KIND_NONE = 0;
+    EMOJI_KIND_NORMAL = 10;             // 普通表情
+
+    // 后续可拓展更多种类, 例如: 骰子, 剪刀石头布 ...
+}
+
+// 表情使用场景
+enum EmojiScene {
+    EMOJI_SCENE_NONE = 0;
+    EMOJI_SCENE_ROOM_MIC = 10;          // 房间麦位
+
+    // 后续可拓展更多场景
+}
+
+// 表情
+message Emoji {
+    int64 emoji_id = 1;                 // 表情ID
+    EmojiKind kind = 2;                 // 表情种类
+    string icon = 10;                   // 表情静图
+    string svga = 11;                   // 表情动图(如果没有则使用静图显示)
+    map<string, string> name = 20;      // 多语言名称
+}
+
+message GetEmojisReq {
+    EmojiScene scene = 10;              // 表情使用场景
+    string scene_id = 11;               // 表情使用场景ID, 如果是房间麦位则传房间ID.
+}
+
+message GetEmojisRsp {
+    repeated EmojiTab emoji_tabs = 10;  // 表情分类以及表情列表
+}
+
+message SendEmojiReq {
+    int64 emoji_id = 10;                // 表情ID
+    EmojiScene scene = 20;              // 表情使用场景
+    string scene_id = 21;               // 表情使用场景ID, 如果是房间麦位则传房间ID.
+}
+
+message SendEmojiRsp {
+
+}
+
+// 表情信令
+message Notify {
+    NotifySendEmoji send_emoji = 10;    // 发送表情
+}
+
+// 发送表情
+message NotifySendEmoji {
+    int64 send_uid = 10;                // 发送人UID
+    EmojiScene scene = 20;              // 表情使用场景
+    string scene_id = 21;               // 表情使用场景ID, 如果是房间麦位则传房间ID.
+    Emoji emoji = 30;                   // 表情
+}

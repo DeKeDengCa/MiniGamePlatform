@@ -1,0 +1,80 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/user/handler/
+syntax = "proto3";
+
+package api.astrorise.voiceroom;
+
+option java_package="com.entertain.sns.api.gene";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbalbum";
+
+// 相册
+// serviceName: astrorise-voiceroom
+service Album {
+
+  // 获取用户相册
+  rpc GetUserAlbum(GetUserAlbumReq) returns (GetUserAlbumRsp);
+
+  // 更新用户相册(传 ID 表示更新, 不传 ID 表示新增)
+  rpc UpdateUserAlbum(UpdateUserAlbumReq) returns (UpdateUserAlbumRsp);
+
+  // 删除用户相册
+  rpc DelUserAlbum(DelUserAlbumReq) returns (DelUserAlbumRsp);
+
+  // 增加用户相册
+  rpc AddUserAlbum(AddUserAlbumReq) returns (AddUserAlbumRsp);
+
+  // 批量增加用户相册
+  rpc BatchAddUserAlbum(BatchAddUserAlbumReq) returns (BatchAddUserAlbumRsp);
+}
+
+enum AlbumState{
+  ALBUM_STATE_NONE = 0;
+  ALBUM_STATE_AUDIT = 1;  // 审核中
+  ALBUM_STATE_FAIL = 2;   // 拒绝
+  ALBUM_STATE_PASS = 3;   // 通过 
+}
+
+message Photo {
+  int64 id = 1;               // 照片ID
+  string url = 2;             // 照片URL
+  int64 uid = 3;              // 所属UID
+  AlbumState state = 4;       // 图片状态(由服务端下发状态)
+}
+
+message GetUserAlbumReq {
+  int64 target_uid = 10;      // target_uid == 0 或者 target_uid == 自己 表示主态, 否则表示客态.
+}
+
+message GetUserAlbumRsp {
+  repeated Photo photos = 10; // 照片列表
+}
+
+message UpdateUserAlbumReq {
+  repeated Photo photos = 10; // 照片列表
+}
+
+message UpdateUserAlbumRsp {
+
+}
+
+message DelUserAlbumReq {
+  repeated int64 id = 1;      // 删除用户相册
+}
+
+message DelUserAlbumRsp {
+}
+
+message AddUserAlbumReq {
+  string url = 1;             // 照片URL 
+}
+
+message AddUserAlbumRsp {
+  Photo photos = 1;           // 照片列表
+}
+
+message BatchAddUserAlbumReq {
+  repeated string urls = 1;   // 照片URL 
+}
+
+message BatchAddUserAlbumRsp {
+  repeated Photo photos = 1;  // 照片列表
+}

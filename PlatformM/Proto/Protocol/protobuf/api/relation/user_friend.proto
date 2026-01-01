@@ -1,0 +1,26 @@
+// smicro:spath=gitit.cc/social/components-service/social-relation/biz/relation/handler/userfriend
+syntax = "proto3";
+
+package comm.api.relation;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/relation/user_follow.proto";
+import "protobuf/api/relation/extension.proto";
+
+option java_package = "com.entertain.sns.comm.api.relation";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbrelation";
+
+service UserFriend {
+    rpc GetFriendUIDs(GetFriendUIDsReq) returns (GetFriendUIDsResp);
+}
+
+// 获取好友列表
+message GetFriendUIDsReq {
+  scommon.Page page = 1;          // 分页
+}
+
+message GetFriendUIDsResp {
+  scommon.Page page = 1;          // 分页
+  repeated int64 friend_uids = 2; // 好友列表
+  map<int64, Ext> exts = 10;      // 拓展信息, key 为 关注好友UID
+}

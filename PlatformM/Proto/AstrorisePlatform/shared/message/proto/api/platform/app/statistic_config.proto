@@ -1,0 +1,27 @@
+syntax="proto3";
+
+package app.config.gene.statistic;
+
+// options.proto 定义了一些options，options用于描述schema。必须import
+import "protobuf/api/sconfig/options.proto";
+
+// model.proto 会定义一些公共的配置。按需import
+// 比如 sconfig.model.Time 会生成一个时间选择框
+// sconfig.model.File 会生成一个文件上传按钮
+// import "common/sconfig/model.proto";
+
+option (sconfig.schema.biz_name)="打点配置";
+
+message Web {
+    option (sconfig.schema.cfg_name) = "打点配置";
+
+    bool enable_timing = 1 [(sconfig.schema.input) = {
+        name:"开启定时上报",
+        def: "false",
+    }];
+    
+    int64 timing_seconds = 2 [(sconfig.schema.input) = {
+        name:"前台定时上报时间间隔",
+        help:"单位：秒"
+    }];
+}

@@ -1,0 +1,162 @@
+syntax = "proto3";
+
+package comm.svr.activity;
+
+import "protobuf/api/activity/common.proto";
+import "protobuf/api/activity/crank.proto";
+import "protobuf/mgr/activity/common.proto";
+import "protobuf/mgr/activity/activity.proto";
+import "protobuf/api/ctask/task.proto";
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsactivity";
+
+// smicro:spath=gitit.cc/social/components-service/social-activity/biz/activity/handlersvr
+service ActivitySvr {
+
+  // 根据应用标识获取活动信息
+  rpc GetActInfoByAppCode(GetActInfoByAppCodeReq) returns (GetActInfoByAppCodeRsp);
+
+  // 获取挂件榜单模版
+  rpc GetPendantRank(GetPendantRankReq) returns (GetPendantRankRsp);
+
+  // 获取任务参与列表
+  rpc ListTaskParticipant(ListTaskParticipantReq) returns (ListTaskParticipantRsp);
+
+  // 获取榜单，转发到crank
+  rpc GetRank(GetRankReq) returns (GetRankRsp);
+
+  // 分页获取周星榜指定礼物列表
+  rpc GetWeeklyStarGiftConfig(GetWeeklyStarGiftConfigReq) returns (GetWeeklyStarGiftConfigRsp) {}
+
+  // 根据抽奖id获取抽奖次数信息
+  rpc BatchGetUserLotteryInfos(BatchGetUserLotteryInfosReq) returns (BatchGetUserLotteryInfosRsp);
+
+  // 清空用户抽奖次数
+  rpc BatchResetUserLotteryChance(BatchResetUserLotteryChanceReq) returns (BatchResetUserLotteryChanceRsp);
+
+  // 根据榜单ID，任务id，抽奖id获取活动配置
+  rpc GetActivityNameByRelatedID(GetActivityNameByRelatedIDReq) returns (GetActivityNameByRelatedIDRsp);
+}
+
+
+message GetActivityNameByRelatedIDReq {
+  string sid = 1; // 服id
+
+  int64 related_id = 10;                               // 榜单id，任务id，抽奖id
+  comm.mgr.activity.SearchActivityType type = 11;      // 搜索类型，不支持奖励包
+}
+
+message GetActivityNameByRelatedIDRsp{
+  string activity_name = 10;              // 活动名
+}
+
+message BatchResetUserLotteryChanceReq {
+  string sid = 1; // 服id
+
+  int64 lottery_id = 10;
+  repeated int64 uids = 11; // 最大1000个
+}
+
+message BatchResetUserLotteryChanceRsp {
+}
+
+message BatchGetUserLotteryInfosReq {
+  string sid = 1; // 服id
+
+  int64 uid = 10;
+  repeated int64 lottery_ids = 11;
+}
+
+message BatchGetUserLotteryInfosRsp {
+  repeated comm.api.activity.UserLotteryInfo list = 10;
+}
+
+message GetWeeklyStarGiftConfigReq {
+  string sid = 1; // 服id
+}
+
+message GetWeeklyStarGiftConfigRsp {
+  comm.mgr.activity.WeeklyStarGiftConfig config = 10;
+}
+
+message GetRankReq {
+  string sid = 1; // 服id
+  repeated crank.GetPara paras = 10; // 支持一次获取多个榜单
+}
+
+message GetRankRsp {
+  repeated crank.Rank ranks = 10;    // 这里的顺序和请求的顺序一致
+}
+
+message GetRankParaExtend {
+  string room_id = 1;
+  bool keep_id= 2;                // 不用show id替换 id, 目前只有oms 用户榜用到
+  bool show_room_owner_nick = 3;
+  bool show_user_privilege = 4;
+  bool no_entity_query = 5;       // 不进行rpc查询entity信息，由业务自己组装
+}
+
+// 活动信息
+message ActInfo {
+  int64 id = 1;                 // 活动ID
+  string name = 2;              // 活动名称
+  int64 start_time = 3;         // 活动开始时间
+  int64 end_time = 4;           // 活动结束时间
+  string remark = 6;            // 备注
+  string status = 7;            // 配置状态：normal disable del
+
+  
+  string url = 15; // 活动url地址多语言json格式{"en":"xx","ar":"xx"}
+
+
+  string activity_code = 20;    // 活动唯一code, 用于运营和开发沟通.
+  string application_code = 21; // 应用code, 用于记录积木平台的应用标识.
+
+  string cou = 30;              // 活动国家编码
+  string time_zone = 31;        // 活动时区
+}
+
+// 根据应用标识获取活动信息
+message GetActInfoByAppCodeReq {
+  string sid = 1; // 服id
+  string application_code = 10; // 应用标识
+}
+
+// 根据应用标识获取活动信息
+message GetActInfoByAppCodeRsp {
+  ActInfo act_info = 10;       // 活动信息
+  repeated comm.mgr.activity.RankInfo rank_list = 11;        // 榜单配置，查询数据时返回，目前值返回了指定礼物信息
+}
+
+message GetPendantRankReq {
+  int64 rank_id = 1; // 默认全部挂件模版,传值获取该榜单
+  string sid = 2; // 服id
+}
+
+message GetPendantRankRsp {
+  repeated  comm.api.activity.PandantRank list = 1;
+}
+
+message ListTaskParticipantReq {
+  scommon.Page page = 1;
+  string sid = 2; // 服id
+
+  int64 task_id = 11;           // 任务id
+  FilterType filter_type = 13;  // 过滤类别
+
+  enum FilterType {
+    FILTER_TYPE_NONE = 0;      // 没有过滤条件，查询所有
+    FILTER_TYPE_UNCLAIMED = 1; // 未领取
+  }
+}
+
+message ListTaskParticipantRsp {
+  scommon.Page page = 1;
+  repeated TaskParticipant participants = 10;
+}
+
+message TaskParticipant {
+  string member = 1;
+  comm.api.ctask.Task task = 2;
+}

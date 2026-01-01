@@ -1,0 +1,117 @@
+//  smicro:spath=gitit.cc/social/components-service/social-config/biz/whitelist/handlermgr/
+syntax = "proto3";
+
+import "protobuf/api/common/common.proto";
+
+package comm.mgr.config;;
+
+// option go_package="gitit.cc/social/components-service/social-config/proto/pbmconfig";
+option go_package="gitit.cc/social/protobuf/gencode/mgr/pbmconfig";
+
+// 白名单管理
+service Whitelist {
+  // 添加分组
+  rpc AddGroup(AddGroupReq) returns (AddGroupResp);
+  // 获取分组列表
+  rpc GetGroupList(GetGroupListReq) returns (GetGroupListResp);
+  // 添加分组成员
+  rpc AddGroupMember(AddGroupMemberReq) returns (AddGroupMemberResp);
+  // 获取分组成员
+  rpc GetGroupMembers(GetGroupMembersReq) returns (GetGroupMembersResp);
+  // 删除分组成员
+  rpc DelGroupMember(DelGroupMemberReq) returns (AddGroupMemberResp);
+  // 编辑分组
+  rpc EditGroup(EditGroupReq) returns (AddGroupResp);
+  // 批量查询用户是否在分组内
+  rpc BatchGroupMemberCheck(BatchGroupMemberCheckReq) returns (BatchGroupMemberCheckResp);
+}
+
+// 白名单分组类型
+enum WhitelistType {
+  TypeNone = 0;
+  TypeUID = 1; // 用户ID
+  TypeDID = 2; // 设备ID
+  TypeRID = 3; // 房间ID
+}
+
+message Group {
+  string name = 1; // 全局唯一，分组名称，建议用英文
+  string description = 2; // 分组描述
+  WhitelistType type = 3; // 分组类型，如：白名单、黑名单
+  string creator = 4; // 创建者
+  string editor = 5; // 最后更新者
+  int64 ctime = 6; // 创建时间
+  int64 utime = 7; // 最后更新时间
+}
+
+// 添加分组
+message AddGroupReq {
+    Group group = 1;
+}
+
+message AddGroupResp {
+  string group_name = 1;
+}
+
+// 获取分组列表
+message GetGroupListReq {
+  scommon.Page page = 1;
+  string group_name = 2;
+}
+
+message GetGroupListResp {
+  scommon.Page page = 1;
+  repeated Group groups = 2;
+}
+
+// 添加分组成员
+message AddGroupMemberReq {
+  string group_name = 1;
+  repeated string members = 2;
+}
+
+message AddGroupMemberResp {}
+
+// 分组成员信息
+message MemberInfo {
+  string member_id = 1;
+  int64 ctime = 2;
+  string editor = 3;
+}
+
+// 获取分组成员
+message GetGroupMembersReq {
+  scommon.Page page = 1;
+  string group_name = 2;
+}
+
+// 获取分组成员
+message GetGroupMembersResp {
+  scommon.Page page = 1;
+  repeated MemberInfo members = 2;
+}
+
+// 删除分组成员
+message DelGroupMemberReq {
+  string group_name = 1;
+  repeated string members = 2;
+}
+
+message EditGroupReq {
+   string description = 1;
+   string group_name = 2;
+}
+
+message EditGroupResp {}
+
+// 批量检查分组成员
+message BatchGroupMemberCheckReq {
+  string group_name = 1;
+  repeated string members = 2;
+}
+
+message BatchGroupMemberCheckResp {
+  repeated string match = 1;
+  repeated string not_match = 2;
+}
+

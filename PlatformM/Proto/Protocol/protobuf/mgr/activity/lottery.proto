@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package comm.mgr.activity;
+
+
+import "protobuf/mgr/activity/reward.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmactivity";
+
+message LotteryConf {
+    repeated LotteryDetail item = 1; // 奖池配置
+    repeated LotteryExtConfig ext_conf = 2; // 保底配置
+    repeated comm.mgr.activity.RewardPkg reward_pkg = 3; // 奖励包配置
+}
+
+message LotteryDetail {
+    string lottery_code = 1; // 抽奖code
+    string desc = 2;          // 描述信息
+    repeated LotteryItem item = 3; // 奖项配置
+}
+
+// 活动概率抽奖奖池配置
+message LotteryItem {
+    int64 id = 1; // 奖池项id
+    string round = 2;          // 轮次
+    string pkg_id = 3;         // 奖励包id
+    int64 quantity = 4;     // 数量
+    int32 probability = 5;     // 概率 * 100
+    bool stock_limit = 6;     // 是否限库存
+    int32 stock = 7;           // 库存
+    bool once = 8;            // round 可获得的次数限制，小于等于0不限制
+    int32 order_num = 9;           // 排序号
+    string ext = 10;           // 额外信息
+    int32 status = 11;         // 状态 1: 有效，0: 无效
+    int64 template_item_id = 12; // 模版的id，round="template"时为0
+}
+
+// 保底配置
+message LotteryExtConfig {
+    string pkg_id = 1; // 奖励包id
+    int64 guarantee_count = 2;     // 必中次数
+    int64 miss_count = 3;          // 非必中次数
+    int64 daily_guarantee_num = 4; // 每日最多抽出保底个数
+}

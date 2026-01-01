@@ -1,0 +1,332 @@
+syntax = "proto3";
+
+package pbaccount;
+
+option java_package = "com.entertain.sns.pbaccount";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbaccount";
+
+// 账号服务
+// serviceName: rpc.social.account
+// smicro:spath=gitit.cc/social/components-service/social-account/handler/account
+service Account {
+  // 登录注册
+  rpc Login (LoginReq) returns (LoginRsp);
+  // 登出
+  rpc Logout (LogoutReq) returns (LogoutRsp);
+  // 注销
+  rpc Withdraw (WithdrawReq) returns (WithdrawRsp);
+  // 取消注销
+  rpc WithdrawCancel (WithdrawCancelReq) returns (WithdrawCancelRsp);
+  // 是否使用密码
+  rpc UsePassword (UsePasswordReq) returns (UsePasswordRsp);
+  // 发送验证码
+  rpc SendCode (SendCodeReq) returns (SendCodeRsp);
+  // 修改密码
+  rpc ChangePassword (ChangePasswordReq) returns (ChangePasswordRsp);
+  // 重置密码
+  rpc ResetPassword (ResetPasswordReq) returns (ChangePasswordRsp);
+  // 校验验证码-暂时用于重置密码校验
+  rpc CheckVerificationCode (CheckVerificationCodeReq) returns (CheckVerificationCodeRsp);
+  // 刷新token
+  rpc RefreshToken (RefreshTokenReq) returns (RefreshTokenRsp);
+  // 获取国家列表
+  rpc ListCountry (ListCountryReq) returns (ListCountryRsp);
+
+  // 获取账号状态
+  rpc GetAccountStatus (GetAccountStatusReq) returns (GetAccountStatusRsp);
+
+  // 绑定手机号
+  rpc BindPhone(BindPhoneReq) returns (BindPhoneRsp);
+
+  // 绑定谷歌账号
+  rpc BindGoogle(BindGoogleReq) returns (BindGoogleRsp);
+
+  // 绑定脸书账号
+  rpc BindFacebook(BindFacebookReq) returns (BindFacebookRsp);
+
+  // 绑定苹果账号
+  rpc BindApple(BindAppleReq) returns (BindAppleRsp);
+
+  // 获取已绑定的手机号和第三方账号
+  rpc GetBindAccount(GetBindAccountReq) returns (GetBindAccountRsp);
+}
+
+message LoginReq {
+  string third_token = 1; // 第三方Token
+  string phone = 2; // 手机号
+  string verification_code = 3; // 验证码
+  string password = 4; // 密码
+  LoginType  login_type = 5; // 登录类型
+  string third_account = 6; // 第三方账号，可为账号/邮箱，有就传
+  string area_code = 7; // 区号
+  SendCodeType send_code_type = 8; // 发送短信类型
+  VerifyCodeBusinessType business_type = 9; // 验证码功能类型
+  string redirect_url = 10; //跳转链接
+  string code_verifier = 11; //tiktok code verifier is used to generate code challenge in PKCE authorization flow
+  string account = 12;  // 账号
+
+  DeviceInfo device_info = 20; // 设备信息
+
+  string biz_ext = 100;         // 业务拓展信息, 最好定义成一个 JSON 字符串并且有一个结构对应, 中台会在 AccountCallback 接口处回调传给业务.
+}
+
+// 设备信息
+message DeviceInfo {
+  string model = 1; // 设备型号
+  string brand = 2; // 设备品牌
+}
+
+message LoginRsp {
+  string access_token = 1; // 访问token
+  string refresh_token = 2; // 刷新token，访问token过期时，业务方自己决定是否用refresh_token续期
+  bool is_first_register = 3; // 是否为首次注册
+  AccountStatus status = 4; //账号状态
+  int64 uid = 5;
+  int64 dateline = 6; // 账号状态对应的截止时间戳
+}
+
+// 退登原因
+enum LogoutReason {
+  LOGOUT_REASON_NONE = 0;
+
+  LOGOUT_REASON_BANNED = 10;            // 封禁【被动】
+  LOGOUT_REASON_TOKEN_EXPIRED = 20;     // token 过期【被动】
+  LOGOUT_REASON_RTM_KICKED = 30;        // RTM 踢出【被动】
+  LOGOUT_REASON_RONGYUN_KICKED = 40;    // 融云踢出【被动】
+  LOGOUT_REASON_LOGOUT_ACCOUNT = 50;    // 用户退出登录【用户主动】
+  LOGOUT_REASON_DELETE_ACCOUNT = 60;    // 用户删除账号【用户主动】
+  LOGOUT_REASON_WEB_LOGOUT = 70;        // 前端退出登录？【不确定是什么场景】
+  LOGOUT_REASON_UNDERAGE_CONFIRM = 80;  // 18岁确认弹窗退出登录【客户端主动踢出】
+  LOGOUT_REASON_USERINFO_EXIT = 90;     // 注册用户信息的时候主动退出【用户主动】
+}
+
+message LogoutReq {
+  LogoutReason reason = 10; // 退登原因
+  string log = 11;          // 一些日志, 后续排查问题可能会有些帮助， 例如请求某个接口返回了 10002 , 可以把接口的信息上报上来， 后端只是打印在日志里面.
+}
+
+message LogoutRsp {
+}
+
+message WithdrawReq {
+}
+
+message WithdrawRsp {
+}
+
+message WithdrawCancelReq {
+  int64 uid = 1;
+}
+
+message WithdrawCancelRsp {
+}
+
+message UsePasswordReq {
+  string area_code = 1; // 国家区号
+  string phone = 2; // 手机号
+}
+
+message UsePasswordRsp {
+  bool use_password = 1; // 是否使用密码 true-使用 false-不使用
+}
+
+message SendCodeReq {
+  string area_code = 1; // 区号
+  string phone = 2; // 手机号
+  SendCodeType send_code_type = 3; // 发送验证码方式
+  VerifyCodeBusinessType business_type = 4; // 验证码业务类型
+}
+
+message SendCodeRsp {
+}
+
+message ChangePasswordReq {
+  string old_password = 1; // 旧密码
+  string new_password = 2; // 新密码
+  bool is_need_login = 3; // 是否需要重新登录
+}
+
+message ChangePasswordRsp {
+
+}
+
+message ResetPasswordReq {
+  string password = 1; // 新密码
+  string tmp_token = 2; // 临时token
+  string area_code = 3; // 区号
+  string phone = 4; // 手机号
+  SendCodeType send_code_type = 5; // 发送验证码方式
+}
+
+message ResetPasswordRsp {
+
+}
+
+message CheckVerificationCodeReq {
+  string area_code = 1; // 区号
+  string phone = 2; // 手机号
+  string verification_code = 3; // 验证码
+  VerifyCodeBusinessType business_type = 4; // 验证码业务类型
+  SendCodeType send_code_type = 5; // 发送验证码渠道
+}
+
+message CheckVerificationCodeRsp {
+  string tmp_token = 1; // 临时token，重置密码时用于校验身份
+}
+
+message RefreshTokenReq {
+  string refresh_token = 1; // 刷新token
+  string access_token = 2; // 访问token
+}
+
+message RefreshTokenRsp {
+  string access_token = 1; // 访问token
+  string refresh_token = 2; // 刷新token
+}
+
+message ListCountryReq {
+
+}
+
+message ListCountryRsp {
+  repeated CountryInfo infos = 1; // 国家列表
+}
+
+// 国家信息
+message CountryInfo {
+  string image = 1; // 图片URL
+  string abbreviation = 2; // 国家缩写
+  string name = 3; // 国家名称
+  int32 code = 4; // 编码
+  map<string, string> i18n_names = 5; // 国际化名称, {"en": "xxx", "ar": "yyy"}.
+}
+
+message GetAccountStatusReq {
+  LoginType login_type = 1; // 登录类型/注册类型
+
+  string area_code = 2; // 区号
+  string phone = 3; // 手机号
+
+  string third_token = 4; // 第三方Token
+  string third_account = 5; // 第三方账号，可为账号/邮箱，有就传
+
+  string account = 6;  // 账号
+}
+
+message GetAccountStatusRsp {
+  int64 uid = 1; // 用户uid
+  AccountStatus status = 2; // 账号状态
+  int64 dateline = 3; // 账号状态对应的截止时间戳
+}
+
+// 账号状态
+enum AccountStatus {
+  ACCOUNT_STATUS_NONE = 0;  // 无状态
+  ACCOUNT_STATUS_NORMAL = 1; // 正常
+  ACCOUNT_STATUS_BAN = 2; // 封禁
+  ACCOUNT_STATUS_FROZEN = 3; // 冻结
+  ACCOUNT_STATUS_WITHDRAW = 4; // 注销（注销冷静期过后更新为删除）
+  ACCOUNT_STATUS_DELETE = 5; // 删除
+}
+
+// 登录类型
+enum LoginType {
+  LOGIN_TYPE_NONE = 0;
+  LOGIN_TYPE_PHONE = 1; // 验证码登录
+  LOGIN_TYPE_FACEBOOK = 2;  // facebook登录
+  LOGIN_TYPE_SNAPCHAT = 3;  // snapchat登录
+  LOGIN_TYPE_GOOGLE = 4;  // google登录
+  LOGIN_TYPE_TWITTER = 5; // twitter登录
+  LOGIN_TYPE_APPLE = 6; // apple登录
+  LOGIN_TYPE_PASSWORD = 7; // 密码登录(手机号 + 密码)
+  LOGIN_TYPE_TIKTOK = 8; // tiktok登录
+  LOGIN_TYPE_DEVICE_ID = 9; // 设备信息登录(did)
+  LOGIN_TYPE_ACCOUNT_PASSWORD = 10; // 密码登录(账号 + 密码)
+  LOGIN_TYPE_WHATSAPP = 11; // Whatsapp登录
+}
+
+// 发送验证码类型
+enum SendCodeType {
+  SEND_CODE_TYPE_NONE = 0;
+  SEND_CODE_TYPE_PHONE = 1; // 手机号
+  SEND_CODE_TYPE_WHATSAPP = 2;  // Whatsapp
+}
+
+// 验证码业务类型
+enum VerifyCodeBusinessType {
+  BUSINESS_TYPE_NONE = 0;
+  BUSINESS_TYPE_RESET_PASSWORD = 1; // 重置密码
+  BUSINESS_TYPE_CHANGE_PASSWORD = 2; // 修改密码
+  BUSINESS_TYPE_LOGIN = 3;  // 登录
+  BUSINESS_TYPE_BIND_PHONE = 4; // 绑定手机号
+}
+
+// 错误码
+enum ErrCode {
+  ERR_CODE_NONE = 0;
+
+  ERR_CODE_ACCOUNT_BAN = 40001;  //账户被封禁
+  ERR_CODE_ACCOUNT_WITHDRAW = 40002;  //账号注销中
+  ERR_CODE_ACCOUNT_DELETED = 40003;  //账号已删除
+  ERR_CODE_ACCOUNT_LOGIN_PARAMS_INVALID = 40004;  //账号登录参数错误
+  ERR_CODE_ACCOUNT_LOGIN_PWD_INVALID = 40005;  //账号登录账号密码错误
+  ERR_CODE_ACCOUNT_LOGIN_CODE_INVALID = 40006;  //账号登录验证码错误
+  ERR_CODE_DID_IS_BLANK = 40007;  // DID 登录时, DID 是空的
+  ERR_CODE_ACCOUNT_ALREADY_BIND = 41000; // 要绑定的账号已被绑定或注册
+  ERR_CODE_ACCOUNT_THIRD_TOKEN_INVALID = 41001; // 第三方 Token 无效
+  ERR_CODE_TOKEN_INVALID = 100001; // AccessToken 和 RefreshToken 已失效或已过期
+}
+
+message BindPhoneReq {
+  string phone_area = 10;         // 区号
+  string phone_num = 11;          // 手机号
+  string verification_code = 12;  // 验证码
+  string password = 20;           // 密码
+}
+message BindPhoneRsp {
+  
+}
+
+message BindGoogleReq {
+  string third_account = 10;      // 第三方账号
+  string third_token = 11;        // 第三方 Token
+}
+message BindGoogleRsp {
+  
+}
+
+message BindFacebookReq {
+  string third_account = 10;      // 第三方账号
+  string third_token = 11;        // 第三方 Token
+}
+message BindFacebookRsp {
+  
+}
+
+message BindAppleReq {
+  string third_account = 10;      // 第三方账号
+  string third_token = 11;        // 第三方 Token
+}
+message BindAppleRsp {
+  
+}
+
+message GetBindAccountReq {
+
+}
+message GetBindAccountRsp {
+  PhoneAccount phone_account = 10;
+  ThirdAccount google_account = 20;
+  ThirdAccount facebook_account = 30;
+  ThirdAccount apple_account = 40;
+}
+
+message PhoneAccount {
+  bool bind = 1;                  // 是否已绑定
+  string phone_area = 10;         // 区号
+  string phone_num = 11;          // 手机号
+}
+message ThirdAccount {
+  bool bind = 1;                  // 是否已绑定
+  string third_account = 10;      // 第三方账号
+}

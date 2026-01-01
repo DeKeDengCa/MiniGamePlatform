@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package api.astrorise.games.medal;
+
+import "protobuf/api/adapter/model.proto";
+import "protobuf/api/common/common.proto";
+import "api/platform/common.proto";
+
+// smicro:spath=gitit.cc//social/astrorise/argames/argcomm/biz/medal/handler
+option go_package = "gitit.cc/social/astrorise/arprotobuf/gencode/api/argames/pbmedal";
+
+// 成就系统-勋章
+service Medal {
+  // 获取勋章列表
+  rpc ListMedals(ListMedalsReq) returns (ListMedalsResp);
+
+  // 使用勋章-炫耀
+  rpc UseMedal(UseMedalReq) returns (UseMedalResp);
+
+  // 取消使用勋章-炫耀
+  rpc UnuseMedal(UnuseMedalReq) returns (UnuseMedalResp);
+
+  // 领取奖励
+  rpc ClaimReward(ClaimRewardReq) returns (ClaimRewardResp);
+}
+
+// 勋章进度信息
+message ModalProcess {
+  int64 event_id = 1; // 事件ID
+  int32 process = 2;  // 当前进度值
+}
+
+// 勋章基础信息
+message MedalInfo {
+  int32 game_id = 1; // 游戏ID
+  int32 medal_id = 2; // 勋章ID: 1000-4999：银质  5000-8999：金质 9000-9999：白金
+  double achieve_rate = 3; // 达成率
+  repeated ModalProcess process = 4;  // 勋章进度
+  bool is_using = 5; // 是否炫耀中
+  bool is_reward = 6; // 是否领取奖励
+  bool is_achieved = 7; // 是否达成
+}
+
+message ListMedalsItem {
+  int32 medal_id = 1; // 勋章ID
+  repeated int64 event_id = 2; // 达成事件ID
+}
+
+message ListMedalsReq {
+  int32 game_id = 1; // 游戏ID
+  repeated ListMedalsItem items = 2; // 勋章列表
+}
+
+message ListMedalsResp {
+  repeated MedalInfo medals = 1;
+}
+
+message UseMedalReq {
+  int32 game_id = 1;  // 游戏ID
+  int32 medal_id = 2; // 勋章ID
+}
+
+message UseMedalResp {
+}
+
+
+message UnuseMedalReq {
+  int32 game_id = 1;  // 游戏ID
+  int32 medal_id = 2; // 勋章ID
+}
+
+message UnuseMedalResp {
+}
+
+// 奖励内容
+message RewardItem {
+  int64 reward_id = 1; // 奖励ID
+  string reward_type = 2; // 奖励类型
+  int64 reward_num = 3; // 奖励数量
+}
+
+
+message ClaimRewardReq {
+  int32 game_id = 1;  // 游戏ID
+  int32 medal_id = 2; // 勋章ID
+  repeated RewardItem items = 3;
+}
+
+message ClaimRewardResp {
+  int32 medal_id = 1; // 勋章ID
+}

@@ -1,0 +1,137 @@
+syntax = "proto3";
+
+package mgr.astrorise.voiceroom.room.level;
+
+import "api/platform/voiceroom/room_level.proto";
+import "protobuf/api/privilege/v2/privilege.proto";
+
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbmroomlevel";
+
+// 房间等级
+// serviceName: gene-api
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/roomlevel/handlermgr
+service RoomLevelMgr {
+
+  // ---------- 等级档位管理 ----------
+  // 创建等级档位
+  rpc CreateLevelSlot (CreateLevelSlotReq) returns (CreateLevelSlotRsp);
+
+  // 更新房间等级档位
+  rpc UpdateLevelSlot (UpdateLevelSlotReq) returns (UpdateLevelSlotRsp);
+
+  // 查询档位列表
+  rpc ListLevelSlots (ListLevelSlotsReq) returns (ListLevelSlotsRsp);
+
+  // ---------- 等级档位权益管理 ----------
+  // 新增等级档位权益（可批量）
+  rpc AddLevelSlotPrivileges (AddLevelSlotPrivilegesReq) returns (AddLevelSlotPrivilegesRsp);
+
+  // 更新等级档位权益（单条）
+  rpc UpdateLevelSlotPrivilege (UpdateLevelSlotPrivilegeReq) returns (UpdateLevelSlotPrivilegeRsp);
+
+  // 删除等级档位权益（单条）
+  rpc DeleteLevelSlotPrivilege (DeleteLevelSlotPrivilegeReq) returns (DeleteLevelSlotPrivilegeRsp);
+
+  // 查询等级档位下权益列表
+  rpc ListLevelSlotPrivileges (ListLevelSlotPrivilegesReq) returns (ListLevelSlotPrivilegesRsp);
+
+}
+
+// 房间等级档位信息
+message RoomLevelSlot {
+  int64 id = 1;  // 等级档位ID
+  int32 level = 2; // 等级
+  int64 created_at = 10;
+  string creator = 11;
+  int64 updated_at = 12;
+  string updater = 13;
+}
+
+// 房间等级档位权益信息
+message RoomLevelSlotPrivilege {
+  int64 id = 1; // 权益id
+  int64 room_level_slot_id = 2; // 等级档位ID
+  api.astrorise.voiceroom.level.PrivilegeType privilege_type = 3; // 房间权益类型
+  int64 resource_id = 5; // 资源id
+  api.privilege.v2.EffectType effect_type = 6; // 资源生效类型
+  int64 amount = 7; // 数量
+  int64 effective_time = 8; // 有效时间 (单位:秒, <=0:永久)
+  string extend = 9; // 扩展信息 (JSON字符串),对应结构体:LevelSlotPrivilegeExtendXxx
+  string image_url = 14; // 特权图片url
+  int64 created_at = 10;
+  string creator = 11;
+  int64 updated_at = 12;
+  string updater = 13;
+}
+
+message RoomLevelSlotAndPrivilege {
+  RoomLevelSlot slot = 1; // 档位基础信息
+  repeated RoomLevelSlotPrivilege privileges = 2; // 档位包含的权益列表
+}
+
+
+message CreateLevelSlotReq {
+  int32 level = 1;
+}
+message CreateLevelSlotRsp {
+  int64 id = 1;
+}
+
+message UpdateLevelSlotReq {
+  int64 id = 1;
+  int32 level = 2;
+}
+message UpdateLevelSlotRsp {
+}
+
+message ListLevelSlotsReq {
+}
+message ListLevelSlotsRsp {
+  repeated RoomLevelSlot slots = 1;
+}
+
+
+message AddLevelSlotPrivilegesReq {
+  int64 room_level_slot_id = 1; // 等级档位ID
+  repeated CreateRoomLevelSlotPrivilege privileges = 2;
+}
+message AddLevelSlotPrivilegesRsp {
+}
+message CreateRoomLevelSlotPrivilege {
+  api.astrorise.voiceroom.level.PrivilegeType privilege_type = 1;
+  int64 resource_id = 3;
+  api.privilege.v2.EffectType effect_type = 4;
+  int64 amount = 5;
+  int64 effective_time = 6;
+  string extend = 7; // 扩展信息 (JSON字符串),对应结构体:LevelSlotPrivilegeExtendXxx
+  string image_url = 8; // 特权图片url
+}
+
+message UpdateLevelSlotPrivilegeReq {
+  int64 id = 1;
+  int64 amount = 2;
+  int64 effective_time = 3;
+  string extend = 4; // 扩展信息 (JSON字符串),对应结构体:LevelSlotPrivilegeExtendXxx
+  string image_url = 5; // 特权图片url
+}
+message UpdateLevelSlotPrivilegeRsp {
+}
+
+message DeleteLevelSlotPrivilegeReq {
+  int64 id = 1;
+}
+message DeleteLevelSlotPrivilegeRsp {
+}
+
+message ListLevelSlotPrivilegesReq {
+  int64 room_level_slot_id = 1;
+}
+message ListLevelSlotPrivilegesRsp {
+  repeated RoomLevelSlotPrivilege privileges = 1;
+  map<int64, api.privilege.v2.Resource> resources = 2; // map<特权资源id, 特权资源>
+  repeated api.astrorise.voiceroom.level.PrivilegeType missing_privilege_types = 3; // 对比上一等级缺失的权限类型
+}
+
+message LevelSlotPrivilegeExtendMicNumber{
+  repeated string room_layout_codes = 1; // 房间麦位布局code;eg:chat_10,partner_9,partner_10,cp
+}

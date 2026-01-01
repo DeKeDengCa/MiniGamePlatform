@@ -1,0 +1,39 @@
+// smicro:spath=gitit.cc/social/components-service/social-biz/biz/family/handlersvr
+syntax = "proto3";
+
+package pbsfamily;
+
+import "protobuf/api/family/family-comm.proto";
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsfamily";
+
+// 家族 SVR 接口
+// ServiceName: social-family
+service FamilySvr {
+
+    // 获取家族详情
+    rpc GetFamilyDetail(GetFamilyDetailReq) returns (GetFamilyDetailRsp);
+
+    // 获取家族成员列表
+    rpc ListFamilyMember(ListFamilyMemberReq) returns (ListFamilyMemberRsp);
+}
+
+message GetFamilyDetailReq {
+  int64 family_id = 1; // 家族ID
+}
+
+message GetFamilyDetailRsp {
+  comm.api.family.FamilyDetail detail = 1; // 家族详情
+}
+
+message ListFamilyMemberReq {
+  scommon.Page page = 1;  // 分页参数
+  int64 family_id = 10;   // 家族ID
+  string skey = 11;       // 模糊匹配
+}
+
+message ListFamilyMemberRsp {
+  scommon.Page page = 1; // 分页参数
+  repeated comm.api.family.FamilyMemberInfo members = 10; // 成员列表-包一层成员列表
+}

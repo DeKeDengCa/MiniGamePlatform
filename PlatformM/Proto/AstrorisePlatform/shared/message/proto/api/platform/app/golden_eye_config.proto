@@ -1,0 +1,44 @@
+syntax="proto3";
+
+package app.config.gene.golden_eye;
+
+import "protobuf/api/sconfig/options.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbsconfig";
+
+option (sconfig.schema.biz_name)="基建功能配置";
+
+message GoldenEyeConfig {
+    option (sconfig.schema.cfg_name) = "GoldenEye功能开关配置";
+    option (sconfig.schema.model_type) = "golden_eye";
+
+    bool mem_leak = 1 [(sconfig.schema.input) = {
+        name:"是否开启内存泄漏监控"
+        opt:false
+    }];
+
+    bool mem_canary = 2 [(sconfig.schema.input) = {
+        name:"是否开启内存监控"
+        opt:false
+    }];
+
+    bool trace = 3 [(sconfig.schema.input) = {
+        name:"是否开启卡顿监控"
+        opt:false
+    }];
+
+    bool traffic_monitor = 4 [(sconfig.schema.input) = {
+        name:"是否开启网络流量监控"
+        opt:false
+    }];
+
+    bool large_image = 5 [(sconfig.schema.input) = {
+        name:"是否开启大图监控"
+        opt:false
+    }];
+
+    bool screen_recorder = 6 [(sconfig.schema.input) = {
+        name:"是否开启屏幕录制"
+        opt:false
+    }];
+}

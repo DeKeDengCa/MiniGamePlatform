@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package api.privilege;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/privilege/privilege.proto";
+import "protobuf/api/privilege/enum.proto";
+
+option java_package = "com.entertain.sns.api.privilege";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbprivilegev1";
+
+// ServiceName: privilege-api
+service BagApi {
+  // 背包商品列表
+  rpc ListBagGoods(ListBagGoodsReq) returns (ListBagGoodsRsp);
+
+  // 使用背包物品
+  rpc UseBagGoods(UseBagGoodsReq) returns (UseBagGoodsRsp);
+
+  // 解除使用
+  rpc DisuseBagGoods(DisuseBagGoodsReq) returns (DisuseBagGoodsRsp);
+
+  // 查询使用中权益
+  rpc GetUsingPrivilege(GetUsingPrivilegeReq) returns (GetUsingPrivilegeRsp);
+
+}
+
+// 背包商品
+message BagGoods {
+  int64 id = 1; //背包道具ID bagID
+  int64 category_id = 2; //商品分类ID
+  int64 sub_category_id = 3; //商品子类ID
+  CategoryAlias category_alias = 4; //商品分类标识
+  CategoryAlias sub_category_alias = 5; //商品子分类标识
+  string name = 6;  //商品名称
+  int64 num = 7;  //商品数量
+  string thumb = 8; //商品缩略图
+  string image = 9; //商品图片
+  string media_type = 10; //多媒体类型
+  string media_url = 11; //多媒体地址
+  string brief = 12; //商品描述
+  int64 good_id = 13; //对应的商城good_id
+  int32 is_using = 14; //是否使用中 1-否  2-是
+  int32 is_used = 15;  //是否使用过 1-否  2-是
+  int64 period_end = 16;  //截止有效期 -1 永久有效
+  string period_end_text = 17; //截止有效期展示
+  int64 ctime = 18; //创建时间
+  int64 utime = 19; //更新时间
+}
+
+// 商城商品列表请求
+message ListBagGoodsReq {
+  scommon.Page page = 1;
+  int64 category_id = 2;  //分类ID, 优先使用分类ID, 分类ID为空使用分类alias
+  CategoryAlias category_alias = 3;  //分类标识
+  int64 sub_category_id = 4;  //子分类ID
+  CategoryAlias sub_category_alias = 5;  //二级分类标识
+}
+
+// 商城商品列表响应
+message ListBagGoodsRsp {
+  repeated BagGoods goods = 1; //背包商品列表
+}
+
+message UseBagGoodsReq {
+  int64 bag_id = 1;
+  int64 num = 2;
+}
+
+message UseBagGoodsRsp {}
+
+message DisuseBagGoodsReq {
+  int64 bag_id = 1;
+}
+
+message DisuseBagGoodsRsp {
+}
+
+message GetUsingPrivilegeReq {
+  CategoryAlias privilege_alias = 1; // 背包权益标识：一级/二级分类
+}
+
+message GetUsingPrivilegeRsp {
+  bool has_privilege = 1; // 是否有该权益
+  BagPrivilege privilege = 2; // 权益详情
+}

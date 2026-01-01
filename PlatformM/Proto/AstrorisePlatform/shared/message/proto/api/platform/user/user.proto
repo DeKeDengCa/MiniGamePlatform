@@ -1,0 +1,121 @@
+syntax = "proto3";
+
+package api.astrorise.user;
+
+import "api/platform/common.proto";
+import "protobuf/api/adapter/model.proto";
+import "protobuf/api/common/common.proto";
+
+// smicro:spath=gitit.cc/social/astrorise/arplatform/s_user/biz/userinfo/handler
+option go_package = "gitit.cc/social/astrorise/arprotobuf/gencode/api/user/pbuser";
+option java_package="com.entertain.sns.api.astrorise.user";
+
+// ********************************接口******************************
+// serviceName: astrorise.platform.user
+service User {
+  // GetUserInfo 获取用户信息
+  rpc GetUserInfo(GetUserInfoReq) returns (GetUserInfoRsp);
+  // UpdateUserInfo 更新用户信息
+  rpc UpdateUserInfo(UpdateUserInfoReq) returns (UpdateUserInfoRsp);
+  // 获取当前用户称号
+  rpc GetUserTitle(GetUserTitleReq) returns(GetUserTitleRsp);
+  // 批量获取用户信息
+  rpc BatchGetUserInfo(BatchGetUserInfoReq) returns (BatchGetUserInfoRsp);
+  // 获取用户标签列表
+  rpc GetUserTagList(GetUserTagListReq) returns (GetUserTagListRsp);
+  // 审核昵称
+  rpc AuditNickName(AuditNickNameReq) returns (AuditNickNameRsp);
+
+  // 客户端上报心跳,15s上报一次吧
+  rpc HeartBeat (HeartBeatReq) returns (HeartBeatRsp);
+  // 批量获取在线状态，当uids超过20个，服务端返回前20个
+  rpc BatchGetOnlineStatus(BatchGetOnlineStatusReq) returns (BatchGetOnlineStatusRsp);
+  // 搜索用户
+  rpc Search(SearchReq) returns (SearchRsp);
+}
+
+// ********************************枚举******************************
+
+// *******************************结构体******************************
+
+message GetUserInfoReq {
+  int64 target_uid = 1;
+  int32 game_id = 2;  // 游戏id
+}
+
+message GetUserInfoRsp {
+  comm.api.adapter.UserInfo base_user_info = 1;
+  api.astrorise.platform.GameUserInfo game_user_info = 2;
+}
+
+message UpdateUserInfoReq {
+  comm.api.adapter.UserInfo base_user_info = 1;
+  api.astrorise.platform.GameUserInfo game_user_info = 2;
+
+  comm.api.adapter.UserInfo base_user_selector = 3;
+  api.astrorise.platform.GameUserInfo game_user_selector = 4;
+}
+
+message UpdateUserInfoRsp {
+  comm.api.adapter.UserInfo base_user_info = 1;
+  api.astrorise.platform.GameUserInfo game_user_info = 2;
+}
+
+message GetUserTitleReq {
+  int32 game_id = 1;
+}
+
+message GetUserTitleRsp {
+  repeated int32 title_ids = 1;
+}
+
+message HeartBeatReq {
+  int64 c_time_ms = 1;
+}
+
+message HeartBeatRsp {
+  int64 c_time_ms = 1;
+}
+
+message BatchGetOnlineStatusReq {
+  repeated int64 uids = 1;
+}
+
+message BatchGetOnlineStatusRsp {
+  map<int64, api.astrorise.platform.UserStatus> status_map = 1;
+}
+
+message SearchReq {
+  scommon.Page page = 1;
+  string keyword = 2;
+}
+
+message SearchRsp {
+  repeated comm.api.adapter.UserInfo user_infos = 1;
+  scommon.Page page = 2;
+}
+
+message AuditNickNameReq {
+  bool is_register = 1; // 是否注册页审核昵称(冗余字段，可能后续扩展，预留)
+  string nickname = 2;
+}
+
+message AuditNickNameRsp {
+  bool pass = 1; // 是否通过
+}
+
+message BatchGetUserInfoReq {
+  repeated int64 uids = 1;
+  int32 game_id = 2;
+}
+
+message BatchGetUserInfoRsp {
+  map<int64, comm.api.adapter.UserInfo> base_user_info_map = 1;
+  map<int64, api.astrorise.platform.GameUserInfo> game_user_info_map =2;
+}
+
+message GetUserTagListReq {}
+
+message GetUserTagListRsp {
+  repeated api.astrorise.platform.UserTag tag_list = 1;
+}

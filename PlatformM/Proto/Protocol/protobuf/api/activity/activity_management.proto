@@ -1,0 +1,120 @@
+syntax = "proto3";
+
+package comm.api.activity;
+
+import "protobuf/api/activity/common.proto";
+import "protobuf/api/sconfig/model.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbactivity";
+
+// 活动管理平台对外协议
+// ServiceName: 一般是各个业务的主服务名，具体咨询业务
+// smicro:spath=gitit.cc/social/components/abase/abaseapi-handler.go
+service ABaseApi {
+
+  // 根据 code 获取活动配置
+  rpc GetActivityConfigByCode(GetActivityConfigByCodeReq) returns (GetActivityConfigByCodeRsp);
+
+}
+
+// 根据 code 获取活动配置
+message GetActivityConfigByCodeReq {
+  string code = 1; // 活动 code
+}
+
+// 根据 code 获取活动配置
+message GetActivityConfigByCodeRsp {
+  ActivityConfig activity = 1; // 活动配置
+}
+
+// 活动信息  rank:{code}:{key}:top1
+// 这里从 ActivityInfo 改成了 ActivityConfig 以避免和其他地方的 ActivityInfo 冲突
+message ActivityConfig {
+  string code = 1;                        // 活动code
+  ActivityBaseConfig base_config = 2;     // 活动基础配置
+  string code_name = 3;                        // 活动code中文备注
+
+  repeated RankSchema rank_schemas = 10;  // 榜单的schema，后续还有抽奖、任务等
+
+  repeated IMNotifySchema im_notify_schemas = 20;  // IM notify的schema
+
+  map<string, RankLeafConfig> rank_leaf_config = 30; // 榜单的奖励配置
+
+  TaskSchema task_schemas = 40; // 任务的配置
+
+  repeated string stage = 41; // 赛段
+}
+
+// 活动基础配置信息
+message ActivityBaseConfig {
+  sconfig.model.Time start_time = 1;
+  sconfig.model.Time end_time = 2;
+}
+
+message RankSchema {
+  string id = 1;
+  string name = 2;
+  repeated RankNode nodes = 10;
+}
+
+message TaskSchema{
+  repeated string task_action = 1;
+  repeated string task_tag = 2;
+  string task_action_prefix = 3;
+  string task_tag_prefix = 4;
+}
+
+message IMNotifySchema {
+  string key = 1;
+  string name = 2;
+}
+
+// 榜单节点的schema
+message RankNode {
+  string id = 1;
+  string key = 2;
+  RankNodeType type = 3;
+  string desc = 4;
+
+  comm.api.activity.RankMajorType rank_type = 10;
+
+  repeated RankNode childs = 20;
+}
+enum RankNodeType {
+  RANK_NODE_NONE = 0;
+  RANK_NODE_CONTAINER = 1;
+  RANK_NODE_RANK = 2;
+}
+
+message RankLeafConfig {
+  sconfig.model.Langs title = 1; // 榜单的名称
+
+  repeated RankReward rewards = 20 ; // 榜单奖励
+
+  string ext = 99 ;
+}
+message RankReward {
+  sconfig.model.Langs title = 1; // 奖励区间的名称，比如Top1
+
+  int64 start_rank = 10;     // 开始过滤名次，0代表不过滤
+  int64 stop_rank = 11;      // 结束过滤名次，0代表不过滤
+  int64 start_score = 12;    // 限制开始分数，0代表不过滤
+  int64 end_score = 13;      // 限制结束分数，0代表不过滤
+  RewardPkg reward = 14;     // 奖励
+  repeated ScoreReward rewards = 20; // 部分奖励要区分不同的分数，则放到这里来。
+
+  repeated RankReward sub_rewards = 30; // 支持者榜单奖励
+
+  string ext = 99 ;
+}
+
+message ScoreReward {
+  int64 start_score = 1;    // 限制开始分数，0代表不过滤
+  int64 end_score = 2;      // 限制结束分数，0代表不过滤
+  RewardPkg reward_pkg = 3; // 对应的奖励包配置
+}
+
+message RewardPkg {
+  string sence_id = 1;                    // 场景ID
+  string pkg_id = 10;                     // 0表示初次生成，否则表示修改
+}

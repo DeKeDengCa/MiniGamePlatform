@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package pbrefund;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsrefund";
+option java_package = "com.refund.biz.proto";
+
+// 退款工单关联的系统消息服务
+service RefundMessage {
+  // 发送系统消息
+  rpc SendSystemMessage(SendSystemMessageReq) returns (SendSystemMessageRsp) {}
+}
+
+// 消息
+message Message {
+  int64 to_uid = 1;
+  map<string, string> i18n_content = 2; // 国际化消息文案, map<国家码, 对应文案>
+  string default_content = 3;           // 缺省消息文案
+}
+
+// 发送系统消息
+message SendSystemMessageReq {
+  repeated Message messages = 1;
+}
+
+// 发送系统消息
+message SendSystemMessageRsp {
+
+}

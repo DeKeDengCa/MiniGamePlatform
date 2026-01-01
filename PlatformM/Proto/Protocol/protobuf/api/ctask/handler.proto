@@ -1,0 +1,136 @@
+syntax = "proto3";
+
+package comm.api.ctask;
+
+option java_package = "com.entertain.sns.comm.api.ctask";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbctask";
+
+import "protobuf/api/ctask/task.proto";
+
+//smicro:spath=gitit.cc/social/components/ctask/api_handler.go
+
+service CTask {
+  // 按活动的维度查询对象的所有任务
+  rpc ListTasks(ListTasksReq) returns (ListTasksRsp);
+
+  // 做任务，给任务加进度
+  // 版本号不匹配时，提示用户刷新：CODE_VERSION_NOT_MATCH
+  rpc DoTask(DoTaskReq) returns (DoTaskRsp);
+
+  // 领取任务奖励
+  // 版本号不匹配时，提示用户刷新：CODE_VERSION_NOT_MATCH
+  rpc TakeReward(TakeRewardReq) returns (TakeRewardRsp);
+
+  // 批量查询（用于不是基于活动层次去组织任务的情况）
+  rpc BatchListTasks(BatchListTasksReq) returns (BatchListTasksRsp);
+}
+
+
+enum Code {
+  CODE_OK = 0;
+  CODE_VERSION_NOT_MATCH = 20001;
+  CODE_INVENTORY_NOT_ENOUGH = 20002;
+}
+
+message BaseReq {
+  // name/template由后端提供
+  string name = 1;      // 类似于服务名的定义
+  string template = 2;  // 类似于活动id的定义
+
+  int32 round = 10; // 当前轮次，从1开始
+}
+
+
+message ListTasksReq {
+  BaseReq base_req = 1;
+
+  // 被查询的对象，即要查谁的任务
+  // 用户视角有两种对象，1是发起查询动作的对象（公参uid），2是被查询的对象，往往1和2是同一个
+  // e.g. 用户查自己的用户任务，member=公参uid；用户查自己的房间任务，member=房间id
+  string member = 6;
+}
+
+message ListTasksRsp {
+  ListTasksRet ret = 1;
+}
+
+message ListTasksRet {
+  // 任务列表
+  repeated Task tasks = 1;
+  // 版本号，领取奖励时前端需要传回来，后端检查配置是否一致
+  int64 version = 2;
+  // 额外信息，跟业务自行商定
+  string extend = 10;
+}
+
+
+message DoTaskReq {
+  BaseReq base_req = 1;
+
+  // 由 ListTasksRet 获得，后端用于校验配置是否已经发生更改
+  int64 version = 5;
+  // 同 ListTasksReq.Member
+  string member = 6;
+  // 任务id
+  string task_id = 7;
+  // 要增加的进度值
+  int64 incr_progress = 8;
+}
+
+message DoTaskRsp {
+  DoTaskRet ret = 1;
+}
+
+message DoTaskRet {
+  // 实际加的进度值
+  int64 incr_progress = 1;
+  // 新的进度值，当incr_progress>0时才会赋值
+  int64 new_progress = 2;
+}
+
+message TakeRewardReq {
+  BaseReq base_req = 1;
+
+  // 由 ListTasksRet 获得，后端用于校验配置是否已经发生更改
+  int64 version = 5;
+  // 同 ListTasksReq.Member
+  string member = 6;
+  // 要领取的任务id
+  string task_id = 7;
+  // 领取指定阶段时传对应阶段的索引值（从0开始）
+  // 一键领取不传
+  repeated int32 stages = 8;
+  // 领取的奖励数量，0表示领取所有
+  int64 count = 9;
+  // 额外信息，跟业务自行商定，会透传到发奖
+  string ext = 10;
+}
+
+message TakeRewardRsp {
+  TakeRewardRet ret = 1;
+}
+
+message TakeRewardRet {
+  repeated Reward rewards = 1;
+}
+
+
+message BatchListTasksReq {
+  // name/template由后端提供
+  string name = 1;
+  repeated string template = 2;
+
+  // 被查询的对象，即要查谁的任务
+  string member = 6;
+
+  // 当前轮次，从1开始
+  int32 round = 10;
+}
+
+message BatchListTasksRsp {
+  BatchListTasksRet ret = 1;
+}
+
+message BatchListTasksRet {
+  map<string, ListTasksRet> batch_tasks = 1;
+}

@@ -1,0 +1,28 @@
+// smicro:spath=gitit.cc/social/echo/handle/svr
+syntax = "proto3";
+
+package pbsadapter;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsadapter";
+option java_package = "com.common.biz.message";
+
+service CommonMessage {
+  rpc SendSystemMessage(SendSystemMessageReq) returns (SendSystemMessageRsp) {}
+}
+
+message SystemMessage {
+  string rich_text = 1; // 富文本消息, 这个是最理想的方式, 但是目前 Echo 业务不支持富文本消息, 所以才有下面的字段.
+  string title = 2;     // 标题
+  string content = 3;   // 内容
+  string image = 4;     // 图片
+  string href = 5;      // 超链
+}
+
+message SendSystemMessageReq {
+  int64 uid = 1;                                 // 目标 uid
+  map<string, SystemMessage> system_message = 2;  // 国际化系统消息, 目前支持 ZH / EN / AR
+}
+
+message SendSystemMessageRsp {
+
+}

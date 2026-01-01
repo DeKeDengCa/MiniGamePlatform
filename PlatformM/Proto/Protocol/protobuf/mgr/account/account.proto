@@ -1,0 +1,287 @@
+// smicro:spath=gitit.cc/social/components-service/social-account/handler-mgr/accountmgr
+syntax = "proto3";
+
+package comm.mgr.account;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/account/account.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmaccount";
+
+service AccountMgr {
+  // 封禁用户操作
+  rpc BanAccount (BanAccountReq) returns (BanAccountRsp);
+
+  // 查询已封禁账户列表
+  rpc ListBannedAccount(ListBannedAccountReq) returns (ListBannedAccountRsp);
+  // 快速注销三方注册用户
+  rpc QuickWithdrawThirdAccount(QuickWithdrawThirdAccountReq) returns (QuickWithdrawThirdAccountRsp);
+
+  // 绑定手机号
+  rpc BindPhoneNum(BindPhoneNumReq) returns (BindPhoneNumRsp);
+
+  // 获取账号信息
+  rpc GetAccountInfo(GetAccountInfoReq) returns (GetAccountInfoRsp);
+
+  // 查询最新的封禁/解封日志
+  rpc GetLatestBanLog(GetBanLogReq) returns (GetBanLogRsp);
+
+  // 批量获取账号信息
+  rpc BatchGetAccountInfo(BatchGetAccountInfoReq) returns (BatchGetAccountInfoRsp);
+
+  // 批量获取账号信息通过did
+  rpc BatchGetAccountsByDids(BatchGetAccountsByDidsReq) returns (BatchGetAccountsByDidsRsp);
+
+  // 获取国家列表
+  rpc ListCountry (ListCountryReq) returns (ListCountryRsp);
+
+  // 搜索账户列表
+  rpc ListAccount(ListAccountReq) returns (ListAccountRsp);
+
+  // 添加/修改密码
+  rpc ModifyPassword(ModifyPasswordReq) returns (ModifyPasswordRsp);
+
+  // 添加/修改手机号
+  rpc ModifyPhoneNumber(ModifyPhoneNumberReq) returns (ModifyPhoneNumberRsp);
+
+  // 交换两个账户的登录方式
+  rpc SwapLoginType(SwapLoginTypeReq) returns (SwapLoginTypeRsp);
+}
+// 账号封禁/解禁类型
+enum AccountBanType {
+  ACCOUNT_BAN_TYPE_UID = 0; // 默认按uid
+  ACCOUNT_BAN_TYPE_REG_DID = 1; // 按注册did
+  ACCOUNT_BAN_TYPE_REG_IP = 2; // 按注册ip
+}
+
+/*
+  账号封禁操作类型
+ */
+enum AccountBanOptType {
+  ACCOUNT_BAN_OPT_NONE = 0;
+  ACCOUNT_BAN_OPT_BAN = 1;  // 封禁
+  ACCOUNT_BAN_OPT_UNBAN = 2; // 解封
+}
+
+// 账号封禁/解封 批量类型
+enum AccountBanBatchType {
+  ACCOUNT_BAN_BATCH_TYPE_SINGLE = 0; // 默认单个
+  ACCOUNT_BAN_BATCH_TYPE_BATCH = 1; // 批量
+}
+
+
+message BanAccountReq {
+  AccountBanOptType ban_opt_type = 1; // 操作类型
+  int64 uid = 2;
+  int64 expired_at = 3; //截止日期
+  string reason = 4;  //原因
+  string operator = 5; //操作人
+  repeated int64 batch_uid = 6; // uid列表
+
+  AccountBanType ban_type = 10; // 封禁类型
+  AccountBanBatchType ban_batch_type = 11; // 封禁批量类型
+  string did = 12; // 单个did
+  repeated string batch_did = 13; // did列表
+  string ip = 14; // 单个ip
+  repeated string batch_ip = 15;  // ip列表
+}
+
+message BanAccountRsp {
+
+}
+
+message QuickWithdrawThirdAccountReq {
+  int64 uid = 1; // 用户ID
+}
+
+message QuickWithdrawThirdAccountRsp {
+
+}
+
+// 已封禁的账户
+message BannedAccount {
+  int64 uid = 1;
+  string nickname = 2;
+  string avatar = 3;
+
+  int64 ban_start_at = 10;
+  int64 ban_end_at = 11;
+  string ban_reason = 12;
+
+  int64 operate_at = 50;
+  string operate_by = 51;
+}
+
+message ListBannedAccountReq {
+  scommon.Page page = 1;            // 分页参数
+  scommon.Sorts sorts = 2;          // 排序参数
+  string uids = 10;                 // 用户ID, 以逗号分隔.
+  int64 ban_at_start = 11;          // 封禁时间开始
+  int64 ban_at_end = 12;            // 封禁时间结束
+}
+
+message ListBannedAccountRsp {
+  scommon.Page page = 1;                        // 分页参数
+  repeated BannedAccount banned_accounts = 10;  // 已封禁账户
+}
+
+message BindPhoneNumReq {
+  int64 uid = 1; // 用户uid
+  string phone_area = 10; // 区号
+  string phone_num = 11; // 号码
+  string operator = 12; // 操作人 需要传真实操作人用户名
+}
+
+message BindPhoneNumRsp {
+
+}
+
+message GetAccountInfoReq {
+  int64 uid = 1; // 用户ID
+}
+
+message GetAccountInfoRsp {
+  AccountInfo info = 1; // 账号信息
+}
+
+message BatchGetAccountInfoReq {
+  repeated int64 uids = 10; // UID
+}
+
+message BatchGetAccountInfoRsp {
+  map<int64, AccountInfo> account_infos = 10; // 账号信息
+}
+
+message AccountInfo {
+  int64 uid = 1; // 用户ID
+  string area = 2; // 区号
+  string phone = 3; // 手机号
+  string account = 4; // 账号名
+  pbaccount.AccountStatus status = 5; // 账号状态
+
+  // 注册信息
+  pbaccount.LoginType register_type = 10;
+  DeviceInfo register_device_info = 11;
+  int64 register_time = 12;
+
+  // 最后登录信息
+  pbaccount.LoginType login_type = 20;
+  DeviceInfo login_device_info = 21;
+  int64 login_time = 22;
+}
+
+message BanLog {
+  int64 id = 1;
+  int64 expired_at = 2; //截止日期
+  string reason = 3;  //原因
+  string operator = 4; //操作人
+
+  AccountBanOptType ban_op_type = 10; // 封禁操作类型
+  AccountBanType ban_type = 11; // 封禁类型
+  string ban_type_content = 12; // 封禁内容
+}
+
+message GetBanLogReq {
+  message Item {
+    AccountBanType ban_type = 1; // 封禁类型
+    string ban_type_content = 2; // 封禁内容
+  }
+
+  repeated Item items = 10;
+}
+
+message GetBanLogRsp {
+  repeated BanLog logs = 1;
+}
+
+// 设备信息
+message DeviceInfo {
+  string ip = 1;    // 设备ip
+  string lan = 2;   // 语言
+  string cou = 3;   // 国家
+  string did = 4;   // 设备id
+  string pf = 5;    // 平台
+  string verc = 6;  // 版本号
+  string mod = 7;   // 手机型号
+  string brand = 8; // 手机品牌
+  string os = 9;    // 系统平台
+  string os_ver = 10;   // 操作系统
+  string os_verc = 11;  // 操作系统
+  string pkg = 12;      // 包名
+  string sim = 13;      // sim卡 0没有 1有 空代表没传
+}
+
+message BatchGetAccountsByDidsReq {
+  repeated string dids = 1; // 设备id
+}
+
+message BatchGetAccountsByDidsRsp {
+  repeated AccountInfo account_infos = 1; // 账号信息
+}
+
+
+message ListCountryReq {
+}
+message ListCountryRsp {
+  repeated pbaccount.CountryInfo countryInfos = 1; // 国家列表
+}
+
+message ListAccountReq {
+  repeated int64 uids = 1; // 用户ID
+  repeated string dids = 2; // 用户 did
+
+  string phone_area = 3; // 手机区号
+  string phone_num = 4; // 手机号-不包括区号
+
+  string third_account = 5; // 第三方账号标识
+}
+message ListAccountRsp {
+  repeated AccountSummary items = 1; // 账号信息
+}
+
+message AccountSummary{
+  int64 uid = 1; // 用户 UID
+  string did = 2; // 用户 DID
+  string nickname = 3; // 用户昵称
+  string password = 4; // 密码
+
+  string phone_area = 5; // 手机区号
+  string phone_num = 6; // 手机号-不包括区号
+
+  repeated AccountLoginType login_types = 7; //绑定的第三方账号
+}
+
+message AccountLoginType{
+  pbaccount.LoginType login_type = 1;// 登录类型
+  string third_account = 2; // 第三方账号标识
+}
+
+message ModifyPasswordReq {
+  string type = 1;// 账户变更类型(add_password,change_password)
+  int64 uid = 2; // 用户 ID
+  string new_password = 3; // 新密码
+  string reason = 4; // 申请原因
+}
+message ModifyPasswordRsp {
+  int64 apply_id = 1; // 申请id
+}
+
+message ModifyPhoneNumberReq {
+  string type = 1;// 账户变更类型(bind_phone,change_phone)
+  int64 uid = 2; // 用户 ID
+  string new_phone_area = 3; // 新手机区号
+  string new_phone_num = 4; // 新手机号-不包括区号
+  string reason = 5; // 申请原因
+}
+message ModifyPhoneNumberRsp {
+  int64 apply_id = 1; // 申请id
+}
+
+message SwapLoginTypeReq{
+  int64 source_uid = 1; // 需要交换的账号 用户 ID
+  int64 target_uid = 2; // 被交换的账号 用户 ID
+  string reason = 3; // 申请原因
+}
+message SwapLoginTypeRsp{
+  int64 apply_id = 1; // 申请id
+}

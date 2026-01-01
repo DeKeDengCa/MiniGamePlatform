@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package app.config.gene.user.cache;
+
+// options.proto 定义了一些options，options用于描述schema。必须import
+import "protobuf/api/sconfig/options.proto";
+
+// model.proto 会定义一些公共的配置。按需import
+// 比如 sconfig.model.Time 会生成一个时间选择框
+// sconfig.model.File 会生成一个文件上传按钮
+import "protobuf/api/sconfig/model.proto";
+
+
+// 配置大类的名称。【必填】
+option (sconfig.schema.biz_name) = "用户缓存配置";
+
+// 用户缓存配置
+message UserInfoCacheConfig{
+  // 有这个option则表示这个message要作为一个配置项，表示配置项的名字
+  // 这里最终配置的key就是{{package}}.{{message}}:app.config.ui.Base
+  option (sconfig.schema.cfg_name) = "用户信息缓存配置";
+
+  // 默认值 false
+  bool disable_user_info_memory_cache = 1 [(sconfig.schema.input) = {
+    name: "是否关闭用户信息内存缓存",
+    help: "默认值 false，设置 true 则禁用缓存"
+  }];
+
+  // 默认值 false
+  bool disable_user_info_database_cache = 2 [(sconfig.schema.input) = {
+    name: "是否关闭用户信息数据库缓存",
+    help: "默认值 false，设置 true 则禁用缓存"
+  }];
+
+  // 单位：秒。默认值：604800（一周）
+  int32 user_info_database_cache_expire_second_time = 3 [(sconfig.schema.input) = {
+    name: "用户信息数据库缓存过期时间"
+    help: "单位：秒。默认值：604800（一周）,最小设置1分钟 60，如果要关闭请用 disable_user_info_database_cache"
+    min: "60"
+  }];
+}
+
+
+// 用户缓存配置
+message UserPrivilegeCacheConfig{
+  // 有这个option则表示这个message要作为一个配置项，表示配置项的名字
+  // 这里最终配置的key就是{{package}}.{{message}}:app.config.ui.Base
+  option (sconfig.schema.cfg_name) = "用户权益缓存配置";
+
+  bool disable_privilege_memory_cache = 1 [(sconfig.schema.input) = {
+    name: "是否关闭用户权益内存缓存",
+    help: "默认值 false，设置 true 则禁用缓存"
+  }];
+
+  bool disable_privilege_database_cache = 2 [(sconfig.schema.input) = {
+    name: "是否关闭用户权益数据库缓存",
+    help: "默认值 false，设置 true 则禁用缓存"
+  }];
+
+  // 单位：秒。默认值：604800（一周）,最小设置分钟 60，如果要关闭请用 disable_privilege_database_cache
+  int32 privilege_database_cache_expire_second_time = 3 [(sconfig.schema.input) = {
+    name: "用户权益数据库缓存过期时间"
+    help: "单位：秒。默认值：604800（一周）,最小设置1分钟 60，如果要关闭请用 disable_privilege_database_cache"
+    min: "60"
+  }];
+}

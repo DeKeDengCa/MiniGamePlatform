@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package pbsadapter;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsadapter";
+
+// 收益
+service CommonProfit {
+  
+  // 批量获取用户收益总和
+  rpc BatchGetProfit(BatchGetProfitReq) returns (BatchGetProfitRsp);
+}
+
+message BatchGetProfitReq {
+  repeated int64 uids = 10;    // 批量用户ID, 超过 100 个时需要调用方自行分批请求.
+  int64 start_time = 11;       // 开始时间
+  int64 end_time = 12;         // 结束时间
+}
+
+message BatchGetProfitRsp {
+  map<int64, UserProfit> user_profits = 10; // 用户收益汇总记录
+}
+
+message UserProfit {
+  int64 uid = 1;
+  int64 profit = 2;
+}

@@ -1,0 +1,429 @@
+syntax = "proto3";
+
+package api.astrorise.voiceroom;
+
+option java_package = "com.entertain.sns.api.gene";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbcomm";
+
+import "protobuf/api/privilege/v2/bag.proto";
+import "protobuf/api/activity/crank.proto";
+import "protobuf/api/adapter/model.proto";
+
+// 公共结构体，不同pb之间可以服用
+
+// RoomDetail 房间详细信息
+message RoomDetail {
+  RoomInfo room_info = 1;            // 房间信息
+  RoomLevel room_level = 2;          // 房间等级
+  RoomSettings room_settings = 3;    // 房间配置
+}
+
+
+// 房间信息 :selector
+message RoomInfo {
+  int64 room_id = 1;             // 房间ID
+  string show_id = 11;           // 房间靓号
+  int64 owner_uid = 2;           // 房间 owner UID
+  RoomType room_type = 3;        // 房间类型
+  string name = 4;               // 房间名称
+  string intro = 5;              // 房间公告
+  string cover = 6;              // 房间封面
+  string bg_img = 7;             // 静态背景图
+  string bg_img_svga = 8;        // 动态背景图
+  int64 create_at = 9;           // 创建时间
+  repeated RoomTag tags = 10;    // 房间标签
+
+  repeated RoomTag top_left_tags = 12;  // 房间标签1：房间状态/关系标签（如官方、管理员、近期送礼等）
+  repeated RoomTag top_right_tags = 13; // 房间标签2：房主获得的荣耀标签（如人气榜Top100等）
+
+  LiveStatus live_status = 20;   // 直播状态
+  RoomStatus status = 22;        // 房间状态
+  int64 online_count = 21;       // 在线人数
+  int64 fans_count = 23;         // 房间总粉丝数
+  int64 level = 24;              // 房间等级
+  LanguageInfo language = 25;    // 房间语言
+
+  api.privilege.v2.UsingPrivilege privilege = 30; // 房间特权
+  int64 timestamp = 50;          // 时间戳 毫秒
+}
+
+// RoomLevel 房间等级
+message RoomLevel {
+  int64 room_id = 1;  // 房间ID
+  int32 level = 2;    // 等级
+  int64 exp = 3;      // 经验值
+  int64 next_level = 4;
+  int64 next_level_diff_exp = 5; // 下一等级和当前等级的差值
+  bool is_max_level = 6; //是否达到最大等级
+
+  int64 timestamp = 50;          // 时间戳 毫秒
+}
+
+// RoomSettings 房间设置
+message RoomSettings {
+  int64 room_id = 1;                          // 房间ID
+  RoomLayout layout = 2;                      // 房间布局
+  RoomPerm room_perm = 3;                     // 房间权限
+  SeatPerm seat_perm = 4;                     // 上麦权限
+  int32 AdminCount = 5;                       // 房管人数上限
+  int64 max_online_user_number = 6;           // 房间最大在线人数
+
+  SeatScoreSwitch seat_score_switch = 10; // 麦位积分开关
+
+  int64 timestamp = 50;          // 时间戳 毫秒
+}
+
+
+// 房间权限
+enum RoomPerm {
+  ROOM_PERM_NONE = 0;             // 默认值，无意义
+  ROOM_PERM_PUBLIC = 10;          // 开放
+  ROOM_PERM_PRIVATE = 20;         // 私密
+  ROOM_PERM_PASSWORD = 30;        // 密码
+  ROOM_PERM_ONLY_FOLLOWER = 40;   // 仅关注者可进
+}
+
+// 上麦权限
+enum SeatPerm {
+  SEAT_PERM_NONE = 0;             // 默认值，无意义
+  SEAT_PERM_ALL = 10;             // 自由上麦
+  SEAT_PERM_APPLY = 20;           // 需申请上麦
+}
+
+
+// 麦位积分开关
+enum SeatScoreSwitch {
+  SEAT_SCORE_SWITCH = 0;         // 默认值 无意义
+  SEAT_SCORE_CLOSED = 1;        // 关闭
+  SEAT_SCORE_OPENED = 2;        // 开启
+}
+
+// 账号状态
+// @deprecated 使用 comm.api.adapter.UserStatus 替代
+// enum UserStatus {
+//   USER_STATUS_NONE = 0;     // 无状态
+//   USER_STATUS_NORMAL = 1;   // 正常
+//   USER_STATUS_BAN = 2;      // 封禁
+//   USER_STATUS_FROZEN = 3;   // 冻结
+//   USER_STATUS_WITHDRAW = 4; // 注销（注销冷静期过后更新为删除）
+//   USER_STATUS_DELETE = 5;   // 删除
+// }
+
+// 用户信息 
+// @deprecated 使用 comm.api.adapter.UserInfo 替代
+// message UserInfo {
+//   int64 uid = 1;                        // uid
+//   string nickname = 2;                  // 昵称
+//   string avatar_url = 3;                // 头像url
+//   scommon.Gender gender = 4;            // 性别
+//   // string country = 5;                   // 国家简码
+//   pbaccount.CountryInfo country_info = 6; // 国家信息
+//   string show_uid = 10;                   // show uid
+//   UserStatus status = 20;                 // 用户状态
+//   string birthday = 30;                   // 生日 yyyy-MM-dd
+//   int32 age = 31;                         // 年龄
+//   string introduction = 40;               // 个人介绍
+//   string language = 100;                  // 语言码
+// }
+
+// 房间用户角色
+enum RoomUserRole {
+  ROOM_USER_ROLE_NONE = 0;
+  ROOM_USER_ROLE_OWNER = 1;        // 房主
+  ROOM_USER_ROLE_VIEWER = 2;       // 观众
+  ROOM_USER_ROLE_ADMIN = 3;        // 管理员
+}
+
+// 房间内用户信息 :selector
+message RoomUserInfo {
+  RoomUserRole role = 1;            // 用户角色
+  comm.api.adapter.UserInfo user_info = 20;          // 用户信息
+  bool follow_status = 21;          // 是否关注
+}
+
+
+// rtc供应商
+enum RtcProvider {
+  RTC_PROVIDER_NONE = 0;
+  RTC_PROVIDER_AGORA = 1;           // 声网
+  RTC_PROVIDER_DEMO = 50;           // demo，虚拟测试供应商
+}
+
+// rtm供应商
+enum RtmProvider {
+  RTM_PROVIDER_NONE = 0;
+  RTM_PROVIDER_AGORA = 1;           // 声网
+  RTM_PROVIDER_DEMO = 50;           // demo，虚拟测试供应商
+}
+
+
+// 房间布局模式
+message RoomLayout {
+  // code
+  //  - chat_10: chat 10 mic
+  //  - partner_9: partner 9 mic
+  //  - partner_10: partner 10 mic
+  //  - cp: cp 2 mic
+  string code = 1;                            // 布局模式code标识
+  string name = 2;                            // 布局模式名称
+  map<string, string> name_lan = 3;           // 布局模式名称，多语言
+  string pre_img = 4;                         // 预览示意图
+  // RoomLayoutConfig config = 4;             // 布局配置
+  int32 seat_count = 5;                       // 麦位数量
+  bool disabled = 10;                         // 已禁用, 即不能切换到该麦位布局
+}
+
+// message RoomLayoutConfig {
+// 这里以后扩展不同布局配置项，例如麦位数量，暂时还不支持
+// }
+
+
+// 开播状态
+enum LiveStatus {
+  LIVE_STATUS_NONE = 0;
+  LIVE_STATUS_LIVING = 1; // 直播中
+  LIVE_STATUS_CLOSED = 2; // 已关闭
+}
+
+// 房间状态
+enum RoomStatus {
+  ROOM_STATUS_NONE = 0;
+  ROOM_STATUS_NORMAL = 1;     // 正常
+  ROOM_STATUS_BAN = 2;        // 封禁
+  ROOM_STATUS_DELETED = 100;  // 已删除
+}
+
+// 房间类型
+enum RoomType {
+  ROOM_TYPE_NONE = 0;
+  ROOM_TYPE_NORMAL = 1;     // 普通房间
+  ROOM_TYPE_OFFICIAL = 2;   // 官方房间
+  ROOM_TYPE_TEST = 3;       // 内部测试房间，不对外显示，只允许内部账号进入
+  ROOM_TYPE_FAMILY = 4;     // 家族房间
+}
+
+// 房间标签模式
+enum RoomTagStyle {
+  ROOM_TAG_TYPE_NONE = 0;
+  ROOM_TAG_TYPE_ICON = 10;      // 仅展示图标
+  ROOM_TAG_TYPE_ICON_NAME = 20; // 展示图标 + 名字
+  ROOM_TAG_TYPE_TEXT = 30; // 文本
+}
+
+// 房间标签
+message RoomTag {
+  int64 id = 1;                 // 标签
+  RoomTagStyle style = 2;       // 房间标签模式
+  int32 weight = 3;             // 标签权重, 如果一个房间有多个标签时按权重从高到低排序和剔除显示不下的.
+
+  string name = 20;             // 标签名称内容
+  string icon = 30;             // 标签图标
+}
+
+// 房间的实时状态信息
+message RoomStateInfo {
+  int64 timestamp = 10;//版本,时间戳,毫秒
+  int64 online_count = 1;                     // 在线人数
+  SeatList seat_list = 2;                     // 麦位列表
+
+
+  UserScoreList user_seat_score_list = 9;//用户麦位积分
+
+  RoomModeInfo room_mode_info = 11;//房间模式
+}
+
+// 麦位信息
+message SeatInfo {
+  int64 seat_index = 1;//麦位序号，从1开始
+  int64 time = 2;//更新时间
+  RoomUserInfo room_user_info = 3;//用户id
+  bool seat_locked = 4;//麦位是否锁定,默认:false
+  bool seat_muted = 5;//麦位是否禁音,默认:false
+  bool user_mic_disabled = 6;//用户麦克风是否禁用,默认:false,uid 非0有效
+  bool mic_disabled = 7;//麦克风是否禁用，mic_disabled=seat_muted||user_mic_disabled
+
+  api.privilege.v2.UsingPrivilege privilege = 30; // 用户特权
+}
+
+// 麦位列表
+message SeatList {
+  int64 timestamp = 1;//版本,值递增
+  repeated SeatInfo seat_infos = 2;// 麦位列表
+  string layout_code = 3;// 房间布局模式code
+  int32 seat_count = 4;// 麦位数量
+}
+
+// 用户麦位积分
+message UserScoreInfo {
+  int64 uid = 1;//用户Id
+  int64 score = 2;//积分
+}
+
+// 用户麦位积分列表
+message UserScoreList {
+  int64 timestamp = 1;//版本,值递增
+  repeated UserScoreInfo user_score_infos = 2;// 用户数量列表
+}
+
+// 多语言国际化
+message I18n{
+  string lang_code = 1;//语言code;e.g., "en", "zh", "fr"
+  string text = 2;//文本内容
+}
+
+// 房间模式上架-默认选中
+enum RoomModePublishDefaultSelected {
+  ROOM_MODE_PUBLISH_DEFAULT_SELECTED_NONE = 0;
+  ROOM_MODE_PUBLISH_DEFAULT_SELECTED_YES = 1;//是
+  ROOM_MODE_PUBLISH_DEFAULT_SELECTED_NO = 2;//否
+}
+
+// 房间模式
+message RoomModeInfo{
+  int64 room_mode_publish_id = 1;//房间模式上架id
+  int64 room_mode_config_id = 12;//房间模式配置id
+
+  string name = 2;//名称(缺省名称)
+  map<string, string> name_i18n = 3;//名称-多语言
+  string icon = 4;//图标(缺省图标)
+  map<string, string> icon_i18n = 5;//图标-多语言
+
+  string room_bg_img_url = 6;//房间背景图地址
+  string room_bg_img_type = 7;//房间背景图类型
+  string play_url = 8;//玩法地址
+  string room_mode_code = 9;//房间模式code;eg:Chat、Friend、Music
+  // 房间模式改成支持多个麦位布局了, 不再只绑死一个麦位布局
+  // string room_layout_code = 10;//麦位布局code;eg:chat_10,partner_9,partner_10,cp
+  string play_code = 11;//玩法code;eg:ludo、桌球、狼人杀
+  int64 mic_number = 13; // 麦位数量
+}
+
+// 多语言文本
+message I18NText {
+  string default = 1;           // 缺省值，如果在i18n中找不到对应语言，则使用该值
+  map<string, string> i18n = 2; // 多语言，优先从这里取对应语言的值，key为语言码(例如en/zh)
+}
+
+// 时间范围，时间戳，单位秒
+message TimeRange {
+  int64 start = 1;    // 开始时间
+  int64 end = 2;      // 结束时间
+}
+
+// 通用开关
+enum Switch {
+  SWITCH_NONE = 0;
+  SWITCH_OFF = 1; // 关闭
+  SWITCH_ON = 2;  // 开启
+}
+
+// 跨房PK结果类型
+enum RoomPkResultType {
+  ROOM_PK_RESULT_TYPE_NONE = 0;
+  ROOM_PK_RESULT_TYPE_VICTORY = 10; // 胜利
+  ROOM_PK_RESULT_TYPE_DEFEAT = 11; // 失败
+  ROOM_PK_RESULT_TYPE_DRAW = 12; // 平局
+}
+
+enum RoomPkStatus {
+  ROOM_PK_STATUS_NONE = 0;
+  ROOM_PK_STATUS_PENDING = 10; // pk等待中
+  ROOM_PK_STATUS_RUNNING = 11; // pk进行中
+  ROOM_PK_STATUS_END = 12;    // pk已结束
+}
+
+// 房间PK房间结果信息
+message RoomPkResult {
+  RoomInfo room_info = 10;  // 房间信息
+  RoomPkResultType result = 11; // 胜负结果-pk未结束时为NONE
+  int64 score = 12; // 总积分数
+  int64 supporter_count = 13; // 支持者数量
+  repeated crank.Item supporters = 15;  // 支持者排名列表, 只返回第一页，调用RoomPK.ListRank拉取下页（从第二页开始）
+}
+
+message RoomPkUserSetting {
+  Switch opposite_voice_switch = 10; // 对方房间声音开关 1-关闭 2-开启
+}
+
+// 跨房PK详情信息
+message RoomPKInfo {
+  int64 timestamp = 1;  // 时间戳毫秒
+  int64 pk_id = 10; // 跨房PK全局唯一ID
+  RoomPkStatus pk_status = 11;  // 跨房PK状态
+  int64 pk_begin_ts = 12; // pk开始时间戳-秒
+  int64 pk_dur_secs = 13; // pk持续时间-秒
+  RoomPkResult inviter_result = 14;   // 邀请方pk结果
+  RoomPkResult invitee_result = 15; // 被邀请方pk结果\
+  RoomPkUserSetting user_setting = 20;  //PK玩法 - 用户设置
+}
+
+message UserInfoExt {
+  WealthLevelInfo wealth_level_info = 1; // 财富等级信息
+  CharmLevelInfo charm_level_info = 2; // 魅力等级信息
+
+  repeated UserTag user_tags = 50; // 用户标签列表，按照产品定义的顺序返回
+}
+
+enum UserInfoExtField {
+  USER_INFO_EXT_FIELD_NONE = 0;
+  USER_INFO_EXT_FIELD_WEALTH_LEVEL_INFO = 1; // 财富等级
+  USER_INFO_EXT_FIELD_CHARM_LEVEL_INFO = 2; // 魅力等级
+
+  USER_INFO_EXT_FIELD_USER_TAGS = 50; // 用户标签列表
+}
+
+// 财富等级信息
+message WealthLevelInfo {
+  message LevelResource {
+    string image_url = 1; // 等级铭牌图片URL
+  }
+
+  int32 level = 1;              // 财富等级
+  int64 value = 2;              // 财富值
+  map<string, LevelResource> resources = 3;   // 财富等级相关资源，语言->资源信息
+}
+
+// 魅力等级信息
+message CharmLevelInfo {
+  message LevelResource {
+    string image_url = 1; // 等级铭牌图片URL
+  }
+
+  int32 level = 1;              // 魅力等级
+  int64 value = 2;              // 魅力值
+  map<string, LevelResource> resources = 3;   // 魅力等级相关资源，语言->资源信息
+}
+
+// 用户标签
+message UserTag {
+  // 用户标签类型
+  enum TagType {
+    UserTag_TagType_NONE = 0; // 通常不会出现，客户端过滤该类型
+    UserTag_TagType_ICON = 1; // 仅展示图标，客户端应当只取 icon_url 字段显示
+    UserTag_TagType_ICON_TEXT = 2; // 展示图标 + 文本，客户端应当取 icon_url 和 text 字段组合显示
+  }
+
+  message TagResource {
+    string icon_url = 1; // Tag Icon URL
+    string text = 2; // Tag 文本
+  }
+
+  TagType type = 1; // Tag 显示类型
+  map<string, TagResource> resources = 2;   // Tag相关多语言资源，语言->资源信息，对于只有单独语言的标签，只返回 en
+}
+
+// 房间模式类型枚举
+enum RoomModeType {
+  ROOM_MODE_TYPE_NONE = 0;
+  ROOM_MODE_TYPE_VOICE_CHAT = 1; // 语音聊天
+  ROOM_MODE_TYPE_FATE_MATCH = 2; // 缘分速配
+  ROOM_MODE_TYPE_GAME_LIVE = 3; // 游戏直播
+  ROOM_MODE_TYPE_GAME_COMPANION = 4; // 游戏陪玩
+  ROOM_MODE_TYPE_DOUBLE_MATCH = 5; // 双人速配
+}
+
+message LanguageInfo {
+  string code = 1; // 语言简码，作为传参值 (例如: "en", "zh", "ms")
+  string short_name = 2; // 语言的缩写名称 (例如: "EN", "ZH", "MS")
+  string native_name = 3; // 语言的自称 (例如: "English", "中文", "Bahasa Melayu")
+}

@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package cfg.bizconfig;
+
+// options.proto 定义了一些options，options用于描述schema。必须import
+import "protobuf/api/sconfig/options.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbscustomer";
+
+// 业务的名称。【必填】，在配置界面的业务下拉框里面展示。
+option (sconfig.schema.biz_name) = "客服系统配置";
+
+// 对应的key。【必填】，用来唯一区别一个业务，在进程内唯一
+option (sconfig.schema.biz_key) = "customersvc-biz";
+
+
+// 该配置是中台与业务共用的配置，修改前需要考虑好对其他业务的影响
+message Config {
+  SessionConfig session_config = 1 [(sconfig.schema.model) = {name:"会话配置"}];
+}
+
+message SessionConfig {
+  repeated SessionAccount accounts = 1 [(sconfig.schema.input) = {name:"会话客服配置"}];
+}
+
+message SessionAccount {
+  int64 account_uid = 1 [(sconfig.schema.input) = {name:"客服账号UID"}];
+  string type = 2 [(sconfig.schema.input) = {name:"会话类型", def:"show_id"}];
+  bool ping_create = 3 [(sconfig.schema.input) = {name:"有消息时自动创建会话", def:"true", help:"有消息则自动创建会话，无需走分配客服流程"}];
+  int64 close_idle = 4 [(sconfig.schema.input) = {name:"会话时长（单位秒）" help:"开始会话后，过了该时间则自动关闭会话，默认值是3个月" min:"0" def:"7776000"}];
+}

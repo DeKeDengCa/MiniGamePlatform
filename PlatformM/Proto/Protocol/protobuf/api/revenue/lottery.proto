@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package pbrevenue;
+
+import "protobuf/api/revenue/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbrevenue";
+option java_package = "com.entertain.sns.pbrevenue";
+
+// 抽奖
+// ServiceName: api.micro.social.revenue
+// smicro:spath=gitit.cc/social/components-service/social-revenue/lottery/handler
+service Lottery {
+
+    // 获取抽奖的最高奖励
+    rpc GetLotteryTopPrize(GetLotteryTopPrizeReq) returns (GetLotteryTopPrizeRsp);
+
+    // 获取抽奖的所有奖励
+    rpc GetLotteryAllPrize(GetLotteryAllPrizeReq) returns (GetLotteryAllPrizeRsp);
+
+}
+
+message LotteryInfo {
+    int64 id = 1;
+    string name = 2; // 默认名称
+    map<string, string> i18n_names = 3; // 国际化名称
+    string icon = 4;
+    LotteryType lottery_type = 5;
+    string jump_url = 10; // 跳转链接
+}
+
+// 抽奖类型
+enum LotteryType {
+    LOTTERY_TYPE_NONE = 0;
+
+    LOTTERY_TYPE_MYSTERY_GIFT = 10; // 盲盒礼物
+    LOTTERY_TYPE_LUCKY_GIFT = 20;   // 幸运礼物
+}
+
+// 奖励信息
+message PrizeInfo {
+    int64 id = 1;
+    string name = 2; // 默认名称
+    map<string, string> i18n_names = 3; // 国际化名称
+    string icon = 4;
+    PrizeType prize_type = 5;
+    CurrencyType currency_type = 10;
+    int64 price = 11;
+}
+
+// 奖品类型
+enum PrizeType {
+    PRIZE_TYPE_NONE = 0;
+
+    PRIZE_TYPE_GIFT = 10;       // 礼物, prize_value 是一个礼物ID
+    PRIZE_TYPE_CURRENCY = 20;   // 货币, prize_value 是货币数量
+}
+
+message GetLotteryTopPrizeReq {
+    int64 lottery_id = 10;
+}
+
+message GetLotteryTopPrizeRsp {
+    LotteryInfo lottery = 10;
+    PrizeInfo top_prize = 11;
+}
+
+message GetLotteryAllPrizeReq {
+    int64 lottery_id = 10;
+}
+
+message GetLotteryAllPrizeRsp {
+    LotteryInfo lottery = 10;
+    repeated PrizeInfo prizes = 11;
+}

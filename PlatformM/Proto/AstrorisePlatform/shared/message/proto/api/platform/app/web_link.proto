@@ -1,0 +1,30 @@
+syntax="proto3";
+
+package app.config.gene.link;
+
+// options.proto 定义了一些options，options用于描述schema。必须import
+import "protobuf/api/sconfig/options.proto";
+
+// model.proto 会定义一些公共的配置。按需import
+// 比如 sconfig.model.Time 会生成一个时间选择框
+// sconfig.model.File 会生成一个文件上传按钮
+// import "common/sconfig/model.proto";
+
+option (sconfig.schema.biz_name)="Web链接配置";
+
+message Web {
+    option (sconfig.schema.cfg_name) = "Web链接配置";
+
+    string feed_back = 1 [(sconfig.schema.input) = {
+        name:"反馈页链接"
+    }];
+
+    string terms_service = 2 [(sconfig.schema.input) = {
+        name:"服务条款链接"
+    }];
+
+    string privacy_policy = 3 [(sconfig.schema.input) = {
+        name:"隐私政策链接"
+    }];
+    
+}

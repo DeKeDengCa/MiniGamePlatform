@@ -1,0 +1,132 @@
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/riskcontrol/handlermgr
+syntax = "proto3";
+
+package comm.mgr.platform.riskcontrol;
+
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/platform/pbmriskcontrol";
+
+service RiskControlMgr {
+  // 风控查询
+  rpc Search(SearchRiskControlMgrReq) returns (SearchRiskControlMgrRsp) {}
+
+  // 人工审核
+  rpc MannualAudit(MannualAuditReq) returns (MannualAuditRsp) {}
+
+  // 审核标签查询
+  rpc ListAuditLabels(ListAuditLabelsReq) returns (ListAuditLabelsRsp) {}
+}
+
+// 风控审核类别
+enum RiskControlType {
+  RISKCONTROL_TYPE_NONE = 0;                            // none
+  RISKCONTROL_TYPE_PICTURE = 10;                        // 图片
+  RISKCONTROL_TYPE_TEXT = 20;                           // 文字
+  RISKCONTROL_TYPE_VIDEO = 30;                          // 视频
+  RISKCONTROL_TYPE_MIXED = 999;                         // 混合内容类型, 即同时有文本/图片/视频, 例如用户发布的动态. 所以
+}
+
+// 风控结果
+enum RiskControlResult {
+  RISKCONTROL_RESULT_NONE = 0;                          // none
+  RISKCONTROL_RESULT_PASS = 10;                         // 通过
+  RISKCONTROL_RESULT_HOLD = 20;                         // 不通过
+  RISKCONTROL_RESULT_DOUBT = 30;                        // 存疑,已丢弃
+  RISKCONTROL_RESULT_FAIL = 40;                         // 失败
+}
+
+// 风控审核详细结果
+message RiskControlAuditResult {
+  RiskControlResult  audit_result = 1;                // 审核结果
+  string audit_reason = 2;                            // 审核原因
+  int64  audit_at = 3;                                // 审核时间戳 unix
+  string audit_name = 4;                              // 审核人名字
+  string audit_id = 5;                                // 审核人id
+}
+
+// 风控内容
+message RiskControl {
+  int64  id = 1;                                        // 唯一自增
+  string category = 2;                                  // 大类，由业务后端定义
+  string risk_type = 3;                                 // 风险类型，由业务后端定义
+  string content = 4;                                   // 改变内容，如果内容类型为图片则为url
+  RiskControlType content_type = 5;                     // 内容类型
+  int64 relation_id = 7;                                // 改变内容关联的id，如：房间id，uid
+  string frontend_data = 8;                             // 前端展示内容，json串
+  string remark = 9;                                    // 备注
+  string submit_by = 10;                                // 提交人
+  int64 submit_uid = 11;                                // 提交人id
+  int64  submit_at = 12;                                 // 提交的时间戳 unix
+  string text_check_level = 13;                          // 文本检测出来的级别
+  string picture_check_rate = 14;                       // 图片检测打分,如果没有检测出来，则为空
+  string label = 15;                                    // 人工审核时打标签
+
+  RiskControlAuditResult  auto_audit_result = 20;       // 机审结果
+  RiskControlAuditResult  manual_audit_result = 21;     // 人工审核结果
+}
+
+enum SearchFieldOperator{
+  SEARCH_FIELD_OPERATOR_NONE = 0;
+  SEARCH_FIELD_OPERATOR_EQ = 1;                         // ==
+  SEARCH_FIELD_OPERATOR_NEQ = 2;                        // !=
+  SEARCH_FIELD_OPERATOR_LIKE = 3;                       // like %v0%
+  SEARCH_FIELD_OPERATOR_IN = 4;                         // in (v0,v1,v2...)
+  SEARCH_FIELD_OPERATOR_GT = 5;                         // > v0
+  SEARCH_FIELD_OPERATOR_GTE = 6;                         // >= v0
+  SEARCH_FIELD_OPERATOR_LT = 7;                         // < v0
+  SEARCH_FIELD_OPERATOR_LTE = 8;                         // <= v0
+}
+
+message SearchField{
+  string field = 1;                                      // 字段
+  SearchFieldOperator operator = 2;                      // 操作符
+  repeated string values = 3;                            // 值，基于操作符来决定如何使用
+}
+
+message SearchRiskControlMgrReq{
+  scommon.Page page = 1;
+
+  string category = 10;                                  // 大类，由业务后端定义
+  string risk_type = 12;                                 // 风险类型，由业务后端定义
+  int64 relation_id = 11;                                // 关联id
+  int64 submit_at_start = 13;                            // 提交时间戳开始 unix
+  int64 submit_at_end = 14;                              // 提交时间戳结束 unix
+
+  RiskControlResult auto_audit_result = 15;              // 机审结果
+
+  RiskControlResult manual_audit_result = 16;            // 人审结果
+  int64 manual_audit_at_start = 17;                      // 人审时间戳开始 unix
+  int64 manual_audit_at_end = 18;                        // 人审时间戳结束 unix
+  repeated RiskControlResult manual_results = 19;        // 人审结果数组查询：待定（RISKCONTROL_RESULT_NONE）/通过/不通过
+
+  string manual_audit_reason = 20;                       // 人审结果原因
+  string label = 21;                                     // 标签查询
+  repeated SearchField frontend_data = 22;              // 业务搜索字段，每个出现的字段用 and 来进行合并搜索
+}
+
+message SearchRiskControlMgrRsp{
+  scommon.Page page = 1;
+
+  repeated RiskControl data = 10;
+}
+
+message MannualAuditReq{
+  int64 id = 10;
+  RiskControlResult  manual_audit_result = 11;           // 人工审核结果
+  string manual_audit_reason = 12;                       // 人工审核原因
+  string label = 13;                                     // 人工审核时打标签
+}
+
+message MannualAuditRsp{
+}
+
+message ListAuditLabel {
+  int64  id = 1;
+  string label = 2;                                       // 标签
+}
+message ListAuditLabelsReq{
+}
+message ListAuditLabelsRsp{
+  repeated ListAuditLabel labels = 10;                           // 标签列表
+}

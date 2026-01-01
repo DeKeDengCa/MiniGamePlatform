@@ -1,0 +1,215 @@
+// smicro:spath=gitit.cc/social/components-service/social-privilege/biz/bag/handler
+syntax = "proto3";
+
+package api.privilege.v2;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/privilege/v2/privilege.proto";
+
+option java_package = "com.entertain.sns.api.privilege.v2";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbprivilege";
+
+// 用户背包接口
+// ServiceName: privilege-api
+service BagV2 {
+
+  // 背包分类列表
+  rpc ListBagCategory(ListBagCategoryReq) returns (ListBagCategoryRsp);
+
+  // 背包资源列表
+  rpc ListBagResource(ListBagResourceReq) returns (ListBagResourceRsp);
+
+  // 穿戴 / 使用背包资源
+  rpc UseBagResource(UseBagResourceReq) returns (UseBagResourceRsp);
+
+  // 解除穿戴 / 使用背包资源
+  rpc DisuseBagResource(DisuseBagResourceReq) returns (DisuseBagResourceRsp);
+
+  // 查询使用中权益(单用户)
+  rpc GetUsingPrivilege(GetUsingPrivilegeReq) returns (GetUsingPrivilegeRsp);
+
+  // 批量查询使用中权益(多用户)
+  rpc BatchGetUsingPrivilege(BatchGetUsingPrivilegeReq) returns (BatchGetUsingPrivilegeRsp);
+}
+
+
+// 背包分类
+message BagCategory {
+  CategoryID category_id = 1;     // 分类标识
+  Category category = 2;          // 分类信息
+}
+
+message ListBagCategoryReq {
+  BagCategoryScene scene = 10;
+}
+
+message ListBagCategoryRsp {
+  repeated BagCategory bag_categories = 10; // 背包分类列表
+}
+
+// 背包分类场景
+enum BagCategoryScene {
+  BAG_CATEGORY_SCENE_NONE = 0;              // 为了兼容旧版本, 不选就是用户背包.
+  BAG_CATEGORY_SCENE_USER_BACKPACK = 10;    // 用户背包
+  BAG_CATEGORY_SCENE_UNIQUE_FAMILY_ID = 20; // 家族ID
+}
+
+// 背包使用中状态
+enum BagUsingStatus {
+  BAG_USING_STATUS_NONE = 0;    // 无意义
+  BAG_USING_STATUS_USING = 1;   // 使用中
+  BAG_USING_STATUS_DISUSE = 2;  // 非使用中
+}
+
+// 背包剩余使用时长
+message BagRemainPeriod {
+  int64 period_secs = 1;              // 商品周期-秒
+  string show_text = 2;               // 用户语言对应的文案
+  map<string, string> show_texts = 3; // 多语言对应文案
+}
+
+// 背包资源
+message BagResource {
+  int64 bag_id = 1;                    // 背包ID
+
+  TargetType target_type = 10;         // 归属类型
+  int64 target_id = 11;                // 归属ID, 例如: 用户ID / 房间ID / ...
+
+  int64 resource_id = 20;              // 特权资源ID
+  Resource resource = 21;              // 特权资源
+
+  int64 remain_num = 30;               // 剩余数量
+  BagRemainPeriod remain_period = 31;  // 剩余使用时长
+
+  CategoryID category_id = 40;         // 分类标识
+  CategoryID sub_category_id = 41;     // 子分类标识
+
+  BagUsingStatus is_using = 50;        // 使用状态
+  int64 using_pos = 51;                // 使用位置
+
+  int64 period_start = 60;             // 有效期开始，单位秒
+  int64 period_end = 61;               // 有效期截止，单位秒
+}
+
+// 背包资源排序方式
+enum BagResourceSortBy {
+  BAG_RESOURCE_SORT_BY_NONE = 0;            // 默认排序方式
+  BAG_RESOURCE_SORT_BY_GOT_TIME_DESC = 10;  // 按获得的时间倒序排
+}
+
+message ListBagResourceReq {
+  scommon.Page page = 1;
+
+  CategoryID category_id = 10;      // 分类标识
+  CategoryID sub_category_id = 11;  // 二级分类标识(目前没用)
+
+  TargetType target_type = 20;      // 资源归属类型
+  int64 target_id = 21;             // 资源归属ID
+
+  BagResourceSortBy sort_by = 100;  // 排序方式
+}
+
+message ListBagResourceRsp {
+  scommon.Page page = 1;
+
+  repeated BagResource bag_resources = 10; //背包资源列表
+}
+
+
+message UseBagResourceReq {
+  int64 bag_id = 1;             // 背包ID
+  int64 num = 2;                // 使用数量, 对于时长类型的可以不传.
+  int64 pos = 3;                // 使用位置, 佩戴勋章时需要.
+  CategoryID category_id = 10;  // 分类标识
+}
+
+message UseBagResourceRsp {
+
+}
+
+enum UseBagResourceErrCode {
+  USE_BAG_RESOURCE_ERR_CODE_NONE = 0;         // 无意义
+  USE_BAG_RESOURCE_ERR_CODE_EXPIRED = 10;     // 已过期
+  USE_BAG_RESOURCE_ERR_CODE_NOT_EXIST = 20;   // 不存在
+  USE_BAG_RESOURCE_ERR_CODE_NOT_ENOUGH = 30;  // 数量不足
+}
+
+
+message DisuseBagResourceReq {
+  int64 bag_id = 1;             // 背包ID
+  CategoryID category_id = 10;  // 分类标识
+}
+
+message DisuseBagResourceRsp {
+}
+
+enum DisuseBagResourceErrCode {
+  DISUSE_BAG_RESOURCE_ERR_CODE_NONE = 0;        // 无意义
+  DISUSE_BAG_RESOURCE_ERR_CODE_NOT_EXIST = 20;  // 不存在
+}
+
+
+// 使用中的勋章, 勋章比较特殊, 可以佩戴多个.
+message UsingMedal {
+  Medal medal = 1;      // 勋章信息
+  int64 using_pos = 2;  // 穿戴位置
+}
+
+// 使用中的房间勋章, 房间勋章比较特殊, 可以佩戴多个.
+message UsingRoomBadge {
+  RoomBadge room_badge = 1;  // 房间勋章信息
+  int64 using_pos = 2;  // 穿戴位置
+}
+
+// 使用中的特权
+message UsingPrivilege {
+  Headwear headwear = 1;                      // 头像框
+  Vehicle vehicle = 2;                        // 座驾
+  ScreenBubble bubble = 3;                    // 公屏气泡
+  RoomBackground room_bg = 4;                 // 房间背景
+  MicAperture mic_aperture = 5;               // 麦位光圈
+  HomeAction home_action = 6;                 // 主页动效
+  repeated UsingMedal medals = 7;             // 勋章, 勋章比较特殊, 可以佩戴多个.
+  repeated UsingMedal family_medals = 23;     // 家族勋章,支持佩戴多个
+  MiniCardBackground mini_card_bg = 8;        // mini资料背景
+  EnterRoomBayWindow bay_window = 9;          // 进房飘窗
+  RoomListBackground room_list_bg = 10;       // 房间列表背景
+  PrettyNumber user_pretty_number = 11;       // 用户靓号
+  PrettyNumber room_pretty_number = 12;       // 个人房间靓号/家族房间靓号
+  PrettyNumber family_pretty_number = 24;     // 家族靓号
+  NicknameColor nickname_color = 13;          // 昵称颜色
+  Vip vip = 14;                               // vip等级
+  GifAvatar gif_avatar = 15;                  // GIF头像
+  BlockMessage block_message = 16;            // 屏蔽陌生人消息
+  AntiKicked anti_kicked = 17;                // 防踢
+  VIPEmoji vip_emoji = 18;                    // VIP表情
+  VIPReception vip_reception = 19;            // VIP客服
+  VIPGift vip_gift = 20;                      // VIP礼物
+  CpRing cp_ring = 21;                        // CP戒指
+  repeated UsingRoomBadge room_badges = 22;   // 房间勋章,支持佩戴多个
+  RoomMembership room_membership = 25;        // 房间会员
+  CPRoomBackground cp_room_bg = 26;           // cp小屋背景
+
+}
+
+message GetUsingPrivilegeReq {
+  TargetType target_type = 1; // 归属类型
+  int64 target_id = 2;        // 归属ID
+  CategoryID category_id = 3; // 特权分类标识, 传 NONE 表示查询所有特权分类.
+}
+
+message GetUsingPrivilegeRsp {
+  bool has_privilege = 1;             // 是否用有该权益
+  UsingPrivilege using_privilege = 2; // 背包资源
+}
+
+
+message BatchGetUsingPrivilegeReq {
+  TargetType target_type = 20;            // 归属类型
+  repeated int64 target_ids = 21;         // 归属ID: uid / room_id
+  repeated CategoryID category_ids = 30;  // 特权分类标识, 传空数组表示查询所有特权分类.
+}
+
+message BatchGetUsingPrivilegeRsp {
+  map<int64, UsingPrivilege> target_using_privileges = 1;  // map<uid / room_id, 使用中的背包资源>
+}

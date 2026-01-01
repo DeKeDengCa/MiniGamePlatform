@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package pbrefund;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/svr/refund/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsrefund";
+option java_package = "com.refund.biz.proto";
+
+// 退款工单关联的视频通话信息服务
+service RefundVideoCall {
+  // 分页查询指定用户在一个时间段内的视频通话记录
+  rpc ListVideoCallRecord(ListVideoCallRecordReq) returns (ListVideoCallRecordRsp) {}
+}
+
+// 视频通话记录
+message VideoCallRecord {
+  string seq_id = 1;
+  int64 sender_uid = 2;
+  int64 receiver_uid = 3;
+  CurrencyType send_currency_type = 4;
+  int64 send_amount = 5;
+  CurrencyType receive_currency_type = 6;
+  int64 receive_amount = 7;
+  int64 send_time = 8;
+}
+
+// 分页查询指定用户在一个时间段内的视频通话记录
+message ListVideoCallRecordReq {
+  scommon.Page page = 1;
+  string next_token = 2;
+  string business_id = 3;
+  int64 sender_uid = 4;
+  int64 start_time = 5;
+  int64 end_time = 6;
+}
+
+// 分页查询指定用户在一个时间段内的视频通话记录
+message ListVideoCallRecordRsp {
+  scommon.Page page = 1;
+  string next_token = 2;
+  repeated VideoCallRecord records = 3;
+}

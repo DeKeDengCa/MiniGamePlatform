@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package comm.mgr.activity;
+
+
+import "protobuf/api/sconfig/model.proto";
+import "protobuf/mgr/activity/reward.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmactivity";
+
+// 任务类型枚举，针对周任务分别定义具体星期
+enum TaskType {
+    TASK_TYPE_UNSPECIFIED = 0;
+    TASK_TYPE_ONCE = 1;             // 单次任务
+    TASK_TYPE_WEEK_MONDAY = 2;        // 周一任务
+    TASK_TYPE_WEEK_TUESDAY = 3;       // 周二任务
+    TASK_TYPE_WEEK_WEDNESDAY = 4;     // 周三任务
+    TASK_TYPE_WEEK_THURSDAY = 5;      // 周四任务
+    TASK_TYPE_WEEK_FRIDAY = 6;        // 周五任务
+    TASK_TYPE_WEEK_SATURDAY = 7;      // 周六任务
+    TASK_TYPE_WEEK_SUNDAY = 8;        // 周日任务
+    TASK_TYPE_MONTH = 9;            // 月任务
+    TASK_TYPE_DAILY = 10;           // 日任务
+    TASK_TYPE_CUSTOM = 11;          // 自定义任务
+}
+
+enum TaskProperty {
+    TASK_PROPERTY_UNSPECIFIED = 0;
+    TASK_PROPERTY_NOTHING_DIAMONDS = 1;//钻石消耗无关，比如分享、签到、送活动礼物n个
+    TASK_PROPERTY_ONE_WAY_GIFT = 2;//RTP按照包内钻石价值/送礼数值算
+    TASK_PROPERTY_TWO_WAY_GIFT = 3;//TP按照包内钻石价值/（送礼数值/2）算
+}
+
+// 活动任务配置
+message TaskItem {
+    comm.mgr.activity.RewardPkg reward_pkg = 1; //奖励包
+    TaskType task_type = 2; //类型
+    string task_tag = 3; //任务分组
+    string icon = 4;  //icon
+    string code = 6; //唯一code
+    sconfig.model.Langs title = 7; //展示title
+    string action = 8; //任务行为
+    int32 count = 9; //进度次数
+    string router = 10; //跳转deeplink
+    string filter = 11; //过滤规则
+    string ext_reward = 12; //额外奖励map
+    TaskProperty task_property = 13; //任务性质
+}

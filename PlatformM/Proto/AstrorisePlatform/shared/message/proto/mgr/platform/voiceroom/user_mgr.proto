@@ -1,0 +1,87 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/user/handlermgr
+syntax = "proto3";
+
+package mgr.astrorise.voiceroom;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/adapter/model.proto";
+
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbusermgr";
+
+// 用户信息的 mgr 接口为什么放在 gene 里面? 因为有些现有业务接入的话他已经有用户体系了.
+service UserMgr {
+
+  // 根据 uid 查询用户信息
+  rpc BatchGetUserByUid(BatchGetUserByUidReq) returns (BatchGetUserByUidRsp);
+
+  // 根据 show-uid 查询用户信息
+  rpc BatchGetUserByShowUid(BatchGetUserByShowUidReq) returns (BatchGetUserByShowUidRsp);
+
+  // 搜索用户
+  rpc SearchUser(SearchUserReq) returns (SearchUserRsp);
+
+  // 拉取所有设备版本
+  rpc ListDeviceVersion(ListDeviceVersionReq) returns (ListDeviceVersionRsp);
+}
+
+message BatchGetUserByUidReq {
+  repeated int64 uids = 10;
+}
+message BatchGetUserByUidRsp {
+  repeated comm.api.adapter.UserInfo user_infos = 10;
+}
+
+message BatchGetUserByShowUidReq {
+  repeated string show_uids = 10;
+}
+message BatchGetUserByShowUidRsp {
+  repeated comm.api.adapter.UserInfo user_infos = 10;
+}
+
+message User {
+  int64 uid = 1;          // 用户UID
+  string show_uid = 2;    // 用户外显UID
+  string nickname = 3;    // 用户昵称
+  int32 gender = 4;       // 用户性别
+  string avatar = 5;      // 用户头像
+  string country = 6;     // 用户国家
+  string birthday = 7;    // 用户生日
+  string language = 8;    // 客户端语言
+  string introduction = 9;// 自我介绍
+  int64 cp_uid = 10;      // cp uid
+
+  int64 login_at = 20;          // 最近登录时间
+  string device_version = 21;   // 最近登录设备和版本
+  string client_version = 22;   // 最近登录客户端版本
+
+  int32 status = 40;            // 状态, 1: 正常 2: 封禁
+
+  int64 created_at = 50;    // 注册时间
+  int64 updated_at = 51;    // 更新时间
+  int64 operated_at = 100;  // 运营操作时间
+  string operated_by = 101; // 运营操作人
+}
+
+message SearchUserReq {
+  scommon.Page page = 1;           // 分页参数
+  scommon.Sorts sorts = 2;         // 排序参数
+  string uids = 10;                // 用户ID, 以逗号分隔.
+  int64 created_at_start = 11;     // 注册时间开始
+  int64 created_at_end = 12;       // 注册时间结束
+  string device_version = 13;      // 终端设备
+  int64 login_at_start = 14;       // 登录时间开始
+  int64 login_at_end = 15;         // 登录时间结束
+}
+
+message SearchUserRsp {
+  scommon.Page page = 1;           // 分页参数
+  repeated User data = 10;         // 用户列表
+}
+
+message ListDeviceVersionReq {
+
+}
+
+message ListDeviceVersionRsp {
+  repeated string device_versions = 10;
+}

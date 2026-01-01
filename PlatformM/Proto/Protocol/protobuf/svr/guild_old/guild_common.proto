@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package pbguild;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsguildold";
+
+message Country {
+  int64 country_id = 1;                 // 国家ID
+  string country_abbr = 2;              // 国家简码
+  map<string, string> country_name = 3; // 国家名称, 国际化, 目前包含 AR, EN
+}

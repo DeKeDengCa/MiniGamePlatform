@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package comm.svr.relation;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsrelation";
+
+// 执行 sproto -spath gitit.cc/social/components-service/xxxx  relation_callback.proto
+
+// 社交中台关系服务 回调业务的接口
+service RelationCallback {
+  // 房间能否拉黑用户
+  rpc CanAddRoomBlackUser(CanAddRoomBlackUserReq) returns (CanAddRoomBlackUserRsp) {}
+  // 房间能否解除拉黑用户
+  rpc CanRemoveRoomBlackUser(CanRemoveRoomBlackUserReq) returns (CanRemoveRoomBlackUserRsp) {}
+}
+
+// 检查结果错误码
+enum CheckCode {
+  CHECK_CODE_SUCCESS = 0;              // 成功/通过
+  CHECK_CODE_PERMISSION_DENY = 1;      // 操作者权限不足
+  CHECK_CODE_TARGET_IS_ADMIN = 2;      // 目标是管理员/房主（不可操作）
+  CHECK_CODE_CANNOT_OP_SELF = 3;       // 不允许操作自己
+  CHECK_CODE_SYSTEM_ERROR = 4;         // 系统错误
+}
+
+message CheckResult {
+  int64 uid = 1;// 用户UID
+  bool pass = 2; // 是否检查通过
+  CheckCode code = 3; // 检查结果错误码枚举类型
+  string reason = 4;// 不通过的原因
+}
+
+message CanAddRoomBlackUserReq {
+  int64 room_id = 1; // 房间ID
+  int64 operator_uid = 2;// 操作者UID
+  repeated int64 target_uids = 3; // 目标UIDs
+}
+message CanAddRoomBlackUserRsp {
+  repeated CheckResult results = 1; // 结果
+}
+
+message CanRemoveRoomBlackUserReq {
+  int64 room_id = 1; // 房间ID
+  int64 operator_uid = 2; // 操作者UID
+  repeated int64 target_uids = 3; // 目标UIDs
+}
+message CanRemoveRoomBlackUserRsp {
+  repeated CheckResult results = 1; // 结果
+}
+
+

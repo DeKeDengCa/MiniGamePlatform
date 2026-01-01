@@ -1,0 +1,120 @@
+// smicro:spath=gitit.cc/social/components-service/social-relation/biz/relation/handler/userblack
+syntax = "proto3";
+
+package comm.api.relation;
+
+import "protobuf/api/common/common.proto";
+
+option java_package = "com.entertain.sns.comm.api.relation";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbrelation";
+
+
+enum UserBlackStatus {
+  Status_None = 0; // 状态为空
+  Status_Initiative = 1; // in.UID 主动拉黑用户
+  Status_Passive = 2; // in.UID 被拉黑
+  Status_Each_Other = 3; // 相互拉黑
+}
+
+// 用户黑名单
+service UserBlack {
+  // 添加用户黑名单
+  rpc AddBlackUser(AddBlackUserReq) returns (AddBlackUserResp);
+  // 移除用户黑名单
+  rpc RemoveBlackUser(RemoveBlackUserReq) returns (RemoveBlackUserResp);
+  // 获取用户黑名单列表
+  rpc GetBlackUserList(GetBlackUserListReq) returns (GetBlackUserListResp);
+  // 检查用户拉黑状态
+  rpc CheckUserBlackStatus(CheckUserBlackStatusReq) returns (CheckUserBlackStatusResp);
+  // 批量检查用户是否在黑名单中
+  rpc CheckInUserBlack(CheckInUserBlackReq) returns (CheckInUserBlackResp);
+  // 添加用户房间黑名单
+  rpc AddUserRoomBlack(AddUserRoomBlackReq) returns (AddUserRoomBlackResp);
+  // 移除用户房间黑名单
+  rpc RemoveUserRoomBlack(RemoveUserRoomBlackReq) returns (RemoveUserRoomBlackResp);
+  // 获取用户房间黑名单列表
+  rpc GetUserRoomBlackList(GetUserRoomBlackListReq) returns (GetUserRoomBlackListResp);
+  // 批量检查是否在用户房间黑名单中
+  rpc CheckInUserRoomBlack(CheckInUserRoomBlackReq) returns (CheckInUserRoomBlackResp);
+}
+
+
+// 添加用户黑名单
+message AddBlackUserReq {
+    int64 black_uid = 1; // 黑名单用户id
+}
+
+message AddBlackUserResp {}
+
+// 移除用户黑名单
+message RemoveBlackUserReq {
+  repeated int64 uids = 1; // 用户id
+}
+
+message RemoveBlackUserResp {}
+
+// 获取用户黑名单列表
+message GetBlackUserListReq {
+  scommon.Page page = 1;
+}
+
+message GetBlackUserListResp {
+  scommon.Page page = 1;
+  repeated int64 black_uids = 2; // 黑名单用户id
+}
+
+// 批量检查用户是否在黑名单中
+message CheckInUserBlackReq {
+  repeated int64 uids = 1; // 用户id
+}
+
+message CheckInUserBlackResp {
+  map<int64, bool> black_map = 1;
+}
+
+// 添加房间黑名单
+message AddUserRoomBlackReq {
+  int64 black_room_id = 1; // 黑名单房间id
+}
+
+message AddUserRoomBlackResp {}
+
+// 移除房间黑名单
+message RemoveUserRoomBlackReq {
+  repeated int64 room_ids = 1; // 房间id
+}
+
+message RemoveUserRoomBlackResp {}
+
+
+// 获取房间黑名单列表
+message GetUserRoomBlackListReq {
+  scommon.Page page = 1;
+}
+
+message GetUserRoomBlackListResp {
+  scommon.Page page = 1;
+  repeated int64 black_room_ids = 2; // 黑名单房间id
+}
+
+
+// 批量检查房间是否在黑名单中
+message CheckInUserRoomBlackReq {
+  repeated int64 room_ids = 1; // 房间id
+}
+
+message CheckInUserRoomBlackResp {
+  map<int64, bool> black_map = 1;
+}
+
+// 批量检查用户拉黑状态
+message CheckUserBlackStatusReq {
+  repeated int64 user_ids = 1; // 用户id
+}
+
+message CheckUserBlackStatusResp {
+  map<int64, UserBlackStatus> status_map = 1;
+}
+
+
+

@@ -1,0 +1,150 @@
+// smicro:spath=gitit.cc/social/components-service/social-privilege/biz/privilege/handlermgr/mall
+
+syntax = "proto3";
+
+package comm.mgr.privilege;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/privilege/v2/privilege.proto";
+import "protobuf/api/privilege/v2/mall.proto";
+import "protobuf/mgr/privilege/resource.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmprivilege";
+
+service ResourceMall {
+
+  // 商城商品列表
+  rpc ListMallGoods(ListMallGoodsReq) returns (ListMallGoodsRsp);
+
+  // 创建商品
+  rpc CreateMallGoods(CreateMallGoodsReq) returns (CreateMallGoodsRsp);
+
+  // 更新商品
+  rpc UpdateMallGoods(UpdateMallGoodsReq) returns (UpdateMallGoodsRsp);
+
+  // 下架商品
+  rpc OffShelfMallGoods(OffShelfMallGoodsReq) returns (OffShelfMallGoodsRsp);
+
+  // 上架商品
+  rpc OnShelfMallGoods(OnShelfMallGoodsReq) returns (OnShelfMallGoodsRsp);
+
+  // 删除商品
+  rpc DeleteMallGoods(DeleteMallGoodsReq) returns (DeleteMallGoodsRsp);
+
+  // 商城商品分类列表
+  rpc ListMallTab(ListMallTabReq) returns (ListMallTabRsp);
+
+  // 创建商品分类
+  rpc CreateMallTab(CreateMallTabReq) returns (CreateMallTabRsp);
+
+  // 更新商品分类
+  rpc UpdateMallTab(UpdateMallTabReq) returns (UpdateMallTabRsp);
+
+  // 删除商品分类
+  rpc DeleteMallTab(DeleteMallTabReq) returns (DeleteMallTabRsp);
+}
+
+// 商城商品列表请求
+message ListMallTabReq {
+  scommon.Page page = 1;
+}
+
+// 商城商品列表响应
+message ListMallTabRsp {
+  scommon.Page page = 1;
+  repeated MgrMallTab tabs = 10; //商品tab列表
+}
+
+// 商城tab
+message MgrMallTab {
+  int64 id = 10;
+  map<string, string> i18n_names = 11; // 国际化名称, {"en": "xxx", "ar": "yyy"}.
+
+  int64 created_at = 31; // 创建时间
+  string creator = 32; // 创建人
+  int64 updated_at = 33; // 修改时间
+  string updater = 34; // 修改人
+  int64 deleted_at = 35; // 删除时间(0:未删除,>0:已删除)
+}
+
+message CreateMallTabReq {
+  MgrMallTab tab = 10;
+}
+
+message CreateMallTabRsp {}
+
+message UpdateMallTabReq {
+  MgrMallTab tab = 10;
+}
+
+message UpdateMallTabRsp {}
+
+message DeleteMallTabReq {
+  repeated int64 ids = 10;
+}
+
+message DeleteMallTabRsp {}
+
+message CreateMallGoodsReq {
+  MgrMallGoods goods = 10;
+}
+
+message CreateMallGoodsRsp {}
+
+message UpdateMallGoodsReq {
+  MgrMallGoods goods = 10;
+}
+
+message UpdateMallGoodsRsp {}
+
+message OffShelfMallGoodsReq {
+  repeated int64 ids = 10;
+}
+
+message OffShelfMallGoodsRsp {}
+
+message OnShelfMallGoodsReq {
+  repeated int64 ids = 10;
+}
+
+message OnShelfMallGoodsRsp {}
+
+message DeleteMallGoodsReq {
+  repeated int64 ids = 10;
+}
+
+message DeleteMallGoodsRsp {}
+
+// 商城商品
+message MgrMallGoods {
+  int64 id = 10; //商品ID
+  int64 tab_id = 11; // 对应 MgrMallTab 的id
+  api.privilege.v2.CategoryID category_id = 12;      // 分类标识
+  api.privilege.v2.CategoryID sub_category_id = 13;  // 二级分类标识
+  int64 resource_id = 14; // 对应资源id
+
+  api.privilege.v2.MallGoodsPrice price = 20; //商品价格
+
+  api.privilege.v2.GoodsStatus status = 30; // 上下架状态
+  int64 created_at = 31; // 创建时间
+  string creator = 32; // 创建人
+  int64 updated_at = 33; // 修改时间
+  string updater = 34; // 修改人
+  int64 deleted_at = 35; // 删除时间(0:未删除,>0:已删除)
+
+  MgrResource resource = 50; // 对应资源信息, 新增、修改时不用传，获取列表的时候，后端返回
+}
+
+// 商城商品列表请求
+message ListMallGoodsReq {
+  scommon.Page page = 1;
+  int64 tab_id = 10; // 对应 MgrMallTab 的id
+  api.privilege.v2.CategoryID category_id = 11;      // 分类标识
+  api.privilege.v2.CategoryID sub_category_id = 12;  // 二级分类标识
+}
+
+// 商城商品列表响应
+message ListMallGoodsRsp {
+  scommon.Page page = 1;
+  repeated MgrMallGoods goods = 10; //商品列表
+}

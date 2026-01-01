@@ -1,0 +1,286 @@
+syntax = "proto3";
+
+package pbsgamerisk;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsgamerisk";
+// smicro:spath=gitit.cc/social/components-service/game-risk/handler-svr/gamerisk
+
+// 游戏风控服务
+service GameRisk {
+    // 创建游戏
+    rpc CreateGame(CreateGameReq) returns (CreateGameRsp);
+    // 启用游戏
+    rpc StartGame(StartGameReq) returns (StartGameRsp);
+    // 停用游戏
+    rpc StopGame(StopGameReq) returns (StopGameRsp);
+    // 添加游戏余额
+    rpc AddGame(AddGameReq) returns (AddGameRsp);
+    // 扣减游戏余额
+    rpc DeductGame(DeductGameReq) returns (DeductGameRsp);
+    // 配置资金池规则
+    rpc SetGameRule(SetGameRuleReq) returns (SetGameRuleRsp);
+    // 获取游戏列表
+    rpc ListGame(ListGameReq) returns (ListGameRsp);
+    // 获取游戏流水
+    rpc ListLogs(ListLogsReq) returns (ListLogsRsp);
+    // 获取游戏池列表
+    rpc ListGamePool(ListGamePoolReq) returns (ListGamePoolRsp);
+    // 手动补发
+    rpc ManualRelease(ManualReleaseReq) returns (ManualReleaseRsp);
+    // 游戏开始
+    rpc GameStart(GameStartReq) returns (GameStartRsp);
+    // 游戏结算
+    rpc GameSettle(GameSettleReq) returns (GameSettleRsp);
+  }
+
+// 日志类型
+enum LogType {
+    LOG_TYPE_NONE = 0;
+    LOG_TYPE_USER = 1;   // 用户行为
+    LOG_TYPE_ADMIN = 2;  // 管理员操作
+    LOG_TYPE_RULE = 3;   // 规则导致
+}
+
+// 日志状态
+enum LogStatus {
+    LOG_STATUS_NONE = 0;
+    LOG_STATUS_EXCEPTION = 1;  // 异常
+    LOG_STATUS_COMPLETE = 2;   // 完成
+    LOG_STATUS_SYNC = 3;       // 同步中
+    LOG_STATUS_SYNC_FALSE = 4; // 同步失败
+}
+
+// 日志结果
+enum LogResult {
+    LOG_RESULT_NONE = 0;
+    LOG_RESULT_EARN = 1;  // 赢
+    LOG_RESULT_LOSS = 2;  // 亏
+    LOG_RESULT_EQUAL = 3; // 平
+}
+
+// 货币类型
+enum CurrencyType {
+    CURRENCY_TYPE_NONE = 0;
+    CURRENCY_TYPE_COIN = 1;    // 金币
+    CURRENCY_TYPE_DIAMOND = 2; // 钻石
+}
+
+// 发布状态
+enum ReleaseStatus {
+    RELEASE_STATUS_NONE = 0; // 不需要
+    RELEASE_STATUS_WAIT = 1; // 待手动补发
+    RELEASE_STATUS_DONE = 2; // 已手动补发
+}
+
+// 游戏状态
+enum GameStatus {
+    GAME_STATUS_NONE = 0;
+    GAME_STATUS_START = 1; // 正常
+    GAME_STATUS_STOP = 2;  // 停止
+}
+
+// 游戏要素
+message GameElement {
+  string app = 1;  // app
+  string game_id = 2; // 游戏ID
+  string session_id = 3;// 场次ID
+}
+
+// 用户信息
+message UserInfo {
+  CurrencyInfo amounts = 1; // 金额
+  int64 uid = 2;// 用户ID
+}
+
+// 游戏消息
+message GameMessage {
+  GameElement game_element = 1; // 游戏要素
+  int64 game_time = 2;  // 业务发生时间
+  repeated UserInfo user_info = 3; // 用户信息
+}
+
+// 手动发布请求
+message ManualReleaseReq {
+  int64 log_id = 1; // 记录ID
+  string operator = 2;// 补发操作人
+}
+
+// 手动发布响应
+message ManualReleaseRsp {}
+
+// 游戏开始请求
+message GameStartReq {
+  GameMessage game_info = 1;  // 游戏开始信息
+  map<string, string> direct_params = 2; // 直达业务的参数
+}
+
+// 游戏开始响应
+message GameStartRsp {}
+
+// 游戏结算请求
+message GameSettleReq {
+  GameElement game_element = 1; // 游戏要素
+  int64 game_time = 2;  // 业务发生时间
+  CurrencyInfo amounts = 3;  // 金额
+  int64 uid = 4; // 用户ID
+  map<string, string> direct_params = 5; // 直达业务的参数
+}
+
+// 游戏结算响应
+message GameSettleRsp {}
+
+// 列出日志请求
+message ListLogsReq {
+  string app = 1; // app
+  int64 game_pool_id = 2;  // 池ID
+  int64 offset = 3; // 页码
+  int64 limit = 4;  // 页数
+  int64 start_time = 5; // 开始时间
+  int64 end_time = 6; // 结束时间
+  string session_id = 7; // 场次ID
+  LogResult result = 8; // 结果
+  float start_production_ratio = 9; // 投产比开始
+  int64 uid = 10; // 用户Uid
+  LogStatus status = 11;  // 记录状态
+  float end_production_ratio = 12; // 投产比结束
+  int64 game_id = 13; // 游戏ID
+}
+
+// 列出日志响应
+message ListLogsRsp {
+  repeated Logs list = 1; // 流水记录列表
+  int64 total_amounts = 16; // 总额
+  int64 offset = 4; // 页码
+  int64 limit = 5; // 页数
+  int64 count = 6; // 总数
+}
+
+// 创建游戏请求
+message CreateGameReq {
+  GameInfo data = 1; // 创建资金池信息
+}
+
+// 创建游戏响应
+message CreateGameRsp {}
+
+// 开始游戏请求
+message StartGameReq {
+  int64 Game_id = 1; // 资金池账户ID
+}
+
+// 开始游戏响应
+message StartGameRsp {}
+
+// 停止游戏请求
+message StopGameReq {
+  int64 Game_id = 1; // 资金池账户ID
+}
+
+// 停止游戏响应
+message StopGameRsp {}
+
+// 添加游戏请求
+message AddGameReq {
+  int64 Game_id = 1; // 资金池账户ID
+  CurrencyInfo currency_info = 2; // 货币信息
+}
+
+// 添加游戏响应
+message AddGameRsp {
+  int64 Game_id = 1; // 资金池账户ID
+  CurrencyInfo currency_info = 2; // 货币信息
+}
+
+// 扣除游戏请求
+message DeductGameReq {
+  int64 Game_id = 1; // 资金池账户ID
+  CurrencyInfo currency_info = 2; // 货币信息
+}
+
+// 扣除游戏响应
+message DeductGameRsp {
+  int64 Game_id = 1; // 资金池账户ID
+  CurrencyInfo currency_info = 2; // 货币信息
+}
+
+// 列出游戏请求
+message ListGameReq {
+  int64 game_id = 1; // 游戏ID
+}
+
+// 列出游戏响应
+message ListGameRsp {
+  repeated GameInfo list = 1;  // 游戏信息
+}
+
+// 列出游戏池请求
+message ListGamePoolReq {
+  string app = 1; // app
+}
+
+// 游戏池信息
+message GamePoolInfo {
+  int64 id = 1;
+  string app = 2;
+  string game_id = 3;
+  string name = 4;
+}
+
+// 列出游戏池响应
+message ListGamePoolRsp {
+  repeated GamePoolInfo list = 1; // 游戏池信息
+}
+
+// 设置游戏规则请求
+message SetGameRuleReq {
+  int64 Game_id = 1; // 资金池账户ID
+  string period = 2; // 周期
+  int64 Increases = 3; // 增加资金
+}
+
+// 设置游戏规则响应
+message SetGameRuleRsp {}
+
+// 日志记录
+message Logs {
+  GameElement game_element = 1; // 游戏要素
+  int64 uid = 2;  // 用户ID
+  int64 game_time = 3;  // 业务发生时间
+  LogType log_type = 4;  // 记录类型
+  string deduct = 5; // 扣除金额
+  string settle = 6; // 结算金额
+  string operator = 7; // 补发操作人
+  int64 operator_time = 8; // 补发操作时间
+  LogStatus status = 9; // 记录状态
+  LogResult result = 10; // 赢平亏游戏结果
+  CurrencyType currency_type = 11; // 货币类型
+  int64 ctime = 12; // 创建时间
+  int64 utime = 13; // 更新时间
+  int64 game_risk_id = 14; // 资金池ID
+  float production_ratio = 15; // 投产比
+  ReleaseStatus release_status = 16; // 补发状态
+  int64 log_id = 17; // 记录ID
+}
+
+// 货币信息
+message CurrencyInfo {
+  CurrencyType currency_type = 1;// 货币类型
+  string balance = 2; // 余额
+}
+
+// 游戏信息
+message GameInfo {
+  int64 id = 1;                     // 资金池账户ID
+  string app = 2;                   // app
+  string name = 3;                  // 资金池名称
+  string game_id = 4;               // 游戏ID
+  CurrencyInfo currency_info = 5;   // 货币信息
+  int64 lifecycle = 6;              // 结算周期
+  string profit_amout = 7;          // 获利余额
+  int64 ctime = 8;                  // 创建时间
+  int64 utime = 9;                  // 修改时间
+  string operator = 10;             // 操作人
+  GameStatus status = 11;           // 状态
+  int64 settle_threshold = 12;      // 结算阈值
+  string standard_amout = 13;       // 配额
+}

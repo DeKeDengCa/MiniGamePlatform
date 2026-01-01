@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+// 这个package不能修改了， 不然有兼容性问题。因为有Notify，Notify用到了package name
+package cproxy;
+
+import "protobuf/api/common/common-net.proto";
+
+option java_package="com.entertain.sns.cproxy";
+option go_package="gitit.cc/social/components-service/cproxy/proto/pbcproxy";
+
+// smicro:spath=gitit.cc/social/components-service/cproxy/handler/api/cproxy-api.go
+
+// serviceName: api.gateway.cproxy
+service CProxy {
+  // 兼容旧框架的http请求
+  rpc SendHTTP(SendHTTPReq) returns (SendHTTPRsp);
+
+  // 批量请求
+  rpc Batch(BatchReq) returns (BatchRsp);
+
+  // 探针
+  rpc Echo(EchoReq) returns (EchoRsp);
+}
+
+message SendHTTPReq {
+  string method = 1; // GET/POST
+  string url = 2;    // 不包含参数的url
+  map<string, string> query = 3; // 参数列表
+  bytes  body = 4;   // 请求体
+}
+message SendHTTPRsp {
+  bytes body = 10;   // 响应的body
+}
+
+message BatchReq {
+  repeated BatchReqItem reqs = 1;
+  int64 timeout = 2; // 超时等待时间，单位 毫秒 ！！！！
+}
+message BatchReqItem {
+  scommon.ReqControl req_ctrl = 1;
+  bytes req_body = 2;
+}
+message BatchRspItem {
+  scommon.RspNotifyControl result = 1;
+  bytes rsp_body = 2;
+}
+message BatchRsp {
+  repeated BatchRspItem rsps = 1;
+}
+
+message EchoReq {
+  bytes data = 1;
+}
+message EchoRsp {
+  bytes data = 1;
+}
+
+// 用来给长连接发送Notify的加密的key（长连接没法在建连的时候发送一个response）
+message Notify {
+  string notify_ent_key = 1;   // 单播广播加密的key
+}

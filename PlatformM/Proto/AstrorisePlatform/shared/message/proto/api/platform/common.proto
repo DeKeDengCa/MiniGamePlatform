@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+package api.astrorise.platform;
+
+import "protobuf/api/common/common-net.proto";
+
+// smicro:spath=gitit.cc/social/astrorise/arcomm/biz/common/handler
+option go_package = "gitit.cc/social/astrorise/arprotobuf/gencode/api/pbccommon";
+option java_package="com.entertain.sns.astrorise.platform";
+
+
+// ********************************枚举******************************
+
+// UserOnlineStatus 用户在线状态
+enum UserOnlineStatus {
+    USER_ONLINE_STATUS_NONE = 0;
+    USER_ONLINE_STATUS_ONLINE = 1; // 在线
+    USER_ONLINE_STATUS_OFFLINE = 2;    // 离线
+    USER_ONLINE_STATUS_IN_TEAM = 3; // 在队伍中
+    USER_ONLINE_STATUS_IN_GAME = 4; // 在游戏中
+}
+
+
+enum UserTagType {
+    USER_TAG_TYPE_NONE = 0;
+    USER_TAG_TYPE_TEXT = 1; // 文本
+    USER_TAG_TYPE_ICON = 2; // icon
+}
+
+enum RtcProvider {
+    RTC_PROVIDER_NONE = 0;
+    RTC_PROVIDER_AGORA = 1;           // 声网
+    RTC_PROVIDER_DEMO = 50;           // demo，虚拟测试供应商
+}
+
+// rtm供应商
+enum RtmProvider {
+    RTM_PROVIDER_NONE = 0;
+    RTM_PROVIDER_AGORA = 1;           // 声网
+    RTM_PROVIDER_DEMO = 50;           // demo，虚拟测试供应商
+}
+
+// *******************************结构体******************************
+message GameUserInfo {
+    int64 uid = 1;
+    int32 game_id = 2;
+    int32 title_id = 3; // 称号id
+    repeated int64 medals = 4;  // 使用中的勋章ID列表
+    int64 game_score = 5;   // 游戏分数
+    int32 rank_tire_type = 6;    // 游戏段位类型
+    int32 rank_tire_id = 7; // 游戏段位
+}
+
+message UserStatus {
+    int64 uid = 1;
+    UserOnlineStatus online_status = 2; // 在线状态
+
+    int32 game_id = 10;  // 游戏id
+    int32 team_id = 11;  // 队伍id
+    int64 room_id = 12;  // 房间id
+}
+
+// 用户扩展信息
+message UserExtInfo {
+    int64 uid = 1;
+    int64 last_online_ts = 2; // 最后在线时间-时间戳秒
+}
+
+message UserTag {
+    int64 id = 1;
+    UserTagType type = 2;   // 标签类型
+    map<string, string> text_map = 3;   // 文本map
+    map<string, string> icon_map = 4;   // icon map
+}
+
+// 这个结构体作为biz_ext的proto marshal的一部分
+message UserBizExtInfo {
+    repeated UserTag tags = 1;  // 用户标签
+}
+
+// rtc token
+message RtcToken {
+    RtcProvider rtc_provider = 1;//供应商
+    string app_id = 2;//App ID
+    string token = 3;//token
+    int64  token_expire = 4;//Token 的有效时长（秒）
+}
+
+message RtmToken {
+    RtmProvider rtm_provider = 1;//供应商
+    string app_id = 2;//App ID
+    string token = 3;//token
+    int64  token_expire = 4;//Token 的有效时长（秒）
+}

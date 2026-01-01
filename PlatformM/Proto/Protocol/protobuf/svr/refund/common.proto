@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package pbrefund;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsrefund";
+
+/*
+  因为不同业务的货币叫法不一致, 但概念是相通的:
+  Playmate:
+    结算: 钻石-diamond
+    消费: 星币-star
+    币商: 星票-ticket
+    美分: 美分-usd
+
+  Lucky:
+    结算: 积分-point
+    消费: 金币-coin
+    币商: -
+    美分: -
+
+  Echo:
+    结算: 钻石-diamond
+    消费: 金币-coin
+    币商: 金票-ticket
+    美分: 美分-usd
+
+  Hala:
+    结算: 宝石-gem
+    消费: 钻石-diamond
+    币商: -
+    美分: -
+
+  所以追损中台对货币进行以下抽象, 让业务各自去对应自己的货币类型.
+ */
+enum CurrencyType {
+  CURRENCY_TYPE_NONE = 0;
+  CURRENCY_TYPE_SETTLEMENT = 1;   // 结算货币
+  CURRENCY_TYPE_CONSUMPTION = 2;  // 消费货币
+  CURRENCY_TYPE_COIN_AGENCY = 3;  // 币商货币
+  CURRENCY_TYPE_DOLLAR_CENT = 4;  // 美分货币
+}

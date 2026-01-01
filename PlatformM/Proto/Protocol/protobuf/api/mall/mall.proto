@@ -1,0 +1,297 @@
+// smicro:spath=gitit.cc/social/components-service/social-biz/biz/mall/handler
+syntax = "proto3";
+
+package comm.api.mall;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/revenue/common.proto";
+import "protobuf/api/family/family-comm.proto";
+import "protobuf/api/privilege/v2/privilege.proto";
+import "protobuf/api/revenue/gift.proto";
+
+option java_package = "com.entertain.sns.comm.api.mall";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbmall";
+
+// 商城接口
+// ServiceName: social-mall
+service Mall {
+
+  // 获取商品 Tab 列表
+  rpc ListTab(ListTabReq) returns (ListTabRsp);
+
+  // 获取商品列表
+  rpc ListGoods(ListGoodsReq) returns (ListGoodsRsp);
+
+  // 购买商品
+  rpc PurchaseGoods(PurchaseGoodsReq) returns (PurchaseGoodsRsp);
+}
+
+message ListTabReq {
+  int64 parent_tab_id = 10;                 // 父 Tab ID, 查询顶级 Tab 可不传
+}
+message ListTabRsp {
+  repeated Tab tabs = 10;
+}
+
+message ListGoodsReq {
+  scommon.Page page = 1;
+  int64 tab_id = 10;
+  string keyword = 20;
+}
+message ListGoodsRsp {
+  scommon.Page page = 1;
+  repeated Goods goodses = 10;              // 商品列表
+}
+
+message PurchaseGoodsReq {
+  int64 goods_id = 10;                      // 商品ID
+  int64 quantity = 20;                      // 购买数量
+  int64 to_uid = 100;                       // 给自己购买可不传
+}
+message PurchaseGoodsRsp {
+
+}
+enum PurchaseGoodsErrCode {
+  PURCHASE_GOODS_ERR_CODE_NONE = 0;
+  PURCHASE_GOODS_ERR_CODE_GOODS_NOT_FOUND = 10;       // 商品不存在
+  PURCHASE_GOODS_ERR_CODE_GOODS_SOLD_OUT = 20;        // 商品已售罄
+  PURCHASE_GOODS_ERR_CODE_PURCHASE_LIMIT_EXCEED = 30; // 超出购买上限
+}
+
+// 商品 Tab
+message Tab {
+  int64 tab_id = 1;                         // Tab ID
+  int64 parent_tab_id = 2;                  // 父 Tab ID
+  TabType tab_type = 3;                     // 商品 Tab 类型
+  map<string, string> tab_names = 10;       // Tab 名称
+  repeated Banner banners = 20;             // Banner 列表
+  // repeated Tab sub_tabs = 30;            // 子 Tab 列表
+  repeated Goods goodses = 40;              // 商品列表
+  TabStatus tab_status = 50;                // 商品 Tab 状态
+}
+
+// 商品 Tab 类型
+enum TabType {
+  TAB_TYPE_NONE = 0;
+  TAB_TYPE_NORMAL = 10;                     // 普通 Tab(无需特殊处理)
+  TAB_TYPE_PRETTY_NUMBER = 20;              // 靓号(一级Tab)
+  TAB_TYPE_USER_PRETTY_NUMBER = 21;         // 用户靓号(二级Tab)
+  TAB_TYPE_ROOM_PRETTY_NUMBER = 22;         // 普通房间靓号(二级Tab)
+  TAB_TYPE_FAMILY_PRETTY_NUMBER = 23;       // 家族靓号(二级Tab)
+  TAB_TYPE_FAMILY_ROOM_PRETTY_NUMBER = 24;  // 家族房间靓号(二级Tab)
+}
+
+// 商品 Tab 状态
+enum TabStatus {
+  TAB_STATUS_NONE = 0;
+  TAB_STATUS_ON_SALE = 10;  // 上架中
+  TAB_STATUS_OFF_SALE = 20; // 下架中
+}
+
+// Banner
+message Banner {
+  string banner_id = 1;
+  string name = 2;
+  string image_url = 3;
+  string jump_url = 4;
+  int32 sort_weight = 5;
+}
+
+// 商品
+message Goods {
+  int64 goods_id = 1;                       // 商品ID
+  int64 tab_id = 2;                         // Tab ID
+  GoodsType goods_type = 3;                 // 商品主类型
+  GoodsSubtype goods_subtype = 4;           // 商品子类型
+  map<string, GoodsAsset> goods_assets = 5; // 商品展示资源
+  GoodsTags goods_tags = 10;                // 商品角标
+  GoodsPrice goods_price = 20;              // 商品价格
+  GoodsAmount goods_amount = 30;            // 商品时长/数量
+  GoodsStock goods_stock = 31;              // 商品库存
+  GoodsRequirement goods_requirement = 40;  // 购买限制
+  GoodsLimit goods_limit = 50;              // 购买上限
+  GoodsStatus goods_status = 60;            // 商品状态
+  GoodsFlag goods_flag = 70;                // 商品标记
+  GoodsPrivilege goods_privilege = 80;      // 权益资源, goods_type 为 PRIVILEGE 时有值.
+  GoodsGift goods_gift = 81;                // 礼物资源, goods_type 为 GIFT 时有值
+}
+
+// 商品主类型
+enum GoodsType {
+  GOODS_TYPE_NONE = 0;
+  GOODS_TYPE_PRIVILEGE = 10;  // 权益类商品
+  GOODS_TYPE_GIFT = 20;       // 礼物类商品
+}
+
+// 商品子类型
+enum GoodsSubtype {
+  GOODS_SUBTYPE_NONE = 0;                                     // 无子分类(无需特殊处理)
+  GOODS_SUBTYPE_PRIVILEGE_NORMAL = 10;                        // 普通权益
+  GOODS_SUBTYPE_PRIVILEGE_HEADWEAR = 20;                      // 头像框
+  GOODS_SUBTYPE_PRIVILEGE_USER_PRETTY_NUMBER = 30;            // 用户靓号
+  GOODS_SUBTYPE_PRIVILEGE_ROOM_PRETTY_NUMBER = 31;            // 普通房间靓号
+  GOODS_SUBTYPE_PRIVILEGE_FAMILY_PRETTY_NUMBER = 32;          // 家族靓号
+  GOODS_SUBTYPE_PRIVILEGE_FAMILY_ROOM_PRETTY_NUMBER = 33;     // 家族房间靓号
+  GOODS_SUBTYPE_PRIVILEGE_SCREEN_BUBBLE = 40;                 // 公屏气泡
+}
+
+// 商品素材资源
+message GoodsAsset {
+  string name = 1;                            // 商品名称
+  string desc = 2;                            // 商品描述
+  .api.privilege.v2.AssetInfo image = 10;     // 静态图片
+  .api.privilege.v2.AssetInfo animation = 20; // 展示动画
+
+  // 公屏气泡资源
+  message ScreenBubble {
+    .api.privilege.v2.AssetInfo bg = 11;            // 背景图
+    .api.privilege.v2.AssetInfo left_top = 12;      // 左上角
+    .api.privilege.v2.AssetInfo left_bottom = 13;   // 左下角
+    .api.privilege.v2.AssetInfo right_top = 14;     // 右上角
+    .api.privilege.v2.AssetInfo right_bottom = 15;  // 右下角
+    string text_color = 16;                         // 文本颜色
+  }
+  ScreenBubble screen_bubble = 100;           // 公屏气泡资源比较特殊预览需要的资源比较多
+}
+
+// 商品角标集
+message GoodsTags {
+  GoodsTag upper_left = 10;     // 左上角
+  GoodsTag upper_right = 20;    // 右上角
+  GoodsTag lower_left = 30;     // 左下角
+  GoodsTag lower_right = 40;    // 右下角
+}
+
+// 商品角标, 定义一个结构体是为了以后方便拓展.
+message GoodsTag {
+  string url = 1;               // 图标地址
+}
+
+// 商品价格
+message GoodsPrice {
+  pbrevenue.CurrencyType currency_type = 1; // 货币类型
+  int64 price = 2;                          // 现价
+  int64 origin_price = 3;                   // 原价, 0 表示没有原价
+}
+
+// 商品种类
+enum GoodsKind {
+  GOODS_KIND_NONE = 0;
+  GOODS_KIND_DURATION = 10;     // 时长型商品
+  GOODS_KIND_QUANTITY = 20;     // 数量型商品
+}
+
+// 商品数量
+message GoodsAmount {
+  GoodsKind goods_kind = 1;     // 商品种类
+  int64 amount = 2;             // 对于时长型这里是有效期秒数, 对于数量型这里是个数.
+}
+
+// 商品库存
+message GoodsStock {
+  bool unlimited = 1;           // 无限制
+  int64 total = 2;              // 总库存
+  int64 remain = 3;             // 剩余库存
+}
+
+// 购买限制
+message GoodsRequirement {
+  GoodsRequirementFamilyRole family_role = 10;
+  GoodsRequirementUserVIP user_vip = 20;
+  GoodsRequirementRoomVIP room_vip = 30;
+}
+
+// 家族角色
+message GoodsRequirementFamilyRole {
+  repeated comm.api.family.FamilyRoleType role_types = 1;
+}
+
+// 用户会员
+message GoodsRequirementUserVIP {
+  int64 min_level = 1;
+}
+
+// 房间会员
+message GoodsRequirementRoomVIP {
+  int64 min_level = 1;
+}
+
+// 购买上限
+message GoodsLimit {
+  GoodsLimitPeriod period = 1;
+  int64 max_count = 2;
+}
+
+// 购买上限时限
+enum GoodsLimitPeriod {
+  GOODS_LIMIT_PERIOD_NONE = 0;
+  GOODS_LIMIT_PERIOD_PERMANENT = 10;
+}
+
+// 商品状态
+enum GoodsStatus {
+  GOODS_STATUS_NONE = 0;
+  GOODS_STATUS_ON_SALE = 10;  // 上架中
+  GOODS_STATUS_OFF_SALE = 20; // 下架中
+}
+
+// 商品标记
+message GoodsFlag {
+  bool buy_in_activity = 1;   // 是否活动购买
+  bool recommend = 2;         // 推荐商品
+}
+
+// 商品权益资源
+message GoodsPrivilege {
+  .api.privilege.v2.CategoryID category_id = 1;
+  .api.privilege.v2.CategoryID sub_category_id = 2;
+  int64 privilege_id = 3;
+  string pretty_number_show_id = 4;
+}
+
+// 商品礼物资源
+message GoodsGift {
+  pbrevenue.GiftType gift_type = 1;
+  int64 gift_id = 2;
+}
+
+// 商城订单
+message Order {
+  int64 order_id = 1;                         // 订单ID
+  string order_no = 2;                        // 订单号
+  int64 uid = 10;                             // 购买人
+  string did = 11;                            // 购买设备
+  int64 to_uid = 12;                          // 收货人
+  int64 goods_id = 20;                        // 商品ID
+  Goods goods_snapshot = 21;                  // 商品快照
+  pbrevenue.CurrencyType currency_type = 30;  // 货币类型
+  int64 price = 31;                           // 现价
+  int64 quantity = 32;                        // 数量
+  int64 amount = 33;                          // 总金额
+  OrderStatus order_status = 40;              // 订单状态
+  int64 order_at = 41;                        // 下单时间
+  int64 paid_at = 42;                         // 支付时间
+  int64 canceled_at = 43;                     // 取消时间
+  int64 refunded_at = 44;                     // 退款时间
+  DeliveryStatus delivery_status = 50;        // 发货状态
+  int64 delivered_at = 51;                    // 到货时间
+  int64 returned_at = 52;                     // 退货时间
+}
+
+// 订单状态
+enum OrderStatus {
+  ORDER_STATUS_NONE = 0;
+  ORDER_STATUS_PENDING = 10;    // 待支付
+  ORDER_STATUS_PAID = 20;       // 已支付
+  ORDER_STATUS_CANCELED = 30;   // 已取消
+  ORDER_STATUS_REFUNDED = 40;   // 已退款
+}
+
+// 发货状态
+enum DeliveryStatus {
+  DELIVERY_STATUS_NONE = 0;
+  DELIVERY_STATUS_WAITING = 10;   // 待发货
+  DELIVERY_STATUS_DELIVERED = 20; // 已到货(下发到用户背包)
+  DELIVERY_STATUS_CANCELED = 30;  // 已取消
+  DELIVERY_STATUS_RETURNED = 40;  // 已退货(从用户背包扣除)
+}

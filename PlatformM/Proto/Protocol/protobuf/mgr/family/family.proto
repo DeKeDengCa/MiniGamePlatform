@@ -1,0 +1,105 @@
+syntax = "proto3";
+
+package comm.mgr.family;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/family/family-comm.proto";
+
+option java_package = "com.entertain.sns.comm.mgr.family";
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmfamily";
+
+// ServiceName: social-biz
+// smicro:spath=gitit.cc/social/components-service/social-biz/biz/family/handlermgr
+service FamilyMgr {
+  // ListFamily 家族列表
+  rpc ListFamily(ListFamilyReq) returns (ListFamilyRsp);
+  // AuditFamilyApply 审批家族
+  rpc AuditFamilyApply(AuditFamilyApplyReq) returns (AuditFamilyApplyRsp);
+  // CreateFamily 创建家族
+  rpc CreateFamily(CreateFamilyReq) returns (CreateFamilyRsp);
+  // EditFamilyInfo 编辑家族信息
+  rpc EditFamilyInfo(EditFamilyInfoReq) returns (EditFamilyInfoRsp);
+  // DeleteFamily 删除家族
+  rpc DeleteFamily(DeleteFamilyReq) returns (DeleteFamilyRsp);
+  // ListFamilyMember 家族成员列表
+  rpc ListFamilyMember(ListFamilyMemberReq) returns (ListFamilyMemberRsp);
+}
+
+message ListFamilyReq {
+  scommon.Page page = 1;  // 分页参数
+  int64 family_id = 2;  // 家族ID
+  int64 owner_uid = 3; // 家族长UID
+  comm.api.family.FamilyStatus family_status = 4; // 家族状态
+  int64 create_min = 5; // 创建时间-起始
+  int64 create_max = 6; // 创建时间-结束
+}
+
+message ListFamilyRsp {
+  scommon.Page page = 1;  // 分页参数
+  repeated FamilyInfo list = 2; // 家族列表
+}
+
+message FamilyInfo {
+  comm.api.family.FamilyBaseInfo base_info = 1; // 基础信息
+  int64 owner_uid = 2;  // 家族长UID
+  string owner_name = 3;  // 家族长昵称
+  int64 total_member = 4; // 总成员数
+  int64 vice_patriarch_num = 5; // 副家族长数量
+  int64 admin_num = 6;  // 管理员数量
+  int64 mass_num = 7; // 普通成员数量
+  int64 member_limit = 8; // 成员数量上限
+  comm.api.family.FamilyStatus family_status = 9; // 家族状态
+  int64 ctime = 10; // 创建时间
+  int64 utime = 11; // 更新时间
+}
+
+message AuditFamilyApplyReq {
+  int64 family_id = 1; // 家族ID
+  comm.api.family.AuditOperation operation = 2; // 操作类型
+}
+
+message AuditFamilyApplyRsp {
+
+}
+
+message CreateFamilyReq {
+  comm.api.family.FamilyBaseInfo base_info = 1; // 基础信息
+  int64 member_limit = 2; // 成员数量上限
+  int64 family_owner_uid = 3; // 家族创建者
+}
+
+message CreateFamilyRsp {
+
+}
+
+message EditFamilyInfoReq {
+  comm.api.family.FamilyBaseInfo base_info = 1; // 基础信息
+  int64 member_limit = 2; // 成员数量
+}
+
+message EditFamilyInfoRsp {
+
+}
+
+message DeleteFamilyReq {
+  int64 family_id = 1; // 家族ID
+  string reason = 2;  // 原因
+}
+
+message DeleteFamilyRsp {
+
+}
+
+message ListFamilyMemberReq {
+  scommon.Page page = 1;  // 分页参数
+  int64 family_id = 2;  // 家族ID
+  int64 uid = 3;  // 用户ID
+  comm.api.family.FamilyRoleType role = 4;  // 角色
+  int64 join_start_time = 5; // 加入开始时间
+  int64 join_end_time = 6;  // 加入结束时间
+}
+
+message ListFamilyMemberRsp {
+  scommon.Page page = 1;  // 分页参数
+  repeated comm.api.family.FamilyMemberInfo member_list = 2;  // 成员列表
+}

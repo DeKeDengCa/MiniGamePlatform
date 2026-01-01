@@ -1,0 +1,155 @@
+syntax = "proto3";
+
+package comm.api.moment;
+
+import "protobuf/api/moment/moment-comm.proto";
+import "protobuf/api/common/common.proto";
+import "protobuf/api/common/common-net.proto";
+
+option java_package = "com.entertain.sns.comm.api.moment";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbmoment";
+
+// ServiceName: social-biz
+// smicro:spath=gitit.cc/social/components-service/social-biz/biz/moment/handler
+service MomentApi {
+  // 发布动态
+  rpc PublishMoment(PublishMomentReq) returns (PublishMomentRsp);
+
+  // 删除动态
+  rpc DeleteMoment(DeleteMomentReq) returns (DeleteMomentRsp);
+
+  // 拉取动态
+  rpc ListMoment(ListMomentReq) returns (ListMomentRsp);
+
+  // 浏览动态（打点）
+  rpc ViewMoment(ViewMomentReq) returns (ViewMomentRsp);
+
+  // 发布评论
+  rpc PublishComment(PublishCommentReq) returns (PublishCommentRsp);
+
+  // 删除评论
+  rpc DeleteComment(DeleteCommentReq) returns (DeleteCommentRsp);
+
+  // 拉取评论
+  rpc ListComment(ListCommentReq) returns (ListCommentRsp);
+
+  // 根据ID批量查询动态
+  rpc BatchGetMoment(BatchGetMomentReq) returns (BatchGetMomentRsp);
+
+  // 根据ID批量查询评论
+  rpc BatchGetComment(BatchGetCommentReq) returns (BatchGetCommentRsp);
+}
+
+message PublishMomentReq {
+  MomentDraft draft = 1;
+}
+
+message PublishMomentRsp {
+  Moment moment = 1;  // 动态
+}
+
+// 待发布的动态草稿
+message MomentDraft {
+  int64 version = 1;            // 客户端维护版本号，如果新版本不兼容旧版本，则递增版本号，渲染时如果当前维护版本小于该版本号则过滤或提示升级
+  Text text = 10;               // 动态文案
+  repeated Tag tags = 11;       // 标签
+  Location location = 12;       // 位置
+  Attachments attachments = 20; // 动态附件(微信方案, 不允许一个动态里面既包含图片又包含视频.)
+  //   repeated Attachment attachments = 30; // 动态附件(微博方案, 允许一个动态里面既包含图片又包含视频, 而且可以随意排列组合)
+  BizData context = 60;         // 透传上下文, 由客户端写入, 用于业务客户端之间或业务客户端和服务端进行能力拓展, 中台只负责存储和传输并不关心其内容及结构.
+  BizData expand = 61;          // 拓展信息, 由业务后端写入, 用于业务后端填充此动态的发布者相关信息, 中台只负责存储和传输并不关心其内容及结构.
+}
+
+message DeleteMomentReq {
+  repeated int64 moment_ids = 1;   // 最多100个，超出则截断不处理
+}
+
+message DeleteMomentRsp {
+  repeated int64 success_ids = 1;  // 成功的ID列表
+}
+
+message ListMomentReq {
+  scommon.Page page = 1;  // 分页参数
+  int64 uid = 10;         // 用户ID
+}
+
+message ListMomentRsp {
+  scommon.Page page = 1;        // 分页参数
+  repeated Moment moments = 10; // 动态列表
+}
+
+message ViewMomentReq {
+  repeated int64 moment_ids = 1;
+}
+
+message ViewMomentRsp {
+}
+
+message PublishCommentReq {
+  CommentDraft draft = 1;
+}
+
+message PublishCommentRsp {
+  Comment comment = 1;
+}
+
+message CommentDraft {
+  int64 version = 1;            // 客户端维护版本号，如果新版本不兼容旧版本，则递增版本号，渲染时如果当前维护版本小于该版本号则过滤或提示升级
+  int64 moment_id = 2;          // 动态ID
+  int64 root_comment_id = 3;    // 楼中楼（即一层主评论和一层子评论）时用于控制层级，大于0表示这是在一条主评论下的子评论
+  int64 refer_comment_id = 4;   // 平铺（没有层级关系，评论和回复处于同一层）时用于指示回复哪个评论，0表示评论，大于0表示回复
+  int64 refer_uid = 5;          // 平铺（没有层级关系，评论和回复处于同一层）时用于指示回复哪个评论者
+  Text text = 10;               // 评论内容
+  BizData context = 60;         // 透传上下文, 由客户端写入, 用于业务客户端之间或业务客户端和服务端进行能力拓展, 中台只负责存储和传输并不关心其内容及结构.
+  BizData expand = 61;          // 拓展信息, 由业务后端写入, 用于业务后端填充此动态的发布者相关信息, 中台只负责存储和传输并不关心其内容及结构.
+}
+
+message DeleteCommentReq {
+  repeated int64 comment_ids = 1; // 最多100个，超出则截断不处理
+}
+
+message DeleteCommentRsp {
+  repeated int64 success_ids = 1;  // 成功的ID列表
+}
+
+message ListCommentReq {
+  scommon.Page page = 1;        // 分页参数
+  Style style = 2;              // 评论样式
+  int64 moment_id = 10;         // 动态ID
+  int64 comment_id = 11;        // 楼中楼时的引用评论ID, 如果不传此字段表示查动态的主评论, 否则表示查某条评论的跟评.
+
+  enum Style {
+    STYLE_NONE = 0;
+    STYLE_FLAT = 1;     // 平铺，没有嵌套
+    STYLE_NESTED = 2;   // 楼中楼，有主评论和子评论2层嵌套
+  }
+}
+
+message ListCommentRsp {
+  scommon.Page page = 1;          // 分页参数
+  repeated Comment comments = 10; // 评论列表
+}
+
+message BatchGetCommentReq {
+  repeated int64 comment_ids = 1; // 最多100个，超出则截断不处理
+}
+
+message BatchGetCommentRsp {
+  map<int64, Comment> comment_map = 1;
+}
+
+message PublishEnv {
+  string pkg = 1;
+  int64 verc = 2;
+  scommon.OSType os_type = 3;
+  string os_ver = 4;
+  string cou = 5;
+}
+
+message BatchGetMomentReq {
+  repeated int64 moment_ids = 1; // 最多100个，超出则截断不处理
+}
+
+message BatchGetMomentRsp {
+  map<int64, Moment> moment_map = 1;
+}

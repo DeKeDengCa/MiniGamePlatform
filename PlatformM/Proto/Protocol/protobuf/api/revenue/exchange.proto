@@ -1,0 +1,142 @@
+syntax = "proto3";
+
+package pbrevenue;
+
+import "protobuf/api/revenue/common.proto";
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbrevenue";
+option java_package = "com.entertain.sns.pbrevenue";
+
+// 货币兑换服务
+service Exchange {
+  // 获取兑换配置
+  rpc GetExchangeConfig(GetExchangeConfigReq) returns (GetExchangeConfigRsp) {}
+  // 兑换
+  rpc Exchange(ExchangeReq) returns (ExchangeRsp) {}
+  // 兑换记录
+  rpc ExchangeRecord(ExchangeRecordReq) returns (ExchangeRecordRsp) {}
+  // 预兑换
+  rpc PreExchange(PreExchangeReq) returns (PreExchangeRsp) {}
+  // 获取可兑换的用户列表（与他人兑换）
+  rpc ListExchangeTarget(ListExchangeTargetReq) returns (ListExchangeTargetRsp) {}
+  // 获取单个兑换比率
+  rpc GetExchangeRate(GetExchangeRateReq) returns (GetExchangeRateRsp) {}
+}
+
+// 兑换汇率
+message ExchangeRate {
+  int64 exchange_rate_id = 1;             // 兑换汇率ID
+  CurrencyType source_currency_type = 2;  // 消耗币种
+  int64 source_quantity = 3;              // 消耗多少数量货币
+  CurrencyType target_currency_type = 4;  // 获得币种
+  int64 target_quantity = 5;              // 可以获得多少数量货币
+}
+
+// 兑换选项
+message ExchangeOption {
+  int64 exchange_option_id = 1;           // 兑换汇率ID
+  CurrencyType source_currency_type = 2;  // 消耗币种
+  int64 source_quantity = 3;              // 消耗多少数量货币
+  CurrencyType target_currency_type = 4;  // 获得币种
+  int64 target_quantity = 5;              // 可以获得多少数量货币
+}
+
+// 兑换币种
+message ExchangeCurrency {
+  CurrencyType currency_type = 1;               // 消耗币种
+  repeated ExchangeRate exchange_rates = 2;     // 兑换汇率
+  repeated ExchangeOption exchange_options = 3; // 兑换选项
+}
+
+// 获取兑换配置请求
+message GetExchangeConfigReq {
+  repeated CurrencyType currency_types = 1; // 需要获取的币种
+}
+
+// 获取兑换配置响应
+message GetExchangeConfigRsp {
+  repeated ExchangeCurrency exchange_currencies = 1; // 对应币种的兑换配置
+}
+
+// 兑换请求
+message ExchangeReq {
+  int64 exchange_rate_id = 1;             // 兑换汇率ID, 根据汇率兑换时传
+  int64 exchange_option_id = 2;           // 兑换选项ID, 根据选项兑换时传
+  CurrencyType source_currency_type = 3;  // 消耗币种, 根据汇率兑换时传
+  int64 source_quantity = 4;              // 消耗多少数量货币, 根据汇率兑换时传
+  int64 target_uid = 5;                   // 给他人兑换，如果不传默认是自己与自己兑换
+}
+
+// 兑换响应
+message ExchangeRsp {
+  CurrencyType target_currency_type = 1;  // 获得币种
+  int64 target_quantity = 2;              // 获得多少数量货币
+
+  repeated Balance balances = 10; // 账户余额
+}
+
+message ExchangeRecordReq {
+  scommon.Page page = 1;
+  int64 start_time = 2;  // 开始时间
+  int64 end_time = 3;    // 结束时间
+}
+
+message ExchangeRecordDetail {
+  CurrencyType target_currency_type = 1;  // 获得币种
+  int64 target_quantity = 2;              // 获得多少数量货币
+  CurrencyType source_currency_type = 3;  // 消耗币种, 根据汇率兑换时传
+  int64 source_quantity = 4;              // 消耗多少数量货币, 根据汇率兑换时传
+  int64 time_transacted = 5; // 交易发生的时间戳, unix-timestamp 精确到秒.
+  string title = 6; // 标题
+}
+
+message ExchangeRecordRsp {
+  scommon.Page page = 1;
+  repeated ExchangeRecordDetail records =2; // 记录
+}
+
+// 预兑换请求
+message PreExchangeReq {
+  int64 exchange_rate_id = 1;             // 兑换汇率ID
+  CurrencyType source_currency_type = 2;  // 消耗币种
+  int64 source_quantity = 3;              // 预期消耗多少数量货币
+}
+
+// 预兑换响应
+message PreExchangeRsp {
+  CurrencyType source_currency_type = 1;  // 消耗币种
+  int64 source_quantity = 2;              // 实际消耗多少数量货币
+  CurrencyType target_currency_type = 3;  // 获得币种
+  int64 target_quantity = 4;              // 实际获得多少数量货币
+}
+
+// 可兑换用户列表请求
+message ListExchangeTargetReq {
+  scommon.Page page = 1;                  // 分页参数
+  CurrencyType source_currency_type = 10; // 消耗币种
+}
+
+// 可兑换用户列表响应
+message ListExchangeTargetRsp {
+  scommon.Page page = 1;                  // 分页参数
+  repeated ExchangeTargetUser list = 10;  // 充值对象列表
+}
+
+// 兑换用户信息
+message ExchangeTargetUser {
+  UserInfo user = 1;                                // 用户信息
+  map<string, string> i18n_tag = 2;
+  repeated CurrencyType target_currency_types = 3;  // 可获得币种
+}
+
+// 获取单个兑换比例
+message GetExchangeRateReq {
+  CurrencyType source_currency_type = 1; // 源货币类型
+  CurrencyType target_currency_type = 2; // 目标货币类型
+}
+
+// 获取单个兑换比例
+message GetExchangeRateRsp {
+  ExchangeRate exchange_rate = 1; // 兑换比例配置, 如果不支持这两种货币兑换时, 需要注意: 这里返回是空!
+}

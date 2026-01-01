@@ -1,0 +1,9 @@
+[submodule "Assets/UnityNetwork"]
+	path = Assets/UnityNetwork
+	url = https://gitit.cc/social-infra/unity/unity-network.git
+[submodule "Proto/AstrorisePlatform"]
+	path = Proto/AstrorisePlatform
+	url = https://gitit.cc/astrorise/shared/astrorise_plat.git
+[submodule "Proto/Protocol"]
+	path = Proto/Protocol
+	url = https://gitit.cc/astrorise/shared/protocol.git

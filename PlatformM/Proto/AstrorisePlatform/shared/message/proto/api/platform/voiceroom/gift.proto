@@ -1,0 +1,42 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/user/handler/
+syntax = "proto3";
+
+package api.astrorise.voiceroom;
+
+import "protobuf/api/revenue/gift.proto";
+
+option java_package="com.entertain.sns.api.gene";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbrevenue";
+
+// serviceName: astrorise-voiceroom
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/revenue
+service Gift {
+
+  // 送礼预处理，是否能送礼判断，目前只有CP礼物需要
+  rpc PreSendGift(PreSendGiftReq) returns (PreSendGiftRsp) {}
+
+}
+
+// 送礼预处理请求
+message PreSendGiftReq {
+  repeated int64 receiver_uids = 1;     // 收礼人
+  pbrevenue.GiftInfo send_gift = 2;     // 送出的礼物
+  pbrevenue.GiftScene scene = 3;        // 赠送场景
+  pbrevenue.GiftStrategy strategy = 4;  // 赠送策略
+  string room_id = 5;                   // 房间ID
+}
+
+
+// 错误返回状态码定义
+enum PreSendGiftErrCode {
+  PRE_SEND_GIFT_ERR_CODE_OK = 0;
+
+  PRE_SEND_GIFT_ERR_CODE_GIFT_NOT_SUPPORT = 20001; // 礼物不是戒指类型
+  PRE_SEND_GIFT_ERR_CODE_ALREADY_CP = 20002; // 对方已经是CP了
+  PRE_SEND_GIFT_ERR_CODE_PENDING_APPLICATION = 20003; // 有cp申请未处理
+}
+
+// 送礼预处理返回
+message PreSendGiftRsp {
+  bool need_cp_invite_message = 10;           // CP 礼物，且暂时不是CP且可以成为CP，该值为true，客户端弹窗让用户填文案
+}

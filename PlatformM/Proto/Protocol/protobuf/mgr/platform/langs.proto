@@ -1,0 +1,143 @@
+syntax = "proto3";
+
+import "protobuf/api/common/common.proto";
+
+package comm.mgr.platform.langs;
+
+option go_package = "gitit.cc/social/components-service/social-platform/proto/pbmlangs";
+
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/langs/handlermgr/langs.go
+
+service LangsMgr {
+    // 创建一个多语言文案
+    rpc Create(CreateReq) returns (CreateRsp);
+    // 更新多语言文案
+    rpc Update(UpdateReq) returns (UpdateRsp);
+    // 删除多语言文案
+    rpc Delete(DeleteReq) returns (DeleteRsp);
+    // 列出多语言文案，不返回kvs
+    rpc List(ListReq) returns (ListRsp);
+    // 获取kvs
+    rpc GetKVs(GetKVsReq) returns (GetKVsRsp);
+    // 同步多语言文案
+    rpc Sync(SyncReq) returns (SyncRsp);
+    // 根据 code 获取 kvs
+    rpc GetKVsByCode(GetKVsByCodeReq) returns (GetKVsByCodeRsp);
+    // 更新多语言文案
+    rpc UpdateKVsByCode(UpdateKVsByCodeReq) returns (UpdateKVsByCodeRsp);
+    // 同步多语言文案
+    rpc SyncByCode(SyncByCodeReq) returns (SyncByCodeReq);
+}
+
+// 哪个端的
+enum Site {
+    SITE_NONE = 0;
+    SITE_SERVER = 1;
+    SITE_APP = 2;
+}
+
+message CreateReq {
+    Site site = 1;
+
+    string code = 2;
+    LangType type = 3;
+    string desc = 4;
+
+    repeated KV kvs = 10; // 如果type是 LANG_TYPE_KV 才有意义
+    string file_id = 11;   // 如果type是文件类型才有意义
+}
+message CreateRsp {
+    int64 id = 1;
+}
+
+message UpdateReq {
+    Langs data = 1;     // 更新的值，id必须要带，site不需要
+}
+message UpdateRsp {
+}
+
+message DeleteReq {
+    int64 id = 1;  // 不需要site
+}
+message DeleteRsp {
+}
+
+message ListReq {
+    scommon.Page page = 1;
+
+    Site site = 10;
+    string search_text = 11; // 如果是搜索功能
+}
+message ListRsp {
+    scommon.Page page = 1;
+
+    repeated Langs data = 10;
+}
+
+message GetKVsReq {
+    int64 id = 1;
+}
+message GetKVsRsp {
+    repeated KV data = 1;
+}
+
+message SyncReq {
+    int64 id = 1;
+
+    map<string, string> urls = 10; // 文件类型才需要传，lang-->url
+}
+message SyncRsp {
+}
+
+message SyncByCodeReq {
+    Site site = 1;
+    string code = 2;
+
+    map<string, string> urls = 10; // 文件类型才需要传，lang-->url
+}
+message SyncByCodeRsp {
+}
+
+message GetKVsByCodeReq {
+    Site site = 1;
+    string code = 2;
+}
+message GetKVsByCodeRsp {
+    repeated KV data = 1;
+}
+
+message UpdateKVsByCodeReq {
+    Site site = 1;
+    string code = 2;
+    repeated KV data = 3;
+}
+message UpdateKVsByCodeRsp {
+}
+
+message Langs {
+    int64 id = 1;
+    string code = 2;
+    LangType type = 3;
+    string desc = 4;   // 说明
+    Site site = 5;
+
+    repeated KV kvs = 10; // 如果type是 LANG_TYPE_KV 才有意义
+    string file_id = 11;   // 如果type是文件类型才有意义
+
+    string creator = 30;
+    int64  ctime = 31;   // 创建时间 unix timestamp, seconds
+    string modifier = 32;
+    int64 utime = 33;   // 更新时间，unix timestamp, seconds
+    string syncer = 34;  // 同步人
+    int64  stime = 35;   // 同步时间，unix timestamp, seconds
+}
+message KV {
+    string key = 1;
+    map<string,string> langs = 2; // lang-->content
+}
+enum LangType {
+    LANG_TYPE_NONE = 0;
+    LANG_TYPE_KV = 1;    // 直接 key-value
+    LANG_TYPE_JSON = 10; // json 文件
+    LANG_TYPE_XSL = 11;  // excel 文件
+}

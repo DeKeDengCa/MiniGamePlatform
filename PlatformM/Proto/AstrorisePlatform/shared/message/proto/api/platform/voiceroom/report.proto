@@ -1,0 +1,33 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/core/handler
+syntax = "proto3";
+
+package api.astrorise.voiceroom;
+
+option java_package="com.entertain.sns.api.gene";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbreport";
+
+// 上报协议
+// serviceName: astrorise-voiceroom
+service Report {
+
+  // 心跳上报
+  rpc Heartbeat(HeartbeatReq) returns (HeartbeatRsp);
+
+}
+
+// 心跳场景
+enum HeartbeatScene {
+  HEARTBEAT_SCENE_NONE = 0;
+  HEARTBEAT_SCENE_ROOM = 1;   // 房间心跳
+  HEARTBEAT_SCENE_ONLINE = 2; // 在线心跳
+}
+
+// 心跳参数
+message HeartbeatReq {
+  HeartbeatScene scene = 1; // 场景
+  int64 room_id = 2;        // 非必须，房间号，在房间内携带，其他页面不需要
+}
+
+message HeartbeatRsp {
+  int64 next_period = 1;          // 下一次心跳的时间间隔，单位秒，如：10 表示10秒后再次出发心跳上报
+}

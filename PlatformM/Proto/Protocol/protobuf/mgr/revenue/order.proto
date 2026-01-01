@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package mgr.pbrevenue;
+
+import "protobuf/api/revenue/common.proto";
+import "protobuf/api/revenue/orders.proto";
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmrevenue";
+
+// 充值订单
+// service_name: api.micro.social.revenue
+// smicro:spath=gitit.cc/social/components-service/social-revenue/goods/internal/handlermgr
+service OrderMgr {
+  // 用户充值订单查询
+  rpc ListUserPayOrder(ListUserPayOrderReq) returns (ListUserPayOrderRsp);
+}
+
+message ListUserPayOrderReq {
+  scommon.Page page = 1; // 分页参数
+
+  int64 uid = 10; // 充值到账用户ID
+  string pkg = 11; // 客户端包名
+  string order_no = 12; // 充值订单订单号
+  string pay_order_id = 13; // 支付中台订单ID
+  string pay_type = 14; // 支付方式
+  repeated .pbrevenue.PayStatus statuses = 15; // 支付状态
+  int64 ctime_start = 16; // 创建订单-开始时间
+  int64 ctime_end = 17; // 创建订单-结束时间
+  repeated bool sandboxes = 18;   // 是否是沙盒，使用数组来区分默认值
+}
+
+message ListUserPayOrderRsp {
+  scommon.Page page = 1; // 分页参数
+
+  repeated .pbrevenue.GoodsOrderInfo items = 10; // 充值列表
+}

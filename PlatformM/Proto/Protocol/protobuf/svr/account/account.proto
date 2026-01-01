@@ -1,0 +1,130 @@
+// smicro:spath=gitit.cc/social/components-service/social-account/handler-svr/accountsvr
+syntax = "proto3";
+
+package pbsaccount;
+
+option go_package="gitit.cc/social/protobuf/gencode/svr/pbsaccount";
+
+// smicro:spath=gitit.cc/social/components-service/social-account/handler-svr/accountsvr
+service AccountSvr {
+  // 绑定用户操作
+  rpc BindAccount (BindAccountReq) returns (BindAccountRsp);
+  // 封禁用户操作
+  rpc BanAccount (BanAccountReq) returns (BanAccountRsp);
+  // Token校验
+  rpc CheckToken (CheckTokenReq) returns (CheckTokenRsp);
+  // BatchGetAccount 获取账号信息
+  rpc BatchGetAccount (BatchGetAccountReq) returns (BatchGetAccountRsp);
+  // 重置账号和密码, 密码由中台生成, 重置成功后由业务将密码通过IM发给用户.
+  // 这个接口的场景: 运营给公会长设置一个 PC 端登录的账号密码, 又不能让运营知道这个密码.
+  rpc ResetAccountAndPassword(ResetAccountAndPasswordReq) returns (ResetAccountAndPasswordRsp);
+
+  // 批量增加机器人账号
+  rpc BatchAddRobotAccount(BatchAddRobotAccountReq) returns (BatchAddRobotAccountRsp);
+}
+
+message BindAccountReq {
+  AccountBindOptType bind_opt_type = 1; // 操作类型
+}
+
+message BindAccountRsp {
+
+}
+
+message BanAccountReq {
+  AccountBanOptType ban_opt_type = 1; // 操作类型
+  int64 uid = 2;
+  int64 expired_at = 3; //截止日期
+  string reason = 4;  //原因
+  string operator = 5; //操作人
+}
+
+message BanAccountRsp {
+
+}
+
+message CheckTokenReq {
+  string token = 1; // 用户Token
+  string app = 2; // app
+}
+
+message CheckTokenRsp {
+  Token token = 1; // token结构体
+}
+
+message Token {
+  int64 uid = 1; // 用户ID
+  int32 status = 2; // 状态
+  string cou = 3; // 国家
+  string did = 4; // 设备ID
+  string os = 5; // 手机系统
+}
+
+/*
+  账号绑定操作类型
+ */
+enum AccountBindOptType {
+  ACCOUNT_BIND_OPT_TYPE_NONE = 0;
+  ACCOUNT_BIND_OPT_TYPE_BIND = 1; // 绑定
+  ACCOUNT_BIND_OPT_TYPE_UNBIND = 2; // 解绑
+}
+
+/*
+  账号封禁操作类型
+ */
+enum AccountBanOptType {
+  ACCOUNT_BAN_OPT_NONE = 0;
+  ACCOUNT_BAN_OPT_BAN = 1;  // 封禁
+  ACCOUNT_BAN_OPT_UNBAN = 2; // 解封
+}
+
+// 账号信息
+message Account {
+  int64 id = 1;                     // 用户ID
+  string account = 2;               // 账号名
+  string phone_area = 3;            // 手机区号
+  string phone_num = 4;             // 手机号-不包括区号
+  int64 status = 5;                 // 状态
+  string reg_type = 6;             // 注册类型
+  string reg_ip = 7;               // 注册IP
+  string reg_lan = 8;              // 注册语言
+  string reg_cou = 9;              // 国家
+  string reg_did = 10;              // 用户设备id
+  string reg_pf = 11;               // 平台
+  string reg_verc = 12;             // 版本号
+  string reg_mod = 13;              // 手机型号
+  string reg_brand = 14;            // 手机品牌
+  string reg_os = 15;               // 操作系统
+  string reg_os_ver = 16;           // 操作系统
+  string reg_os_verc = 17;          // 操作系统
+  string reg_pkg = 18;              // 包名
+  string reg_sim = 19;              // sim卡 0没有 1有 空代表没传
+  string extend = 20;               // 扩展信息
+  int64 ctime = 21;                 // 创建时间
+  int64 utime = 22;                 // 更新时间
+}
+
+// 批量获取账号
+message BatchGetAccountReq {
+  repeated int64 uids = 1; // 用户ID列表
+}
+message BatchGetAccountRsp {
+  map<int64, Account> accounts = 1; // 账号信息
+}
+
+message ResetAccountAndPasswordReq {
+  int64 uid = 1;        // UID
+  string account = 2;   // 账号
+}
+
+message ResetAccountAndPasswordRsp {
+  string password = 1;  // 明文密码
+}
+
+message BatchAddRobotAccountReq {
+  int64 count = 10;
+}
+
+message BatchAddRobotAccountRsp {
+  repeated int64 robot_uids = 10;
+}

@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package  comm.api.revenue;
+
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbrevenue";
+option java_package = "com.entertain.sns.comm.api.revenue";
+
+// 社交中台币商服务
+service Goldagency{
+    // 根据uid查询币商信息
+   rpc ListGoldAgencyByUids(ListGoldAgencyByUidsReq) returns (ListGoldAgencyByUidsRsp) {}
+ }
+ 
+ // 币商分级
+ enum GoldAgencyLevel {
+     GOLD_AGENCY_LEVEL_NONE = 0;        // 非币商
+     GOLD_AGENCY_LEVEL_PRIMARY = 1;     // 一级币商
+     GOLD_AGENCY_LEVEL_SECONDARY = 2;   // 二级币商
+     // ... 更多等级币商, 但目前只有两级
+     GOLD_AGENCY_LEVEL_NORMAL = 99;     // 普通币商
+ }
+ 
+ // 币商信息
+ message GoldAgency {
+     int64 id = 1;                           // 币商ID
+     int32 level = 2;                        // 币商分级
+     int64 uid = 3;                          // 业务UID
+     int64 superior_uid = 4;                 // 上级币商UID，如果是一级币商或普通币商则为 0
+     double recharge_amount = 5;             // 累计充值金额
+     int64 transaction_count = 6;            // 累计交易次数
+     int64 initial_transaction_count = 7;    // 初始化交易次数
+     int64 last_recharge_at = 8;             // 最新充值时间
+     repeated string sellable_countries = 9; // 可售卖国家列表
+     string remark = 10;                     // 备注(对用户不可见)
+     bool hidden = 11;                       // 是否已对用户隐藏
+     int64 create_at = 12;                   // 创建时间
+     int64 update_at = 13;                   // 更新时间
+ }
+   
+ 
+ // 根据uid查询币商信息
+ message ListGoldAgencyByUidsReq {
+     repeated int64 uids = 10; // uid 列表
+     bool no_cache = 11;       // 不读取缓存, 强制读数据库最新数据.
+ }
+   
+ // 根据uid查询币商信息
+ message ListGoldAgencyByUidsRsp {
+     repeated GoldAgency gold_agencies = 10; // 币商信息
+ }
+   

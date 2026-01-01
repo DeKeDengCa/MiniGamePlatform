@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package pbsocialgoldagency;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsocialgoldagency";
+
+// 社交中台币商服务 回调业务的接口
+service SocialGoldAgencyCallback {
+
+  // 预检查-创建币商
+  rpc PreCheckCreateGoldAgency(PreCheckCreateGoldAgencyReq) returns (PreCheckCreateGoldAgencyRsp) {}
+}
+
+// 预检查结果-创建币商
+message PreCheckCreateGoldAgencyResult {
+  int64 uid = 1;      // 用户UID
+  bool pass = 2;      // 是否检查通过
+  string reason = 3;  // 不通过的理由
+}
+message PreCheckCreateGoldAgencyReq {
+  int32 level = 1;// 币商分级
+  repeated int64 uids = 2;// 业务UID
+  int64 superior_uid = 3;// 上级币商UID，如果是一级币商或普通币商则为 0
+  string lan = 4;// 语言:zh / en / ar ...
+}
+message PreCheckCreateGoldAgencyRsp {
+  repeated PreCheckCreateGoldAgencyResult results = 10; // 结果
+}
+
+

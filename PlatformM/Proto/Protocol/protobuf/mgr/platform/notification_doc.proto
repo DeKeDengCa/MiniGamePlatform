@@ -1,0 +1,78 @@
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/notification/handlermgr/notification_doc.go
+syntax = "proto3";
+
+import "protobuf/api/common/common.proto";
+
+package comm.mgr.platform.notification;
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/platform/pbmnotification";
+
+service NotificationDocMgr {
+  rpc AddDoc(AddDocReq) returns (AddDocRsp);
+  rpc DelDoc(DelDocReq) returns (DelDocRsp);
+  rpc UpdateDoc(UpdateDocReq) returns (UpdateDocRsp);
+  rpc GetDoc(GetDocReq) returns (GetDocRsp);
+  rpc ListDocs(ListDocsReq) returns (ListDocsRsp);
+}
+
+message Doc {
+    map<string,string> title = 10; // en: 英文标题, zh: 中文标题 ar: 阿拉伯标题
+    map<string,string> body = 11 ; // "en": 英文body, "zh": 中文body "ar": 阿拉伯标题
+    string comment = 12; // 备注
+    string operator = 13; // 操作者
+
+    int64 id = 50;  // 唯一标识
+    int64 create_time = 51; // 创建时间
+    int64 update_time = 52; // 修改时间
+    bool  deleted = 53; //是否已经删除
+}
+
+message AddDocReq {
+    map<string,string> title = 10; // en: 英文标题, zh: 中文标题 ar: 阿拉伯标题
+    map<string,string> body = 11 ; // "en": 英文body, "zh": 中文body "ar": 阿拉伯标题
+    string comment = 12; // 备注
+    string operator = 13; // 操作者
+}
+
+message AddDocRsp {
+    int64 id = 10;
+}
+
+message DelDocReq {
+    repeated int64 ids = 10;
+    string operator = 11;
+}
+
+message DelDocRsp {
+    int64 count = 10;
+}
+
+message UpdateDocReq {
+    Doc req = 10;
+    string operator = 11;
+}
+
+message UpdateDocRsp {
+    Doc rsp = 10;
+}
+
+message GetDocReq {
+    int64 id = 10;
+}
+
+message GetDocRsp {
+    Doc resp = 10;
+}
+
+message ListDocsReq {
+    scommon.Page page = 1;
+    int64 id = 10;
+    string operator = 11;
+    int64 begin = 12;
+    int64 end = 13; 
+}
+
+message ListDocsRsp {
+    scommon.Page page = 1;
+    repeated Doc list = 10;
+}

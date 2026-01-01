@@ -1,0 +1,394 @@
+syntax = "proto3";
+
+package comm.api.activity;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/activity/common.proto";
+import "protobuf/api/adapter/model.proto";
+import "protobuf/api/ctask/handler.proto";
+import "protobuf/api/activity/crank.proto";
+
+option java_package = "com.entertain.sns.comm.api.activity";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbactivity";
+
+// 活动接口
+// smicro:spath=gitit.cc/social/components-service/social-activity/biz/activity/handler
+service ActivityApi {
+
+  // 根据活动标识获取活动配置信息
+  rpc GetActivityByCode(GetActivityByCodeReq) returns (GetActivityByCodeRsp);
+
+  // 根据活动标识获取活动配置信息
+  rpc GetActivityByApplicationCode(GetActivityByApplicationCodeReq) returns (GetActivityByApplicationCodeRsp);
+
+  // 根据pk id获取pk信息
+  rpc GetPKDetailsByPKIds(GetPKDetailsByPKIdsReq) returns (GetPKDetailsByPKIdsRsp);
+
+  // 获取抽奖记录
+  rpc ListMyLotteryRecord(ListMyLotteryRecordReq) returns (ListMyLotteryRecordRsp);
+
+  // 抽奖结果弹幕，top n条中奖信息
+  rpc ListLotteryBarrage(ListLotteryBarrageReq) returns (ListLotteryBarrageRsp);
+
+  // 抽奖
+  rpc Lottery(LotteryReq) returns (LotteryRsp);
+
+  // 根据抽奖id获取抽奖次数信息
+  rpc BatchGetUserLotteryInfos(BatchGetUserLotteryInfosReq) returns (BatchGetUserLotteryInfosRsp);
+
+  // 根据id分页获取房间or房主信息
+  rpc ListRoomRecommendInfo(ListRoomRecommendInfoReq) returns (ListRoomRecommendInfoRsp);
+
+  // 关注用户
+  rpc FollowUser(FollowUserReq) returns (FollowUserRsp) {}
+
+  // 关注房间
+  rpc FollowRoom(FollowRoomReq) returns (FollowRoomRsp) {}
+
+  // 根据id获取展示组件信息
+  rpc GetPresentationInfoByIds(GetPresentationInfoByIdsReq) returns (GetPresentationInfoByIdsRsp);
+
+  // 任务荣誉墙（类似榜单，但固定数量，不可分页）
+  rpc GetTaskHonorWall(GetTaskHonorWallReq) returns (GetTaskHonorWallRsp) {}
+
+  // 域名转包配置信息，目前dating需要用到
+  rpc GetPkgConfigByDomain(GetPkgConfigByDomainReq) returns (GetPkgConfigByDomainRsp) {}
+
+  // 获取任务、榜单当前周期倒计时
+  rpc GetCountdown(GetCountdownReq) returns (GetCountdownRsp) {}
+
+  // 批量查询（用于不是基于活动层次去组织任务的情况）,封装ctask.BatchListTasks
+  rpc BatchListTasksWrap(comm.api.ctask.BatchListTasksReq) returns (comm.api.ctask.BatchListTasksRsp);
+
+  // 批量根据ID获取奖励配置项信息
+  rpc ListRewardItemById(ListRewardItemByIdReq) returns (ListRewardItemByIdRsp);
+
+  // 搜索指定奖励分类的奖励配置项, 实际上也是交由业务去实现, 活动中台只是中转这些请求.
+  rpc SearchRewardItem(SearchRewardItemReq) returns (SearchRewardItemRsp);
+
+  // 获取奖池
+  rpc GetPrizePoolValueById(GetPrizePoolValueByIdReq) returns (GetPrizePoolValueByIdRsp);
+
+  // 做任务，封装ctask.DoTask
+  rpc DoTaskWrap(comm.api.ctask.DoTaskReq) returns (comm.api.ctask.DoTaskRsp);
+
+  // 领取奖励前，获取任务奖励、房间信息
+  rpc GetTaskRewardInfo(GetTaskRewardInfoReq) returns (GetTaskRewardInfoRsp);
+
+  // 获取任务贡献榜信息
+  rpc GetTaskContributionRank(GetTaskContributionRankReq) returns (GetTaskContributionRankRsp);
+
+  // 领取任务奖励，封装ctask.TakeReward
+  rpc TakeTaskWrapReward(comm.api.ctask.TakeRewardReq) returns (comm.api.ctask.TakeRewardRsp);
+
+  // 批量获取积分兑换信息
+  rpc BatchGetPointsExchangeInfo(BatchGetPointsExchangeInfoReq) returns (BatchGetPointsExchangeInfoRsp);
+
+  // 获取积分兑换记录
+  rpc ListPointsExchangeRecord(ListPointsExchangeRecordReq) returns (ListPointsExchangeRecordRsp);
+
+  // 积分兑换
+  rpc PointsExchange(PointsExchangeReq) returns (PointsExchangeRsp);
+}
+
+message PointsExchangeReq {
+  int64 exchange_id = 10; // 兑换id
+  int64 reward_id = 11;   // 兑换奖励的id
+  int64 num = 12;         // 兑换的数量
+}
+
+message PointsExchangeRsp {
+}
+
+message ListPointsExchangeRecordReq {
+  scommon.Page page = 1;
+  int64 exchange_id = 10;  // 兑换id
+  int64 pool_id = 11;      // 奖池id
+}
+
+message ListPointsExchangeRecordRsp {
+  scommon.Page page = 1;
+  repeated PointsExchangeRecord records = 10;
+}
+
+message BatchGetPointsExchangeInfoReq {
+  repeated int64 exchange_ids = 10;
+}
+
+message BatchGetPointsExchangeInfoRsp {
+  repeated PointsExchangeInfo list = 10;
+}
+
+message GetTaskContributionRankRsp {
+  repeated TaskContributionRank ranks = 10;    // 这里的顺序和请求的顺序一致
+}
+
+// 一个榜单
+message TaskContributionRank {
+  scommon.Page page = 1;
+  // 下面这几个原样透传回去，用于标识是哪个榜单
+  // 任务id
+  int64 task_id = 10;
+  // 子任务id
+  int64 sub_task_id = 11;
+  string member = 12;
+
+  repeated crank.Item items = 13;
+  crank.Item me = 14;
+  TaskContributionRankExtend extend = 100;
+}
+
+message TaskContributionRankExtend {
+  int64 current_progress = 10;// 当前总进度
+  int64 total_progress = 11;  // 进度条总进度
+}
+
+message GetTaskContributionRankReq {
+  repeated GetTaskContributionRankPara paras = 10; // 支持一次获取多个榜单
+}
+
+message GetTaskContributionRankPara {
+  scommon.Page page = 1;  // 这个必须填，如果不填服务端会初始化一个默认的分页，limit为20
+  // 任务id
+  int64 task_id = 10;
+  // 子任务id
+  int64 sub_task_id = 11;
+  // member非空，则表示获取member这个子榜
+  string member = 12;
+  // 周期偏移。0表示当前周期，-n表示前N个周期。比如日榜，0表示今天的榜单，-1表示昨天的榜单
+  int32 cycle_offset = 13;
+  // 指定cycle key，而不是用time 和cycle offset来计算，具体计算方法要和服务端确认
+  string cycle_key = 14;
+
+  // 很多榜单要展示自己的分数和排名，如果me非空，则获取me的分数和排名。建议是第一页获取，其他页不要获取。
+  // 这里也不一定要是自己的分数和排名，me可以指定任意一个主体
+  string me = 20;
+}
+
+message GetTaskRewardInfoReq {
+  int64 task_id = 10;
+  int32 stage = 11;       // 阶段数，从0开始
+  string grid_key = 12;   // 九宫格任务用，格子的key
+}
+
+message GetTaskRewardInfoRsp {
+  repeated RoomInfo room_infos = 10;
+  bool show_room_selection = 11; // 展示房间选择弹窗
+}
+
+// 批量根据ID获取奖励配置项信息请求
+message ListRewardItemByIdReq {
+  string category_key = 10; // 奖励分类标识, 必传.
+  repeated string item_ids = 11; // 根据奖励ID查询, 可选.
+}
+
+// 批量根据ID获取奖励配置项信息响应
+message ListRewardItemByIdRsp {
+  repeated RewardItem items = 10; // 奖励配置项列表
+}
+
+message GetCountdownReq {
+  int64 activity_id = 10;
+  int64 rank_id = 11; // 榜单id
+  int64 task_id = 12; // 任务id
+  int64 pk_id = 13; // pk id
+}
+
+message GetCountdownRsp {
+  int64 cycle_begin_ts = 10; // 当前周期（没开始则下一周期）倒计时开始的时间戳
+  int64 cycle_end_ts = 11; // 当前周期（没开始则下一周期）倒计时结束时间戳
+}
+
+message GetPkgConfigByDomainReq {
+  string domain = 10;
+}
+
+message GetPkgConfigByDomainRsp {
+  string pkg_name = 10;       // 包名
+  float score_ratio = 11;     // 汇率,目前只有dating用来换算展示的货币
+}
+
+message FollowUserReq {
+  int64 uid = 10;
+  int64 target_uid = 11;
+}
+
+message FollowUserRsp {
+  comm.api.adapter.FollowErrCode error_code = 10; // 0: 表示成功
+  string error_msg = 11;
+}
+
+message FollowRoomReq {
+  int64 uid = 10;
+  int64 target_room_id = 11;
+}
+
+message FollowRoomRsp {
+  comm.api.adapter.FollowErrCode error_code = 10; // 0: 表示成功
+  string error_msg = 11;
+}
+
+
+message ListRoomRecommendInfoReq {
+  scommon.Page page = 1;
+  int64 activity_id = 10;
+  int64 room_recommend_config_id = 11;
+  ListRoomRecommendSortType sort_type = 12;
+}
+
+enum ListRoomRecommendSortType {
+    LIST_ROOM_RECOMMEND_SORT_TYPE_NONE = 0;
+    LIST_ROOM_RECOMMEND_SORT_TYPE_RAND_LIVING = 1;// 直播中的随机排序
+}
+
+message ListRoomRecommendInfoRsp {
+  scommon.Page page = 1;
+  RoomRecommendInfo info = 10;
+}
+
+message BatchGetUserLotteryInfosReq {
+  repeated int64 lottery_ids = 10;
+}
+
+message BatchGetUserLotteryInfosRsp {
+  repeated UserLotteryInfo list = 10;
+}
+
+message LotteryReq {
+  int64 lottery_id = 10;
+  int64 times = 11; // 抽奖次数
+}
+
+message LotteryRsp {
+  int64 times = 10; // 剩余次数
+  repeated LotteryRecord records = 11;// 中奖信息
+}
+
+message ListLotteryBarrageReq {
+  scommon.Page page = 1;
+  int64 lottery_id = 10;
+}
+
+message ListLotteryBarrageRsp {
+  scommon.Page page = 1;
+  repeated LotteryBarrage list = 10;
+}
+
+message ListMyLotteryRecordReq {
+  scommon.Page page = 1;
+  int64 lottery_id = 10;
+}
+
+message ListMyLotteryRecordRsp {
+  scommon.Page page = 1;
+  repeated LotteryRecord records = 10;
+}
+
+// 根据活动标识获取活动配置信息
+message GetActivityByCodeReq {
+  string activity_code = 10;
+}
+
+// 根据活动标识获取活动配置信息
+message GetActivityByCodeRsp {
+  ActivityInfo activity_info = 10;
+  repeated RankInfo rank_infos = 11;
+  int64 server_time = 12;
+}
+
+// 根据活动标识获取活动配置信息
+message GetActivityByApplicationCodeReq {
+  string application_code = 10;
+}
+
+// 根据活动标识获取活动配置信息
+message GetActivityByApplicationCodeRsp {
+  ActivityInfo activity_info = 10;
+  repeated RankInfo rank_infos = 11;
+  int64 server_time = 12;
+  repeated TaskConfig task_infos = 13;
+  repeated PKConfig pk_infos = 14;
+  repeated LotteryInfo lottery_infos = 15;
+  repeated RoomRecommendInfo room_recommend_infos = 16;
+  repeated PrizePoolConfig prize_pool_configs = 17;
+  repeated PointsExchangeConfig points_exchange_configs = 18;
+}
+
+message GetPKDetailsByPKIdsReq {
+  repeated int64 pk_ids = 10;
+}
+
+message GetPKDetailsByPKIdsRsp {
+  repeated PKDetail details = 10;
+  map<int64, PKDetail> me_map = 11;  // pk_id -> me，相当于从details里找到自己归属的分组
+}
+
+message LotteryInfo {
+  LotteryConfig config = 10;
+  repeated LotteryRewardConfig reward_configs = 11;
+  repeated int64 relate_task_ids = 12;
+}
+
+message RoomRecommendInfo {
+  RoomRecommendConfig config = 10;
+  repeated RoomRecommendItem items = 11;      // GetActivityByApplicationCode 的时候不返回
+  bool is_anchor = 12;     // 是否为主播，dating 主播不能关注房间。。RoomRecommendItem 里的 is_following 为房主的关注状态
+}
+
+message RoomRecommendItem {
+  RoomInfo room_info = 10;
+  UserInfo user_info = 11;
+  bool is_following = 12;            // 关注状态
+  bool is_living = 13;               // 是否在直播
+  string room_desc = 14;             // 房间描述
+}
+
+message GetPresentationInfoByIdsReq {
+  repeated int64 ids = 10;
+}
+
+message GetPresentationInfoByIdsRsp {
+  repeated PresentationInfo list = 10;
+}
+
+message GetTaskHonorWallReq {
+  int64 task_id = 10;           // 任务id
+  int32 cycle_offset = 11;      // 偏移周期，取值<=0，0表示当前周期，-1表示上周期、-2表示前两个周期，以此类推
+  repeated int32 stages = 12;   // 指定查看的阶段（阶段索引值），不传则查全部
+}
+
+message GetTaskHonorWallRsp {
+  map<int32, UserRank> stage_wall = 10;   // 对应阶段的荣誉墙
+  TimeRange cycle = 11;                   // 周期
+}
+
+// 搜索指定奖励分类的奖励配置项请求
+message SearchRewardItemReq {
+  scommon.Page page = 1; // 分页参数
+  string category_key = 10; // 奖励分类标识, 必传.
+  string item_id = 11; // 根据奖励ID模糊查询, 可选.
+  string item_name = 12; // 根据奖励名称模糊查询, 可选.
+  string keyword = 13; // 关键字模糊查询, 可能为英文 , 分割的多个奖励id，也可能是名称 可选.
+  repeated string sub_category_ids = 14; // 根据子分类的id来查
+  repeated int32 currencys = 15; // 按照货币类型筛选
+}
+// 搜索指定奖励分类的奖励配置项响应
+message SearchRewardItemRsp {
+  scommon.Page page = 1; // 分页参数
+  repeated RewardItem items = 10; // 奖励配置项列表
+}
+
+message GetPrizePoolValueByIdReq {
+  int64 id = 10;                  // 奖池配置id
+  string cycle_key = 11;          // 类似于 GetRankReq.GetPara.cycle_key
+}
+
+message GetPrizePoolValueByIdRsp {
+  int64 id = 10;                  // 奖池配置id
+  string cycle_key = 11;          // 类似于 GetRankReq.GetPara.cycle_key
+  int64 cur_pool_num = 12;        // 对应的奖池数量
+}
+
+message TaskShowExtendInfo {
+  string grid_key = 10; // 九宫格任务用，格子索引
+}

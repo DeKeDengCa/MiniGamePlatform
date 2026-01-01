@@ -1,0 +1,91 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/roommode/handler
+syntax = "proto3";
+
+package api.astrorise.voiceroom;
+
+import "api/platform/voiceroom/comm.proto";
+
+option java_package = "com.entertain.sns.api.gene";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbroommode";
+
+// 房间模式
+// serviceName: astrorise-voiceroom
+service RoomMode {
+  // 模式分类&&模式配置-列表
+  rpc ListRoomModesByCategory(ListRoomModesByCategoryReq) returns (ListRoomModesByCategoryRsp);
+
+  // 获取房间模式配置面板
+  rpc GetRoomModePanel (GetRoomModePanelReq) returns (GetRoomModePanelRsp);
+}
+
+message RoomModeCategoryAndConfig{
+  RoomModeCategory room_mode_category = 1;// 房间模式分类
+  repeated RoomModeConfig room_mode_configs = 2;// 房间模式配置
+}
+
+// 房间模式分类
+message RoomModeCategory{
+  int64 id = 1;//模式分类id
+  string name = 2;//模式分类名称
+}
+
+// 房间模式配置
+message RoomModeConfig{
+  int64 room_mode_publish_id = 1;//房间模式上架id(选择后提交此id)
+  int64 room_mode_config_id = 2;//房间模式配置id
+  string name = 3;//名称
+  string icon = 4;//图标
+  api.astrorise.voiceroom.RoomModePublishDefaultSelected default_selected = 5;//默认选中
+  string room_bg_img_url = 6;//房间背景图地址
+  string room_bg_img_type = 7;//房间背景图类型
+  string play_url = 8;//玩法地址
+  string room_mode_code = 9;//房间模式code;eg:Chat、Friend、Music
+  // 房间模式改成支持多个麦位布局了, 不再只绑死一个麦位布局
+  // string room_layout_code = 10;//麦位布局code;eg:chat_10,partner_9,partner_10,cp
+  string play_code = 11;//玩法code;eg:ludo、桌球、狼人杀
+}
+
+message ListRoomModesByCategoryReq {
+  int64 room_id = 1;//房间id
+}
+message ListRoomModesByCategoryRsp {
+  repeated RoomModeCategoryAndConfig items = 1;
+}
+
+message GetRoomModePanelReq {
+  int64 room_id = 1; // 房间id
+}
+message GetRoomModePanelRsp {
+  repeated RoomModeOption mode_options = 1;
+}
+message RoomModeOption {
+  RoomModeOptionMeta meta = 1;
+  RoomModeOptionDetail option_detail = 2;
+}
+message RoomModeOptionMeta {
+  api.astrorise.voiceroom.RoomModeType room_mode_type = 1; // 房间模式类型
+  string display_name = 2; // 展示名称;eg:语音聊天、缘分速配
+  bool default_selected = 3;// 默认选中
+}
+message RoomModeOptionDetail {
+  oneof detail {
+    VoiceChatModePanel voice_chat = 1;
+    FateMatchModePanel fate_match = 2; // 缘分速配
+    GameLiveModePanel game_live = 3; // 游戏直播
+  }
+}
+message VoiceChatModePanel {
+  repeated MicLayoutOption layout_options = 1;
+}
+message MicLayoutOption {
+  string layout_code = 1; // 布局code标识;eg:chat_10,partner_9,partner_10,cp
+  string display_name = 2; // 布局显示名称
+  string preview_image = 3; // 预览示意图
+  int32 mic_count = 4; // 麦位数量
+  bool default_selected = 5;// 默认选中
+}
+
+message FateMatchModePanel{
+}
+message GameLiveModePanel{
+}

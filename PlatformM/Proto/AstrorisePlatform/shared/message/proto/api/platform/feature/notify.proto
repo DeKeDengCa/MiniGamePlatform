@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package api.astrorise.feature.notify;
+
+import "protobuf/api/adapter/model.proto";
+
+option go_package = "gitit.cc/social/astrorise/arprotobuf/gencode/api/feature/pbnotify";
+
+message Notify {
+    NotifyMedalAchieved medal_achieved = 1; // 勋章达成通知
+}
+
+message NotifyMedalAchieved {
+  comm.api.adapter.UserInfo base_user_info = 1; // 达成成就的用户
+  int32 game_id = 2; // 游戏ID
+  int32 medal_id = 3; // 勋章ID
+  double achieve_rate = 4;  // 达成率
+}

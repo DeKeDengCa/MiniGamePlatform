@@ -1,0 +1,28 @@
+// smicro:spath=gitit.cc/social/echo/handle/svr,with_intf=true
+syntax = "proto3";
+
+package pbsadapter;
+
+import "protobuf/api/privilege/v2/privilege.proto";
+import "protobuf/api/privilege/v2/bag.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsadapter";
+
+service CommonBag {
+  // 批量查询使用中权益 多用户+多权益
+  rpc BatchGetUsingPrivilege(BatchGetUsingPrivilegeReq) returns (BatchGetUsingPrivilegeRsp);
+}
+
+message BatchGetUsingPrivilegeReq {
+  string def_lan = 10;                                    // 默认语言
+  bool all_lan = 11;                                      // 返回所有语言的资源
+
+  api.privilege.v2.TargetType target_type = 20;           // 目标类型
+  repeated int64 target_ids = 21;                         // 目标ID: uid / room_id
+
+  repeated api.privilege.v2.CategoryID category_ids = 30; // 背包权益分类标识列表
+}
+
+message BatchGetUsingPrivilegeRsp {
+  map<int64, api.privilege.v2.UsingPrivilege> target_using_privileges = 1; // map<uid / room_id, 使用中的特权>
+}

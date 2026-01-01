@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package comm.svr.customer;
+
+import "protobuf/mgr/customer/complaint.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbscustomer";
+
+service ComplaintSvr {
+    // 批量查询用户信息
+    rpc BatchUserInfos(BatchUserInfosReq) returns (BatchUserInfosRsp);
+    // 发送系统消息
+    rpc SendSystemMsg(SendSystemMsgReq) returns (SendSystemMsgRsp);
+    // 发送回复消息
+    rpc SendReply(SendReplyReq) returns (SendReplyRsp);
+    // 操作工单
+    rpc OperateOrder(OperateOrderReq) returns (OperateOrderRsp);
+}
+
+enum OperateOrderType {
+    OPERATE_ORDER_TYPE_NONE = 0 ; // 无
+    OPERATE_ORDER_TYPE_CHECK = 1 ; // 查看
+}
+
+message OperateOrderReq{
+    int64 complaint_id = 1; // 申诉单号
+    OperateOrderType opertate= 2; // 操作类型
+    int64 uid =3; // 用户uid
+}
+
+message OperateOrderRsp{
+}
+
+message SendReplyReq{
+    string content =1 ;// 回复内容
+    repeated string images =2; // 回复图片
+    int64 uid=3; // 用户uid
+    int64 complaint_id = 4; // 申诉单号
+}
+
+message SendReplyRsp{
+}
+
+
+message BatchUserInfosReq {
+    repeated int64 uids =1 ;// 用户uid
+}
+
+message UserInfo {
+    int64 uid = 1; // 用户ID 
+    string nickname = 2; // 用户昵称
+    int32 gender = 3; // 性别 1:男2:女3:无性别
+    string avatar = 4; // 头像
+    string show_uid = 5; // 靓号
+    int32 age = 6; // 年龄
+    string birthday = 7; // 生日
+    string country = 8; // 国家
+    int64 wealth_level =9; //财富等级
+    int64 register_time =10 ; // 注册时间
+    int64 last_login_time = 11; // 最后登录时间
+    string version =12; // 当前版本号
+    string pkg =13; // 包名
+    int64  recharge_amount = 14; // 充值金额
+    comm.mgr.customer.UserRole user_role = 15; // 用户角色：普通用户，公会长...
+}
+
+message BatchUserInfosRsp {
+    repeated UserInfo list =1; // 用户详情列表
+}
+
+enum SystemMsgType {
+   SYSTEM_MSG_NONE = 0;
+   SYSTEM_MSG_COMPLAINT =1;// 申诉类型
+}
+
+message SendSystemMsgReq{
+    int64 uid=1;// 用户uid
+    SystemMsgType type =2;// 发送系统消息类型
+} 
+
+message SendSystemMsgRsp{
+}

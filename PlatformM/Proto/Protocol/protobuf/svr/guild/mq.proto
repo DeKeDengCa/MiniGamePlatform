@@ -1,0 +1,152 @@
+syntax = "proto3";
+
+package comm.svr.guild;
+
+import "protobuf/svr/guild/info.proto";
+import "protobuf/svr/guild/anchor.proto";
+import "protobuf/api/guild/bd.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsguild";
+option java_package = "com.guild.biz.info";
+
+// 公会变动类型
+enum GuildChangeType {
+  GUILD_CHANGE_TYPE_NONE = 0;         // 无意义
+  GUILD_CHANGE_TYPE_CREATE = 1;       // 创建公会
+  GUILD_CHANGE_TYPE_MODIFY = 2;       // 编辑公会
+  GUILD_CHANGE_TYPE_REMOVE = 3;       // 移除公会
+  GUILD_CHANGE_TYPE_FREEZE = 4;       // 冻结公会
+  GUILD_CHANGE_TYPE_UNFREEZE = 5;     // 解冻公会
+  GUILD_CHANGE_TYPE_TRANSFER = 6;     // 转让公会
+  GUILD_CHANGE_TYPE_SET_MANAGER = 7;  // 设置经理
+}
+
+// 公会变动消息 topic: social-guild-change-message
+// 业务 同步给 中台
+message GuildChangeMessage {
+  int64 timestamp = 1;              // 消息时间戳
+  string biz_name = 2;              // 业务名: PlayMate: pm, Echo: echo, HalaMe: o2, Lucky: cu
+  GuildChangeType change_type = 3;  // 变动类型
+  string biz_guild_id = 4;          // 公会在业务处的ID, 为了通用这里采用 string 类型.
+  Guild guild = 5;                  // 公会信息, 对于创建/修改变动类型则传完整的公会信息, 其他变动类型可不传.
+  string reason = 6;                // 移除/冻结原因
+  int64 target_owner_uid = 7;       // 转让给目标会长UID
+  int64 manager_id = 8;             // 经理ID
+}
+
+
+// 主播变动类型
+enum AnchorChangeType {
+  ANCHOR_CHANGE_TYPE_NONE = 0;         // 无意义
+  ANCHOR_CHANGE_TYPE_CREATE = 1;       // 创建主播
+  ANCHOR_CHANGE_TYPE_MODIFY = 2;       // 编辑主播
+  ANCHOR_CHANGE_TYPE_REMOVE = 3;       // 移除主播
+}
+
+// 主播变动消息 topic: social-anchor-change-message
+// 业务 同步给 中台
+message AnchorChangeMessage {
+  int64 timestamp = 1;                  // 消息时间戳
+  string biz_name = 2;                  // 业务名: PlayMate: pm, Echo: echo, HalaMe: o2, Lucky: cu
+  AnchorChangeType change_type = 3;     // 变动类型
+  string biz_anchor_id = 4;             // 主播在业务处的ID, 为了通用这里采用 string 类型.
+  string biz_guild_id = 5;              // 主播在业务处的公会ID, 为了通用这里采用 string 类型.
+  Anchor anchor = 6;                    // 主播信息, 对于创建/修改变动类型则传完整的主播信息, 其他变动类型可不传.
+  string reason = 7;                    // 移除/冻结原因
+}
+
+// 主播事件类型
+enum AnchorMessageType {
+  ANCHOR_MESSAGE_TYPE_NONE = 0;       // 无意义
+  ANCHOR_MESSAGE_TYPE_JOIN = 1;       // 加入公会, 正式成为主播
+  ANCHOR_MESSAGE_TYPE_EXIT = 2;       // 退出公会, 不再成为主播
+  ANCHOR_MESSAGE_TYPE_TRANSFER = 3;   // 转移公会, 依然还是主播
+}
+
+// 主播事件 topic: social-anchor-message-${anm}
+message AnchorMessage {
+  int64 timestamp = 1;                  // 消息时间戳
+  AnchorMessageType message_type = 2;   // 事件类型
+  string anm = 3;                       // 业务名: PlayMate: pm, Echo: echo, HalaMe: o2, Lucky: cu
+  string sub_anm = 99;                  // 业务子代号
+  int64 uid = 4;                        // 主播UID
+  int64 guild_id = 5;                   // 公会ID
+  int64 to_guild_id = 6;                // 转移到目标公会ID
+
+  string sid = 100;            // 分服，服ID
+}
+
+// 公会事件类型
+enum GuildMessageType {
+  GUILD_MESSAGE_TYPE_NONE = 0;          // 无意义
+  GUILD_MESSAGE_TYPE_DISBAND = 1;       // 解散
+  GUILD_MESSAGE_TYPE_CREATE = 2;        // 创建
+  GUILD_MESSAGE_TYPE_MODIFY = 3;        // 修改
+  GUILD_MESSAGE_TYPE_TRANSFER = 4;      // 转让
+}
+
+// 主播事件 topic: social-guild-message-${anm}
+message GuildMessage {
+  int64 timestamp = 1;                  // 消息时间戳
+  GuildMessageType message_type = 2;    // 事件类型
+  string anm = 3;                       // 业务名: PlayMate: pm, Echo: echo, HalaMe: o2, Lucky: cu
+  string sub_anm = 99;                  // 业务子代号
+  int64 guild_id = 4;                   // 公会ID
+  int64 owner_uid = 5;                  // 公会长UID
+  string invitecode = 6;                // 邀请码
+  Guild guild = 7;                      // 公会信息
+  GuildTransfer guild_transfer = 8;     // 公会转让信息, 只有当 message_type == GUILD_MESSAGE_TYPE_TRANSFER 时有值.
+
+  string sid = 100;            // 分服，服ID
+}
+
+
+// 公会信息修改事件类型
+enum GuildInfoModifyMessageType {
+  GUILD_INFO_MODIFY_MESSAGE_TYPE_NONE = 0;         // 无意义
+  GUILD_INFO_MODIFY_MESSAGE_TYPE_CREATE = 1;       // 创建
+  GUILD_INFO_MODIFY_MESSAGE_TYPE_MODIFY = 2;       // 修改
+}
+
+// 公会信息修改事件 topic: social-guild-info-modify-message-${anm}
+message GuildInfoModifyMessage {
+  int64 timestamp = 1;                            // 消息时间戳
+  string anm = 2;                                 // 业务名: PlayMate: pm, Echo: echo, HalaMe: o2, Lucky: cu
+  string sub_anm = 99;                            // 业务子代号
+  GuildInfoModifyMessageType message_type = 3;    // 事件类型
+  int64 id = 4;                                   // 公会id;事件类型为CREATE时，值为0
+  int64 owner_uid = 5;                            // 公会长UID;事件类型为MODIFY时，值为0，当前不会出现修改公会长UID情况
+  string name = 6;                                // 公会名称
+  string owner_mobile = 7;                        // 公会长电话号码
+  int64 other_app_scale = 8;                      // 主播数量
+  string other_app_screenshot = 9;                // 其他平台截图,分隔符:,
+
+  string sid = 100;            // 分服，服ID
+}
+
+// bd成员消息 topic: social-guild-bd-member-message-${anm}
+message BdMemberMessage {
+  int64 timestamp = 1; // 消息时间戳
+  BdMemberChangeMessageType message_type = 2; // 事件类型
+  string anm = 3; // 业务名: PlayMate: pm, Echo: echo, HalaMe: o2, Lucky: cu
+  string sub_anm = 4; // 业务子代号
+  BdMemberChange bd_member_change = 5;
+
+  string sid = 100;            // 分服，服ID
+}
+
+enum BdMemberChangeMessageType {
+  BD_MEMBER_CHANGE_MESSAGE_TYPE_NONE = 0;       // 无意义
+  BD_MEMBER_CHANGE_MESSAGE_TYPE_AUDIT = 1;      // 审核消息
+}
+
+message BdMemberChange {
+  int64 id = 1;                                         // 成员在表中的主键ID
+  int64 bd_id = 2;                                      // bd记录ID
+  int64 member_uid = 3;                                 // 成员UID
+  string member_level = 4;                              // 成员等级, 审核通过时指定
+  comm.api.guild.BDMemberAuditStatus audit_status = 5;  // 审核状态(0:未审核, 10:待审核, 20:已通过, 30:已拒绝)
+  string audit_reason = 6;                              // 审核原因
+  int64 audit_at = 7;                                   // 审核时间，单位秒
+  string audit_by = 8;                                  // 审核人
+}

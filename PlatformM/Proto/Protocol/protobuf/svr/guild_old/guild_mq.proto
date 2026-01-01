@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package pbguild;
+
+import "protobuf/svr/guild_old/guild_info.proto";
+import "protobuf/svr/guild_old/guild_anchor.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsguildold";
+
+// 公会变动类型
+enum GuildChangeType {
+  GUILD_CHANGE_TYPE_NONE = 0;         // 无意义
+  GUILD_CHANGE_TYPE_CREATE = 1;       // 创建公会
+  GUILD_CHANGE_TYPE_MODIFY = 2;       // 编辑公会
+  GUILD_CHANGE_TYPE_REMOVE = 3;       // 移除公会
+  GUILD_CHANGE_TYPE_FREEZE = 4;       // 冻结公会
+  GUILD_CHANGE_TYPE_UNFREEZE = 5;     // 解冻公会
+  GUILD_CHANGE_TYPE_TRANSFER = 6;     // 转让公会
+  GUILD_CHANGE_TYPE_SET_MANAGER = 7;  // 设置经理
+}
+
+// 公会变动消息 topic: social-guild-change-message
+message GuildChangeMessage {
+  int64 timestamp = 1;              // 消息时间戳
+  string biz_name = 2;              // 业务名: PlayMate: pm, Echo: echo, HalaMe: o2, Lucky: cu
+  GuildChangeType change_type = 3;  // 变动类型
+  string biz_guild_id = 4;          // 公会在业务处的ID, 为了通用这里采用 string 类型.
+  Guild guild = 5;                  // 公会信息, 对于创建/修改变动类型则传完整的公会信息, 其他变动类型可不传.
+  string reason = 6;                // 移除/冻结原因
+  int64 target_owner_uid = 7;       // 转让给目标会长UID
+  int64 manager_id = 8;             // 经理ID
+}
+
+
+// 主播变动类型
+enum AnchorChangeType {
+  ANCHOR_CHANGE_TYPE_NONE = 0;         // 无意义
+  ANCHOR_CHANGE_TYPE_CREATE = 1;       // 创建主播
+  ANCHOR_CHANGE_TYPE_MODIFY = 2;       // 编辑主播
+  ANCHOR_CHANGE_TYPE_REMOVE = 3;       // 移除主播
+}
+
+// 主播变动消息 topic: social-anchor-change-message
+message AnchorChangeMessage {
+  int64 timestamp = 1;                  // 消息时间戳
+  string biz_name = 2;                  // 业务名: PlayMate: pm, Echo: echo, HalaMe: o2, Lucky: cu
+  AnchorChangeType change_type = 3;     // 变动类型
+  string biz_anchor_id = 4;             // 主播在业务处的ID, 为了通用这里采用 string 类型.
+  string biz_guild_id = 5;              // 主播在业务处的公会ID, 为了通用这里采用 string 类型.
+  Anchor anchor = 6;                    // 主播信息, 对于创建/修改变动类型则传完整的主播信息, 其他变动类型可不传.
+  string reason = 7;                    // 移除/冻结原因
+}

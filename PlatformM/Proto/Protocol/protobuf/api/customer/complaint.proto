@@ -1,0 +1,171 @@
+syntax = "proto3";
+
+package comm.api.customer;
+
+option java_package = "com.entertain.sns.comm.api.customer";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbcustomer";
+
+service Complaint {
+    // 获取申诉类型列表
+    rpc ListCategory(ListCategoryReq) returns (ListCategoryRsp);
+
+    // 获取FAQ列表
+    rpc ListFAQ(ListReq) returns (ListRsp);
+
+    //创建申诉工单
+    rpc Create(CreateReq)returns (CreateRsp);
+
+    // 获取支付列表
+    rpc ListPayment(ListPaymentReq)returns (ListPaymentRsp);
+
+    // 获取申诉记录列表
+    rpc ListRecords(ListRecordsReq)returns (ListRecordsRsp);
+
+    // 获取申诉详情
+    rpc GetRecord(GetRecordReq)returns (GetRecordRsp);
+}
+
+message ListCategoryReq {
+    repeated int64 complaint_type_id =1; // 申诉类型id
+}
+
+// 相关分类枚举
+enum CategoryType {
+    CATEGORY_TYPE_NONE = 0; // 无
+    CATEGORY_TYPE_PAY = 1; // 支付类型 
+    CATEGORY_TYPE_OTHERS = 2; // 其他类型
+    CATEGORY_TYPE_Withdraw = 3; // 提现类型
+}
+
+message ComplaintType {
+    int64  complaint_type_id =1 ; // 子申诉类型ID
+    int64  complaint_category_id = 2; // 相关分类
+    string text  =3 ;// 文案
+    string icon = 4; // icon
+    string url = 5; // 跳转FAQ页面路由
+    string icon_dark =6; // 黑暗模式icon
+    CategoryType category_type = 7; // 相关分类
+}
+
+message ListCategoryRsp {
+    repeated ComplaintType complaint_type = 1; // 子申诉类型详情
+    bool new =2 ;// 是否有新回复
+}
+
+message ListReq {
+    int64 complaint_type_id = 1; // 子申诉类型ID
+}
+
+message Faq {
+    string issues  =1 ;// 问题
+    string answer = 2; // 答案
+    repeated string images =3; // 图片
+}
+
+message ListRsp {
+    repeated Faq faq =1 ;//FAQ列表
+}
+
+// 支付相关
+message PayType {
+    int64  id =1 ; // 支付方式ID
+    string number = 2; // 订单号
+    string platform_order_id = 3; // 平台订单号
+}
+
+// 普通相关
+message CommonType {
+    string  detail =1 ; // 问题描述
+    string system_prompt = 2; // 系统提示文案
+}
+
+// 提现相关
+message WithdrawType {
+    string  detail =1 ; // 问题描述
+    string number = 2; // 订单号
+}
+
+message CreateReq {
+    int64 complaint_type_id = 1; // 子申诉类型ID
+    int64  complaint_category_id  = 2; // 相关分类
+    PayType pay_params =3 ;// 支付相关的参数
+    CommonType  common_params =4; // 常规相关的参数
+    WithdrawType withdraw_params=5; // 提现相关的参数
+    string pkg = 6; // pkg包名
+    int64 time = 7 ;// 出现问题时间 秒
+    repeated string attachment =8 ; //附件(支付截图,图片,银行流水)
+    map<string, string> contacts = 9; // 联系方式，key取值：whatsapp等等，前端同学定义即可
+}
+
+message CreateRsp {
+    int64 id = 1; // 申诉工单ID
+}
+
+message ListPaymentReq {
+}
+
+message Payment {
+    int64 id = 1; // 支付方式ID
+    string method = 2; // 支付方式
+    string screenshots_text =3 ; // 支付截图副标题
+}
+
+message ListPaymentRsp {
+    repeated Payment Payment = 1; // 支付类型
+}
+
+message ListRecordsReq {
+    int64 page =1 ; // 页码
+    int64 pageSize = 2; // 页数
+}
+
+enum State {
+    STATE_NONE = 0; //无
+    STATE_RESOLVED= 1; // 已通过
+    STATE_PROCESSING= 2; // 处理中
+    STATE_INVALID =3; // 拒绝
+    STATE_PENDING =4; // 挂起
+}
+
+message Records {
+    int64 complaint_type_id = 1; // 子申诉类型ID
+    string title = 2; // 子申诉类型标题
+    State state =3 ; // 状态
+    int64  id =4; //记录ID
+    bool new =5 ;// 是否有新回复
+    int64 time =6; // 时间
+}
+
+message ListRecordsRsp {
+    repeated Records records =1 ; //记录列表
+    int64 count =2 ;// 总数
+}
+
+message GetRecordReq {
+    int64 id =1 ; // 记录ID
+}
+
+message Reply{
+    string reply =1; //回复
+    int64 reply_time =2; // 回复时间 秒
+    repeated string images =3; // 图片
+}
+
+message GetRecordRsp {
+    int64 id =1 ; // 记录ID
+    PayType pay_detail =3 ;// 支付相关的详情
+    CommonType  common_detail =4; // 常规相关的详情
+    WithdrawType withdraw_detail=5; // 提现相关的详情
+    repeated Reply replys= 6; // 回复
+    CategoryType category_type = 7; // 相关分类
+    string complaint_type_text = 8; // 子申诉类型文案
+    int64 complaint_type_id = 9; // 子申诉类型ID
+    int64 complaint_category_id = 10; // 类型ID
+    int64 time = 11 ;// 出现问题时间 秒
+    repeated string attachment =12 ; //附件(支付截图,图片,银行流水)
+    State state =13 ; // 状态
+}
+
+message CustomerPubPara {
+    string user_business = 1;  // 如果为m2，则为m2；其他则为m1
+}

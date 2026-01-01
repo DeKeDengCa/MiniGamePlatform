@@ -1,0 +1,37 @@
+
+syntax = "proto3";
+
+package api.astrorise.feature.propstore;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/adapter/model.proto";
+
+// smicro:spath=gitit.cc/social/astrorise/arplatform/s_features/biz/propstore/handler
+option go_package = "gitit.cc/social/astrorise/arprotobuf/gencode/api/feature/pbpropstore";
+
+// 道具仓库服务
+service PropStore {
+  // 获取道具背包列表
+  rpc ListProps(ListPropsReq) returns (ListPropsRsp);
+}
+
+
+
+// 道具信息
+message PropInfo {
+  int64 uid = 1; // 用户UID
+  int32 game_id = 2;  //  游戏ID
+  int64 prop_id = 3;  // 道具ID
+  int64 remain_num = 4; // 道具剩余数量
+  int64 remain_deadline = 5; // 道具剩余时长截止时间戳秒 -1永久
+  int64 lifetime_dateline = 7; // 道具生命周期截止时间戳秒 -1永久
+  int64 stack_size = 8; // 堆叠数量上线
+}
+
+message ListPropsReq {
+  int32 game_id = 1; // 游戏ID
+}
+
+message ListPropsRsp {
+  repeated PropInfo props = 1; // 道具列表
+}

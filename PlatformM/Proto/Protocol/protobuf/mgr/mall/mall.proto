@@ -1,0 +1,179 @@
+// smicro:spath=gitit.cc/social/components-service/social-biz/biz/mall/handlermgr
+
+syntax = "proto3";
+
+package comm.mgr.mall;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/mall/mall.proto";
+import "protobuf/api/privilege/v2/privilege.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmmall";
+
+service MallMgr {
+
+  // Tab 列表
+  rpc ListTab(ListTabReq) returns (ListTabRsp);
+
+  // 创建/更新 Tab
+  rpc SaveTab(SaveTabReq) returns (SaveTabRsp);
+
+  // 删除 Tab
+  rpc DeleteTab(DeleteTabReq) returns (DeleteTabRsp);
+
+  // 更新 Tab 状态
+  rpc UpdateTabStatus(UpdateTabStatusReq) returns (UpdateTabStatusRsp);
+
+  // 商品列表
+  rpc ListGoods(ListGoodsReq) returns (ListGoodsRsp);
+
+  // 创建/更新商品
+  rpc SaveGoods(SaveGoodsReq) returns (SaveGoodsRsp);
+
+  // 删除商品
+  rpc DeleteGoods(DeleteGoodsReq) returns (DeleteGoodsRsp);
+
+  // 更新商品状态
+  rpc UpdateGoodsStatus(UpdateGoodsStatusReq) returns (UpdateGoodsStatusRsp);
+
+  // 增加/减少商品库存
+  rpc ChangeGoodsStock(ChangeGoodsStockReq) returns (ChangeGoodsStockRsp);
+
+  // 订单列表
+  rpc ListOrder(ListOrderReq) returns (ListOrderRsp);
+}
+
+// 商品 Tab
+message Tab {
+  int64 tab_id = 1;
+  int64 parent_tab_id = 2;
+  comm.api.mall.TabType tab_type = 3;
+  map<string, string> tab_names = 10;
+  repeated comm.api.mall.Banner banners = 20;
+  comm.api.mall.TabStatus tab_status = 30;
+  int64 sort_weight = 40;
+  int64 created_at = 100;
+  string created_by = 101;
+  int64 updated_at = 102;
+  string updated_by = 103;
+  int64 deleted_at = 104;
+  string deleted_by = 105;
+}
+
+message ListTabReq {
+  scommon.Page page = 1;
+  int64 parent_tab_id = 10;
+}
+
+message ListTabRsp {
+  scommon.Page page = 1;
+  repeated Tab tabs = 10;
+}
+
+message SaveTabReq {
+  Tab tab = 10;
+}
+
+message SaveTabRsp {
+
+}
+
+message DeleteTabReq {
+  repeated int64 tab_ids = 10;
+}
+
+message DeleteTabRsp {
+
+}
+
+message UpdateTabStatusReq {
+  int64 tab_id = 10;
+  comm.api.mall.TabStatus tab_status = 20;
+}
+message UpdateTabStatusRsp {
+  
+}
+
+// 商品
+message Goods {
+  int64 goods_id = 1;                                     // 商品ID
+  int64 tab_id = 2;                                       // Tab ID
+  comm.api.mall.GoodsType goods_type = 3;                 // 商品类型
+  comm.api.mall.GoodsSubtype goods_subtype = 4;           // 商品子类型
+  map<string, comm.api.mall.GoodsAsset> goods_assets = 5; // 商品素材资源
+  comm.api.mall.GoodsTags goods_tags = 10;                // 商品角标
+  comm.api.mall.GoodsPrice goods_price = 20;              // 商品价格
+  comm.api.mall.GoodsAmount goods_amount = 30;            // 商品时长/数量
+  comm.api.mall.GoodsStock goods_stock = 31;              // 商品库存
+  comm.api.mall.GoodsRequirement goods_requirement = 40;  // 购买限制
+  comm.api.mall.GoodsLimit goods_limit = 50;              // 购买上限
+  comm.api.mall.GoodsStatus goods_status = 60;            // 商品状态
+  comm.api.mall.GoodsFlag goods_flag = 70;                // 商品标记
+  comm.api.mall.GoodsPrivilege goods_privilege = 80;      // 权益资源, goods_type 为 PRIVILEGE 时有值.
+  comm.api.mall.GoodsGift goods_gift = 81;                // 礼物资源, goods_type 为 GIFT 时有值.
+  int64 sort_weight = 90;
+  int64 created_at = 100;
+  string created_by = 101;
+  int64 updated_at = 102;
+  string updated_by = 103;
+  int64 deleted_at = 104;
+  string deleted_by = 105;
+}
+
+message ListGoodsReq {
+  scommon.Page page = 1;
+  int64 tab_id = 10;
+}
+
+message ListGoodsRsp {
+  scommon.Page page = 1;
+  repeated Goods goodses = 10;
+}
+
+message SaveGoodsReq {
+  Goods goods = 10;
+}
+
+message SaveGoodsRsp {
+
+}
+
+message DeleteGoodsReq {
+  repeated int64 goods_ids = 10;
+  int64 tab_id = 11;
+}
+
+message DeleteGoodsRsp {
+
+}
+
+message UpdateGoodsStatusReq {
+  int64 goods_id = 10;
+  int64 tab_id = 11;
+  comm.api.mall.GoodsStatus goods_status = 20;
+}
+message UpdateGoodsStatusRsp {
+  
+}
+
+message ChangeGoodsStockReq {
+  int64 goods_id = 10;
+  int64 tab_id = 11;
+  int64 delta = 20;         // 增加库存传正数, 减少库存传负数.
+  bool unlimited = 21;      // 修改成无限制
+}
+message ChangeGoodsStockRsp {
+  
+}
+
+message ListOrderReq {
+  scommon.Page page = 1;
+  int64 uid = 10;
+  .api.privilege.v2.CategoryID category_id = 20;
+  .api.privilege.v2.CategoryID sub_category_id = 21;
+  string goods_name = 30;
+}
+message ListOrderRsp {
+  scommon.Page page = 1;
+  repeated comm.api.mall.Order orders = 10;
+}

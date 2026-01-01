@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package comm.svr.relation;
+
+import "protobuf/svr/adapter/relation.proto";
+import "protobuf/api/relation/user_follow.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsrelation";
+
+// 关系变化动作
+enum ActionType {
+  ACTION_TYPE_NONE = 0;           // 无意义
+
+  ACTION_TYPE_FOLLOW = 10;        // 关注
+  ACTION_TYPE_CANCEL_FOLLOW = 11; // 取消关注
+
+  ACTION_TYPE_BLOCK = 20;         // 拉黑
+  ACTION_TYPE_CANCEL_BLOCK = 21;  // 取消拉黑
+}
+
+// 主体类型
+enum SubjectType {
+  SUBJECT_TYPE_NONE = 0;          // 无意义
+
+  SUBJECT_TYPE_USER = 10;         // 用户
+
+  SUBJECT_TYPE_ROOM = 20;         // 房间
+}
+
+// 关系变化消息
+// topic: social-relation-change-message-${anm}
+message RelationChangeMessage {
+  string seq_id = 1;                        // 幂等ID
+  int64 ts_ms = 2;                          // 时间戳(毫秒)
+  string anm = 3;                           // 业务名
+  string sub_anm = 99;                      // 业务子代号
+
+  SubjectType subject_type = 10;            // 发起方类型
+  int64 subject_id = 11;                    // 发起方ID
+
+  SubjectType opposite_subject_type = 20;   // 对方类型
+  int64 opposite_subject_id = 21;           // 对方ID
+
+  ActionType action_type = 30;              // 关系变化动作
+  bool first_time = 31;                     // 是否首次关注/拉黑 (注意! 取消关注/取消拉黑这个字段无意义)
+
+  pbsadapter.Relation final_relation = 40;  // 关系变化后最终双方的关系.
+
+  comm.api.relation.UserFollowScene scene = 50; // 关注时的场景
+  string biz_ext = 60;                          // 业务拓展参数
+
+  string sid = 100;            // 分服，服ID
+}

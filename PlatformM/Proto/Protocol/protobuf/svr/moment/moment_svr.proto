@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package comm.svr.moment;
+
+option java_package = "com.entertain.sns.comm.svr.moment";
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsmoment";
+
+import "protobuf/mgr/moment/moment.proto";
+import "protobuf/api/common/common.proto";
+import "protobuf/api/moment/moment-comm.proto";
+
+// ServiceName: social-biz
+// smicro:spath=gitit.cc/social/components-service/social-biz/biz/moment/handlersvr
+service MomentSvr {
+  // 批量查询动态数据
+  rpc BatchGetMoment(BatchGetMomentReq) returns (BatchGetMomentRsp);
+  // 批量增加浏览量
+  rpc BatchIncrViews(BatchIncrViewsReq) returns (BatchIncrViewsRsp);
+  // 发布动态
+  rpc PublishMoment(PublishMomentReq) returns (PublishMomentRsp);
+  // 修改动态数据
+  rpc UpdateMoment(UpdateMomentReq) returns (UpdateMomentRsp);
+  // 批量删除动态
+  rpc BatchDeleteMoment(BatchDeleteMomentReq) returns (BatchDeleteMomentRsp);
+  // 查询用户动态
+  rpc ListUserMoment(ListUserMomentReq) returns (ListUserMomentRsp);
+}
+
+
+message BatchGetMomentReq {
+  repeated int64 moment_ids = 1;  // 最多100个，超出则截断不处理
+}
+
+message BatchGetMomentRsp {
+  map<int64, comm.mgr.moment.Moment> moment_map = 1;  // <动态ID, 动态信息>
+}
+
+
+message BatchIncrViewsReq {
+  map<int64, int64> increment_map = 1;  // <动态ID, 浏览量>
+}
+
+message BatchIncrViewsRsp {
+  repeated int64 success_ids = 1; // 成功的ID
+  repeated int64 failed_ids = 2;  // 失败的ID
+}
+
+
+message PublishMomentReq {
+  comm.mgr.moment.MomentDraft draft = 1;
+}
+
+message PublishMomentRsp {
+}
+
+
+message UpdateMomentReq {
+  // 动态ID
+  int64 moment_id = 1;
+  // 修改后的完整数据，需要修改的字段将从这里取值覆盖更新
+  comm.mgr.moment.Moment moment = 2;
+  // 修改的字段需要设置为非默认值，表示该字段需要从moment里取值更新
+  // e.g. 需要修改attachments字段
+  //  req.Selector = &pbmmoment.Moment{BaseInfo: &pbmoment.Moment{Attachments: &pbmoment.Attachments{}}}
+  comm.mgr.moment.Moment selector = 3;
+}
+
+message UpdateMomentRsp {
+}
+
+
+message BatchDeleteMomentReq {
+  repeated int64 moment_ids = 1;  // 最多100个，超出则截断不处理
+}
+
+message BatchDeleteMomentRsp {
+  repeated int64 success_ids = 1; // 成功的ID
+  repeated int64 failed_ids = 2;  // 失败的ID
+}
+
+
+message ListUserMomentReq {
+  scommon.Page page = 1;
+  int64 target_uid = 2;       // 被查询的用户
+  repeated comm.api.moment.AuditStatus audit_statuses = 3;  // 审核状态, 空表示不限制, (暂时不支持已审核拒绝的动态查询)
+}
+
+message ListUserMomentRsp {
+  scommon.Page page = 1;
+  repeated comm.mgr.moment.Moment moments = 2;
+}

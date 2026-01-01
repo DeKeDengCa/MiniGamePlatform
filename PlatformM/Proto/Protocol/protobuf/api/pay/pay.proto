@@ -1,0 +1,329 @@
+// smicro:spath=gitit.cc/social/components-service/social-revenue/goods/internal/handler/pay_handler.go
+syntax = "proto3";
+
+package pbspay;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/pay/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbspay";
+option java_package = "com.entertain.sns.pbspay";
+
+// service_name: api.micro.social.revenue
+
+// 支付 sdk 协议
+service Spay {
+
+  // 获取sku列表，对sku做了分组处理，并增加了支持的支付方式
+  rpc ListSku(ListSkuReq) returns (ListSkuRsp);
+
+  // 创单接口
+  rpc CreateSpayOrder(CreateSpayOrderReq) returns (CreateSpayOrderRsp);
+
+  // SDK支付回调，终端支付成功后通过此接口通知后台查询订单结果
+  // 只针对 apple_pay google_play，其他支付渠道有回调通知，不需要主动验单
+  rpc PayCallback(PayCallbackReq) returns (PayCallbackRsp);
+
+  // 订单状态查询
+  rpc CheckSpayOrder(CheckSpayOrderReq) returns (CheckSpayOrderRsp);
+
+  // 取消支付，在创建订单后，用户主动取消支付，客户端调用该接口更新订单状态
+  // 该接口对 apple_pay google_play huaweipay 有效，参考：https://nemo.yuque.com/pay_system/interface/haaq01#pePaa
+  rpc PayCancel(PayCancelReq) returns (PayCancelRsp);
+
+  // 用户充值订单分页查询
+  rpc SpayUserOrder(SpayUserOrderReq) returns (SpayUserOrderRsp);
+}
+
+message ListSkuReq {
+  SpayClientType client_type = 1;         // h5必传，客户端类型，不传则使用公参
+  repeated string payment_apps = 2;       // 非必须，扫描包获得的支付app列表，服务端根据扫包结果可以做一些过滤和排序策略
+  repeated string pay_types = 3;          // 支付方式如payerMax、quarkpay可以不传
+
+  // key标注
+  // scene: 查询场景
+  map<string, string> ext = 10;           // 业务请求参数扩展
+}
+
+message ListSkuRsp {
+  repeated SkuInfo list = 1;   // sku 列表
+  map<string, string> ext = 2;  // 业务扩展数据，sdk 透传给业务
+  repeated PayInfo pay_infos = 3; // 支付方式列表，由sku列表聚合出来并排序
+}
+
+
+message CreateSpayOrderReq {
+  int64 item_id = 1;                    // 商品ID，业务配置的id，不是 sku
+  int32 num = 2;                        // 非必须，购买数量，默认1，系统扩展预留
+  SpayClientType client_type = 3;       // h5必传，客户端类型，不传则使用公参
+  string location = 4;                  // 非必须，第三方支付参数，国家编码
+  string pay_code = 5;                  // 非必须，第三方支付参数，支付方式（子渠道）
+  string success_url = 6;               // 非必须，第三方支付参数，h5 支付后跳转的页面地址
+  map<string, string> ext = 20;         // 非必须，预留字段，用于处理不同业务个性化逻辑
+}
+
+message CreateSpayOrderRsp {
+  SpayOrderInfo order_info = 1;                   // 订单信息
+  map<string, string> ext = 2;                    // 扩展信息，sdk 透传给业务，处理不同业务个性化逻辑
+  string checksum = 5;                            // 签名，验单和取消订单接口需要带上
+  GooglePlayResult google_play_result = 20;       // google_pay 返回
+  ApplePayResult apple_pay_result = 21;           // apple_pay 返回
+  ThirdPartyPayResult third_party_result = 23;    // 第三方支付返回
+}
+
+message PayCallbackReq {
+  string checksum = 1;  // 创单时返回的签名
+  string order_no = 2;  // 业务订单ID
+  ApplePayReceipt apple_pay_receipt = 20;       // apple_pay 支付凭证
+  GooglePlayReceipt google_play_receipt = 21;   // google_play 支付凭证
+}
+
+message PayCallbackRsp {
+  SpayOrderResult result = 1;         // 验单结果
+  PurchaseInfo purchase_info = 20;    // 支付成功后业务需要返回的信息，sdk 透传给业务
+}
+
+message CheckSpayOrderReq {
+  string order_no = 1;      // 业务订单号
+}
+
+message CheckSpayOrderRsp {
+  SpayOrderResult result = 1;        // 验单结果
+  OrderDetail order = 2;             // 订单详情
+  PurchaseInfo purchase_info = 20;   // 支付成功后业务需要返回的信息，sdk 透传给业务
+}
+
+
+message PayCancelReq {
+  string checksum = 1;  // 创单时返回的签名
+  string order_no = 2;  // 业务订单ID
+  string reason = 3;    // 取消原因
+}
+
+message PayCancelRsp {
+  SpayOrderResult result = 1;   // 取消支付结果
+}
+
+message SpayUserOrderReq {
+  scommon.Page page = 1;         // 分页参数
+  string pay_type = 2;           // 支付方式，如：google_play apple_pay huaweipay quarkpay 等
+  int64 start_time = 3;          // 开始时间戳，秒
+  int64 end_time = 4;            // 结束时间戳，秒
+  map<string, string> ext = 20;  // 扩展字段，处理不同业务个性化逻辑
+}
+
+message SpayUserOrderRsp {
+  scommon.Page page = 1; // 分页参数
+  repeated OrderDetail list = 2; // 充值列表
+}
+
+
+
+message SkuInfo {
+  SpaySkuType sku_type = 1;   // 商品类型，如：虚拟币，包裹，头像框等，根据业务扩展
+  string name = 2; // 商品名称
+  map<string, string> name_lang = 3; // 商品名称，多语言
+  string desc = 4; // 商品描述
+  map<string, string> desc_lang = 5; // 商品描述，多语言
+  string image = 6; // 商品图片
+  string tag_image = 7; // 标签图片
+  string tag = 8;                      // 角标文案
+  map<string, string> tag_lang = 9;    // 角标文案，多语言
+  int64 price = 10;                    // 支付金额，单位分
+  SpayUnit unit = 11;                  // 支付金额单位
+  string unit_str = 12;                // 支付金额单位文案
+  int64 amount = 13;                   // 获得金额，用户显示的金额使用 amount - additional_num
+  SpayCurrencyType currency_type = 14; // 获得金额货币类型
+  int64 num = 15; // 购买数量，不能小于1
+  int64 additional_num = 16;      // 额外福利获得的金币数数量
+  int32 discount_rate = 17;       // 折扣百分比，只会大于0，eg: 10 即 10%，即1折，等于0为无折扣，而不是0%
+  int64 goods_id = 18;            // 商品id
+  SkuLimitType limit_type = 19;   // 限制购买类型
+  int64 target_price = 33;               // 非必须，支付金额（分，美元就是美分），实际发起支付的金额，如果没有配置，会使用 price
+  SpayUnit target_unit = 34;      // 非必须，实际支付的币种，如果配置了 target_price，则此项必传
+  map<string, string> ext = 50; // 扩展信息，可以支持一些扩展信息配置，实现特定商品或者指定业务的个性化功能，客户端sdk可以透传给业务，处理个性化需求
+  repeated SkuItem items = 51; // 商品列表，这里是跟具体支付方式绑定的，通过 pay_type 来判断
+  string package_id = 60; // 奖励包ID
+}
+
+message SkuItem {
+  int64 item_id = 1;              // sku 配置的业务id
+  string sku = 2;                 // 支付渠道配置的 sku 标识
+  int64 price = 3;                // 支付金额，分
+  PayInfo pay_info = 4;           // 支付方式
+  string mid = 5;                 // 支付中台 mid
+  JumpType jump_type = 6;         // 跳转方式，第三方充值的情况返回
+  string jump_url = 7;            // 跳转url
+  string unit = 8;                // 支付货币代号，如USD/INR
+  string unit_str = 9;            // 支付货币符号，如$/¥
+  string show_price = 10;         // 价格，用于展示
+  string show_unit = 11;          // 币种，用于展示
+}
+
+message PayInfo {
+  string pay_type = 1;                // 支付方式，如：google_play apple_pay huaweipay quarkpay 等
+  string name = 2;                    // 支付方式名称
+  map<string, string> name_lang = 3;  // 支付方式多语言
+  string image = 4;                   // 支付方式图标
+  string pay_code = 5;                // 具体支付方式 上面那个其实是支付渠道
+  string pay_code_name = 6;           // 具体支付方式展示名称
+  string pay_code_img = 7;            // 具体支付方式展示图标
+  string pay_code_icon = 8;           // 具体支付方式展示角标
+  int32 weight = 20;                  // 展示权重，值越大排序越靠前
+}
+
+// 货币单位，目前只有美元，后必要再扩展
+enum SpayUnit {
+  SPAY_UNIT_NONE = 0;  // 未知
+  SPAY_UNIT_USD = 10;  // 美金
+  SPAY_UNIT_AED = 11; // 阿联酋
+  SPAY_UNIT_EGP = 12; // 埃及
+  SPAY_UNIT_SAR = 13; // 沙特阿拉伯
+  SPAY_UNIT_KWD = 14; // 科威特
+  SPAY_UNIT_JOD = 15; // 约旦
+  SPAY_UNIT_QAR = 16; // 卡塔尔
+  SPAY_UNIT_BHD = 17; // 巴林
+  SPAY_UNIT_OMR = 18; // 阿曼
+  SPAY_UNIT_INR = 19; // 印度
+  SPAY_UNIT_IDR = 20;  // 印尼盾
+  SPAY_UNIT_IQD = 21; // 伊拉克
+  SPAY_UNIT_TRY = 22; // 土耳其
+  SPAY_UNIT_PKR = 23; // 巴基斯坦
+  SPAY_UNIT_BDT = 24; // 孟加拉
+  SPAY_UNIT_MXN = 25; // 墨西哥
+  SPAY_UNIT_CLP = 26; // 智利
+  SPAY_UNIT_AUD = 27; // 澳元
+  SPAY_UNIT_CAD = 28; // 加元
+  SPAY_UNIT_PEN = 29; // 秘鲁
+  SPAY_UNIT_MYR = 30; // 马来西亚
+  SPAY_UNIT_NGN = 31; // 尼日利亚
+}
+
+// 需要映射成营收服务枚举
+enum SpayCurrencyType {
+  SPAY_CURRENCY_TYPE_NONE = 0;
+  SPAY_CURRENCY_TYPE_GOLD = 10;    // 金币
+  SPAY_CURRENCY_TYPE_CRYSTAL = 11; // 水晶
+  SPAY_CURRENCY_TYPE_DIAMOND = 12; // 钻石
+}
+
+// SpayClientType 客户端类型
+enum SpayClientType {
+  SPAY_CLIENT_TYPE_NONE = 0;
+  SPAY_CLIENT_TYPE_ANDROID = 1;      // Android
+  SPAY_CLIENT_TYPE_IOS = 2;          // IOS
+  SPAY_CLIENT_TYPE_WEB = 3;          // WEB, H5
+}
+
+enum SpaySkuType {
+  SPAY_SKU_TYPE_NONE = 0;        // 未知
+  SPAY_SKU_TYPE_CURRENCY = 10;   // 虚拟币
+  SPAY_SKU_TYPE_PACKAGE = 20;    // 包裹，预定义暂未支持，后续也可能扩展其他类型
+}
+
+// 支付状态
+enum SpayStatus {
+  SPAY_STATUS_NONE = 0;           // 未支付
+  SPAY_STATUS_UNPAID = 10;        // UNPAID:等待支付
+  SPAY_STATUS_PAID = 20;          // PAID:支付成功
+  SPAY_STATUS_FAIL = 30;          // FAIL:支付失败
+  SPAY_STATUS_CANCEL = 40;        // CANCEL:取消失败
+}
+
+enum SpayRefundStatus {
+  SPAY_REFUND_STATUS_NONE = 0;        // 未退款
+  SPAY_REFUND_STATUS_REFUNDING = 10;  // 退款中
+  SPAY_REFUND_STATUS_SUCCESS = 20;    // 退款成功
+  SPAY_REFUND_STATUS_FAIL = 30;       // 退款失败
+}
+
+// GooglePlayResult google_play 下单返回数据
+message GooglePlayResult {
+  string mid = 1;             // 商户ID，eg: echo carni crushu
+  int64 uid = 2;              // 用户ID
+  string order_no = 3;        // 业务订单号
+  string pay_order_id = 4;    // 支付中台订单ID
+  int64 pay_amount = 5;            // 支付金额
+}
+
+// ApplePayResult apple_pay 下单返回数据
+message ApplePayResult {
+  string mid = 1;             // 商户ID，eg: echo carni crushu
+  int64 uid = 2;              // 用户ID
+  string order_no = 3;        // 业务订单号
+  string pay_order_id = 4;    // 支付中台订单ID
+  int64 pay_amount = 5;            // 支付金额
+}
+
+// ThirdPartyPayResult 第三方支付下单返回数据，相关文档：https://nemo.yuque.com/pay_system/interface/haaq01#415E8
+message ThirdPartyPayResult {
+  string mid = 1;                 // 商户ID，eg: echo carni crushu
+  string uid = 2;                 // 支付金额
+  string order_no = 3;            // 业务订单号
+  string pay_order_id = 4;        // 支付中台订单ID
+  string plat_order_id = 5;       // 支付平台供应商订单
+  int64 pay_amount = 6;           // 支付金额
+  string pay_type = 7;            // 实际使用的支付方式，如：google_play apple_pay huaweipay quarkpay 等
+  string jump_url = 8;            // 支付商的收银台页面或者是deeplink直接拉起支付应用，根据 jump_type 来判断
+  JumpType jump_type = 9;         // 跳转方式
+}
+
+
+message SpayOrderInfo {
+  string order_no = 1;            // 业务订单号
+  string pay_order_id = 2;        // 支付中台订单ID
+  string plat_order_id = 3;       // 支付平台供应商订单
+  string refund_id = 4;           // 退款单ID
+  int64 pay_amount = 5;           // 需要支付的金额，注意单位是：分！！！
+  SpayUnit unit = 6;              // 支付金额单位
+  string unit_str = 7;            // 支付金额单位文案
+  string pay_type = 8;            // 支付方式，如：google_play apple_pay huaweipay quarkpay 等
+  int32 num = 9;                  // 购买数量，默认1，系统扩展预留
+  string pay_amount_dollar = 10;  // 换算成元（如果是USD则表示美元）单位
+  int64 price_cent = 11;          // 订单价格，单位美分，这个值是OMS上配的。注意不等同于实际支付的金额！！
+  SkuItem item = 50;              // 购买商品信息
+}
+
+
+message PurchaseInfo {
+  int64 amount = 1;                   // 废弃（不在验单流程处理发货），充值后钱包余额，PayCallback 接口不返回，因为还没有真正处理发货逻辑
+  int64 recharge_amount = 2;          // 当比充值获得的数额
+  map<string, string> ext = 50;       // 业务自定义信息
+}
+
+
+// 验单结果
+message SpayOrderResult {
+  string order_no = 1;               // 业务订单号
+  string pay_order_id = 2;           // 支付中台订单ID
+  string plat_order_id = 3;          // 支付渠道供应商订单
+  SpayStatus status = 4;             // 支付状态
+  string msg = 5;                    // 订单支付成功或失败原因
+}
+
+
+// 订单详细信息
+message OrderDetail {
+  int64  uid = 1;                           // 充值到账用户ID，即给谁发货
+  int64 fuid = 2;                           // 发起充值的用户ID
+  SpayOrderInfo order_info = 3;             // 订单信息
+  string mid = 4 ;                          // 支付mid
+  SpayCurrencyType currency_type = 5;       // 获得虚拟币类型
+  int64 amount = 6;                         // 获得虚拟币金额
+  string client_type = 7;                   // 客户端类型，客户端-WAP，网页-WEB
+  string client_version = 8;                // 客户端版本
+  string did = 9;                           // 设备标识
+  string channel_id = 10;                   // 支付渠道ID
+  SpayStatus status = 11;                   // 支付状态
+  int64  pay_time = 12;                     // 支付时间，秒
+  SpayRefundStatus refund_status = 13;      // 退款状态
+  int64  refund_time = 14;                  // 退款时间，秒
+  string goods_name = 15;                   // 购买商品名称，用来显示
+  int64 ctime = 16;                         // 创建订单时间，秒
+  map<string, string> ext = 50;             // 扩展字段，处理不同业务个性化逻辑
+}
+
+enum SkuLimitType {
+  SKU_LIMIT_TYPE_NONE = 0;     // 默认值，无意义
+  SKU_LIMIT_TYPE_ONCE = 10;    // 只能买一次（首充）
+}

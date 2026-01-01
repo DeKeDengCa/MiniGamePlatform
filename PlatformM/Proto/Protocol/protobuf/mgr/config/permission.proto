@@ -1,0 +1,178 @@
+//  smicro:spath=gitit.cc/social/components-service/social-config/biz/permission/handlermgr/
+syntax = "proto3";
+
+// social-config
+package comm.mgr.config;
+
+import "protobuf/api/common/common.proto";
+
+// option go_package = "gitit.cc/social/components-service/social-config/proto/pbmpermission";
+option go_package="gitit.cc/social/protobuf/gencode/mgr/pbmconfig";
+
+enum PermissionRole {
+  RoleNone = 0; // 无权限
+  Admin = 1; // 超级管理员
+  Staff = 2; // 普通管理员
+}
+
+service Permission {
+  // 获取员工角色
+  rpc GetRole(GetRoleReq) returns (GetRoleRsp);
+
+  // 授权接口(管理员给员工授权, 是全量授权, 会把没提交的员工权限回收)
+  rpc Grant(GrantReq) returns (GrantRsp);
+
+  // 获取业务下员工列表
+  rpc GetBizStaffList (GetBizStaffListReq) returns (GetBizStaffListRsp);
+
+  // 批量授权(管理员给员工授权, 是增量授权, 只把未授权的员工授予权限)
+  rpc BatchGrant(BatchGrantReq) returns (BatchGrantRsp);
+
+  // 权限组-创建
+  rpc CreatePermissionGroup (CreatePermissionGroupReq) returns (CreatePermissionGroupRsp);
+  // 权限组-修改
+  rpc UpdatePermissionGroup (UpdatePermissionGroupReq) returns (UpdatePermissionGroupRsp);
+  // 权限组-删除
+  rpc DeletePermissionGroup (DeletePermissionGroupReq) returns (DeletePermissionGroupRsp);
+  // 权限组-查询
+  rpc ListPermissionGroup (ListPermissionGroupReq) returns (ListPermissionGroupRsp);
+
+  // 权限组成员-添加
+  rpc AddPermissionGroupMember (AddPermissionGroupMemberReq) returns (AddPermissionGroupMemberRsp);
+  // 权限组成员-删除
+  rpc DeletePermissionGroupMember (DeletePermissionGroupMemberReq) returns (DeletePermissionGroupMemberRsp);
+  // 权限组成员-查询
+  rpc ListPermissionGroupMember (ListPermissionGroupMemberReq) returns (ListPermissionGroupMemberRsp);
+}
+
+// 获取用户角色
+message GetRoleReq {
+  string biz_key = 1; // 业务key
+}
+
+message GetRoleRsp {
+  PermissionRole role = 1;
+}
+
+// 授权接口(全量授权)
+message GrantReq {
+  repeated string staff_ids = 1; // 被授权用户union_id
+  repeated int64 permission_group_ids = 3; // 权限组id集合
+  string biz_key = 2; // 业务key
+}
+
+message GrantRsp {}
+
+// 获取业务下员工列表
+message GetBizStaffListReq {
+  string biz_key = 1; // 业务key
+}
+
+message GetBizStaffListRsp {
+  repeated string staff_ids = 1; // 被授权用户union_id
+  repeated PermissionGroupInfo permission_groups = 2; // 权限组列表
+}
+
+// 批量授权(增量授权)
+message BatchGrantReq {
+  repeated string staff_ids = 1; // 被授权用户union_id
+  repeated int64 permission_group_ids = 3; // 权限组id集合
+  repeated string biz_keys = 2;  // 业务key
+}
+
+message BatchGrantRsp {}
+
+// ==========================
+// 权限组管理
+// ==========================
+
+message CreatePermissionGroupReq {
+  string group_name = 1; // 权限组名称
+  string description = 2; // 权限组描述
+
+  repeated string staff_union_ids = 3; // 员工UnionID
+}
+message CreatePermissionGroupRsp {
+  int64 id = 1; // 新建的权限组ID
+}
+
+message UpdatePermissionGroupReq {
+  int64 id = 1; // 权限组ID
+  string group_name = 2; // 权限组名称
+  string description = 3; // 权限组描述
+
+  repeated string staff_union_ids = 4; // 员工UnionID（全量覆盖）
+}
+message UpdatePermissionGroupRsp {
+}
+
+message DeletePermissionGroupReq {
+  int64 id = 1; // 权限组ID
+}
+message DeletePermissionGroupRsp {
+}
+
+
+message ListPermissionGroupReq {
+  scommon.Page page = 1;
+
+  int64 id = 11; // 权限组ID
+  string group_name = 12; // 权限组名称
+  PermissionRole role = 13; // 角色(0:无,1:超管,2:管理员)
+}
+message ListPermissionGroupRsp {
+  scommon.Page page = 1;
+
+  repeated PermissionGroupInfo groups = 11; // 权限组列表
+}
+
+message PermissionGroupInfo {
+  int64 id = 1; // 权限组ID
+  string anm = 2; // 业务名
+  string group_name = 3; // 权限组名称
+  PermissionRole role = 4; // 角色(0:无,1:超管,2:管理员)
+  string description = 5; // 权限组描述
+  string creator = 6; // 创建人
+  int64 created_at = 7; // 创建时间
+  string updater = 8; // 修改人
+  int64 updated_at = 9; // 修改时间
+
+  repeated PermissionGroupMemberInfo members = 11; // 成员列表
+}
+
+
+// ==========================
+// 权限组成员管理
+// ==========================
+
+message AddPermissionGroupMemberReq {
+  int64 group_id = 1; // 权限组ID
+  repeated string staff_union_ids = 2; // 员工UnionID
+}
+message AddPermissionGroupMemberRsp {
+}
+
+message DeletePermissionGroupMemberReq {
+  repeated int64 ids = 1; // 权限组成员Ids
+}
+message DeletePermissionGroupMemberRsp {
+}
+
+message ListPermissionGroupMemberReq {
+  scommon.Page page = 1;
+
+  repeated int64 group_ids = 11; // 权限组ID
+}
+message ListPermissionGroupMemberRsp {
+  scommon.Page page = 1;
+
+  repeated PermissionGroupMemberInfo members = 11; // 成员列表
+}
+
+message PermissionGroupMemberInfo {
+  int64 id = 1; // 权限组成员Id
+  int64 group_id = 2; // 权限组ID
+  string staff_union_id = 3; // 员工UnionID
+  string creator = 4; // 创建人
+  int64 created_at = 5; // 创建时间
+}

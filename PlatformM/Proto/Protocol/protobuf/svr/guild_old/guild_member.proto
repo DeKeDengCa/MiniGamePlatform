@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package pbguild;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsguildold";
+
+service GuildMember {
+  // 获取成员信息
+  rpc GetMemberInfo(GetMemberInfoReq) returns (GetMemberInfoRsp) {}
+}
+
+// 成员角色
+enum MemberRole {
+  MEMBER_ROLE_NONE = 0;   // 非公会成员
+  MEMBER_ROLE_ANCHOR = 1; // 普通主播
+  MEMBER_ROLE_BROKER = 2; // 经纪人
+  MEMBER_ROLE_OWNER = 3;  // 公会长
+}
+
+// 成员信息
+message MemberInfo {
+  int64 uid = 1;            // UID
+  MemberRole role = 2;      // 角色
+  int64 guild_id = 3;       // 公会ID
+  int64 unread_message = 4; // 未读消息数量
+}
+
+// 获取成员信息
+message GetMemberInfoReq {
+  repeated int64 uids = 1;
+}
+
+// 获取成员信息
+message GetMemberInfoRsp {
+  map<int64, MemberInfo> member_infos = 1;
+}

@@ -1,0 +1,140 @@
+syntax = "proto3";
+
+package comm.api.family;
+
+import "protobuf/api/adapter/model.proto";
+import "protobuf/api/privilege/v2/bag.proto";
+import "protobuf/api/privilege/v2/privilege.proto";
+
+option java_package = "com.entertain.sns.comm.api.family";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbfamily";
+
+enum FamilyEventType {
+  FAMILY_EVENT_TYPE_NONE = 0;
+  FAMILY_EVENT_TYPE_CREATE = 1; // 创建家族
+  FAMILY_EVENT_TYPE_JOIN = 2;   // 加入家族
+  FAMILY_EVENT_TYPE_QUIT = 3; // 退出家族
+  FAMILY_EVENT_TYPE_DISBAND = 4;  // 家族长解散家族
+  FAMILY_EVENT_TYPE_KICK = 5; // 踢出家族
+  FAMILY_EVENT_TYPE_SET_ROLE = 6; // 设置家族成员角色
+  FAMILY_EVENT_TYPE_CHANGE_JOIN_PERMISSION = 7; // 设置加入权限
+  FAMILY_EVENT_TYPE_APPLY_PASS = 8; // 申请通过
+  FAMILY_EVENT_TYPE_APPLY_REJECT = 9; // 申请拒绝
+  FAMILY_EVENT_TYPE_SHARE = 10; // 分享家族
+  FAMILY_EVENT_TYPE_OFFICIAL_DISBAND = 11; // 官方解散家族
+  FAMILY_EVENT_TYPE_INVITE = 12; // 邀请成员
+}
+
+enum FamilyRoleType {
+  FAMILY_ROLE_TYPE_NONE = 0;            // 非家族成员
+  FAMILY_ROLE_TYPE_PATRIARCH = 10;       // 家族长
+  FAMILY_ROLE_TYPE_VICE_PATRIARCH = 20;  // 副家族长
+  FAMILY_ROLE_TYPE_ADMIN = 30;           // 管理员
+  FAMILY_ROLE_TYPE_MASS = 99;           // 普通成员
+}
+
+enum ApplyOperation {
+  APPLY_OPERATION_UNKNOWN = 0;
+  APPLY_OPERATION_ACCEPT = 1; // 通过申请
+  APPLY_OPERATION_REJECT = 2; // 拒绝申请
+}
+
+enum ApplyStatus {
+  APPLY_STATUS_UNKNOWN = 0;
+  APPLY_STATUS_PENDING = 1; // 等待处理
+  APPLY_STATUS_ACCEPT = 2;  // 通过
+  APPLY_STATUS_REJECT = 3;  // 拒绝
+  APPLY_STATUS_EXPIRE = 4; // 已过期
+}
+
+enum InviteStatus {
+  INVITE_STATUS_UNKNOWN = 0;
+  INVITE_STATUS_PENDING = 1; // 等待处理
+  INVITE_STATUS_ACCEPT = 2;  // 通过
+  INVITE_STATUS_REJECT = 3;  // 拒绝
+  INVITE_STATUS_EXPIRE = 4; // 已过期
+}
+
+enum JoinPermissionType {
+  JOIN_PERMISSION_TYPE_UNKNOWN = 0;
+  JOIN_PERMISSION_TYPE_AUDIT = 1; // 需要审核
+  JOIN_PERMISSION_TYPE_AUTO = 2;  // 自动加入
+}
+
+enum FamilyStatus {
+  FAMILY_STATUS_UNKNOWN = 0;
+  FAMILY_STATUS_PENDING = 1;  // 审核中
+  FAMILY_STATUS_NORMAL = 2; // 正常
+  FAMILY_STATUS_DISBAND = 3;  // 解散
+  FAMILY_STATUS_REJECT = 4; // 拒绝
+}
+
+enum AuditOperation {
+  AUDIT_OPERATION_UNKNOWN = 0;
+  AUDIT_OPERATION_PASS = 1; // 不通过
+  AUDIT_OPERATION_REJECT = 2; // 不通过
+}
+
+enum ShareType {
+  SHARE_TYPE_UNKNOWN = 0;
+  SHARE_TYPE_EXTERNAL = 1;  // 端外分享
+  SHARE_TYPE_INTERNAL = 2; // 端内分享
+}
+
+// ApplyInfo 申请信息
+message ApplyInfo {
+  comm.api.adapter.UserInfo user_info = 1;  // 用户信息
+  ApplyStatus apply_status = 2; // 申请状态
+  int64 apply_id = 3; // 申请记录ID
+}
+
+// FamilyBaseInfo 家族基础信息
+message FamilyBaseInfo {
+  int64 id = 1;  // 家族ID  - 创建时无需传
+  string name  = 2; // 家族名称
+  string cover = 3; // 家族封面
+  string desc = 4;  // 家族简介
+  string background_image = 5;  // 家族背景图
+}
+
+// FamilyDetail 家族详情
+message FamilyDetail {
+  FamilyBaseInfo base_info = 1; // 基础信息
+  JoinPermissionType join_permission = 2; // 加入权限
+  FamilyStatus family_status = 3; // 家族状态
+
+  int32 patriarch_num = 20; // 家族长数量
+  int32 vice_patriarch_num = 21; // 副家族长数量
+  int32 admin_num = 22; // 管理员数量
+  int32 mass_num = 23;  // 成员数量
+  int32 member_limit = 24; // 成员限制
+  int64 room_id = 25;  // 家族房间id
+  string group_id = 26; // 家族群聊id
+
+  repeated .api.privilege.v2.UsingMedal medals = 30;        // 家族勋章
+  .api.privilege.v2.PrettyNumber family_pretty_number = 31; // 家族靓号
+}
+
+// UserFamilyInfo 用户家族信息
+message UserFamilyInfo {
+  FamilyBaseInfo family_info = 1; // 家族基础信息
+  FamilyRoleType role = 2;  // 家族角色
+  int64 join_time = 3;  // 加入家族时间
+
+  repeated .api.privilege.v2.UsingMedal medals = 10;        // 家族勋章
+  .api.privilege.v2.PrettyNumber family_pretty_number = 11; // 家族靓号
+}
+
+// FamilyMemberInfo 家族成员信息
+message FamilyMemberInfo {
+  api.adapter.UserInfo user_info = 1; // 用户信息
+  UserFamilyInfo family_info = 2; // 家族信息
+}
+
+// FamilyFunctionInfo 家族功能信息
+message FamilyFunctionInfo {
+  string code = 1; // 功能code-先预留
+  string name = 2; // 功能名称
+  string icon = 3; // 功能icon
+  string action = 4; // 路由
+}

@@ -1,0 +1,59 @@
+// smicro:spath=gitit.cc/social/components-service/social-relation/biz/relation/handler/relationnum
+syntax = "proto3";
+
+package comm.api.relation;
+
+option java_package = "com.entertain.sns.comm.api.relation";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbrelation";
+
+// 关系数量服务
+service RelationNum {
+  // 获取用户关系数量
+  rpc GetUserRelationNum(GetUserRelationNumReq) returns (GetUserRelationNumRsp);
+  // 获取房间关系数量
+  rpc GetRoomRelationNum(GetRoomRelationNumReq) returns (GetRoomRelationNumRsp);
+  // 获取新增的关系数量
+  rpc GetUserRelationAdditionNum(GetUserRelationAdditionNumReq) returns (GetUserRelationAdditionNumRsp);
+}
+
+message UserRelationNum {
+  int64 room_follow = 1; // 关注房间数
+  int64 user_follow = 2; // 关注用户数
+  int64 user_fans = 3; // 粉丝用户数
+  int64 user_friend = 4; // 好友用户数
+  int64 black_user = 5; // 拉黑用户数
+  int64 black_room = 6; // 拉黑房间数
+}
+
+message RoomRelationNum {
+  int64 room_fans = 1; // 房间粉丝数
+  int64 room_black_user = 2;  // 房间拉黑用户数
+}
+
+message GetUserRelationNumReq {
+  repeated int64 user_ids = 1;
+}
+
+message GetUserRelationNumRsp {
+  map<int64, UserRelationNum> user_num_map = 1;
+}
+
+message GetRoomRelationNumReq {
+  repeated int64 room_ids = 1;
+}
+
+message GetRoomRelationNumRsp {
+  map<int64, RoomRelationNum> room_num_map = 1;
+}
+
+// 获取自己新增的fans数和friend数
+message UserRelationAdditionNum {
+  int64 addition_fans_num = 1;              // 新增的粉丝用户数
+  int64 addition_friend_num = 2;            // 新增的好友用户数
+}
+message GetUserRelationAdditionNumReq {
+}
+message GetUserRelationAdditionNumRsp {
+  UserRelationAdditionNum addition_num = 1;
+}
+

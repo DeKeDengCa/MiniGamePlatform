@@ -1,0 +1,181 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/room/handlermgr
+syntax = "proto3";
+
+package mgr.astrorise.voiceroom;
+
+import "api/platform/voiceroom/comm.proto";
+import "protobuf/api/common/common.proto";
+import "protobuf/api/adapter/model.proto";
+
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbroommgr";
+
+service RoomMgr {
+  // 搜索房间列表
+  rpc SearchRoom(SearchRoomReq) returns (SearchRoomRsp);
+
+  // 创建房间
+  rpc CreateRoom(CreateRoomReq) returns (CreateRoomRsp);
+
+  // 更新房间信息
+  rpc UpdateRoom(UpdateRoomReq) returns (UpdateRoomRsp);
+
+  // 设置房间类型(设为官方/移除官方/批量新增官方)
+  rpc UpdateRoomType(UpdateRoomTypeReq) returns (UpdateRoomTypeRsp);
+
+  // 设置开播状态(支持批量)
+  rpc UpdateLiveStatus(UpdateLiveStatusReq) returns (UpdateLiveStatusRsp);
+
+  // 封禁房间
+  rpc BanRoom(BanRoomReq) returns (BanRoomRsp);
+
+  // 解封房间
+  rpc UnbanRoom(UnbanRoomReq) returns (UnbanRoomRsp);
+
+  // 查询房间布局列表
+  rpc ListLayout(ListLayoutReq) returns (ListLayoutRsp);
+
+  // 更新房间布局的上下架状态
+  rpc UpdateLayoutPublishState(UpdateLayoutPublishStateReq) returns (UpdateLayoutPublishStateRsp);
+
+  // 批量查询房间详情
+  rpc BatchGetRoomDetail(BatchGetRoomDetailReq) returns (BatchGetRoomDetailRsp);
+}
+
+// 房间
+message Room {
+  api.astrorise.voiceroom.RoomInfo room = 1;               // 房间信息
+  api.astrorise.voiceroom.RoomSettings settings = 2;       // 房间设置
+  comm.api.adapter.UserInfo owner = 3;              // 房主信息
+  repeated comm.api.adapter.UserInfo admins = 4;    // 房间管理员
+  repeated api.astrorise.voiceroom.RoomTag tags = 5;       // 房间标签
+  string room_mode = 6;                     // 房间模式
+}
+enum RoomSortField {
+  ROOM_SORT_FIELD_NONE = 0;
+  ROOM_SORT_FIELD_ROOM_ID = 1;              // 房间ID
+  ROOM_SORT_FIELD_OWNER_UID = 2;            // 房主UID
+}
+// 搜索房间列表
+message SearchRoomReq {
+  scommon.Page page = 1;
+  scommon.Sorts sorts = 2;              // 对应 RoomSortField
+
+  int64 room_id = 10;                   // 房间ID
+  int64 owner_uid = 11;                 // 房主UID
+  api.astrorise.voiceroom.LiveStatus live_status = 12; // 开播状态
+  api.astrorise.voiceroom.RoomType room_type = 13;     // 房间类型
+  string room_tag = 14;                 // 房间标签
+  api.astrorise.voiceroom.RoomPerm room_perm = 15;     // 房间权限
+  int64 start_level = 16;               // 起始等级
+  int64 end_level = 17;                 // 结束等级
+}
+message SearchRoomRsp {
+  scommon.Page page = 1;
+
+  repeated Room data = 10;              // 房间列表
+}
+
+message CreateRoomReq {
+  string name = 1;                        // 房间名称
+  string intro = 2;                       // 房间公告
+  api.astrorise.voiceroom.RoomPerm room_perm = 3;        // 房间权限
+  string layout_code = 4;                 // 房间布局模式code
+  string password = 5;                    // 房间密码
+  int64 room_mode_publish_id = 6; //房间模式上架id
+  string language_code = 7; // 语言Code
+}
+
+message CreateRoomRsp {
+  int64 room_id = 1;                      // 房间号
+}
+
+// 更新房间信息
+message UpdateRoomReq {
+  Room room = 10;
+}
+message UpdateRoomRsp {
+
+}
+
+// 设置房间类型
+message UpdateRoomTypeReq {
+  repeated int64 room_ids = 10;         // 房间ID列表
+  api.astrorise.voiceroom.RoomType room_type = 11;     // 房间类型
+}
+message UpdateRoomTypeRsp {
+
+}
+
+// 设置开播状态
+message UpdateLiveStatusReq {
+  repeated int64 room_ids = 10;         // 房间ID列表
+  api.astrorise.voiceroom.LiveStatus live_status = 11; // 开播状态
+}
+message UpdateLiveStatusRsp {
+
+}
+
+message BanRoomReq {
+  int64 room_id = 1;       // 房间ID
+  string reason = 2;       // 封禁原因
+  int64 ban_duration = 3;  // 封禁时长，单位秒
+}
+message BanRoomRsp {
+}
+
+message UnbanRoomReq {
+  int64 room_id = 1;       // 房间ID
+  string reason = 2;       // 解封原因
+}
+message UnbanRoomRsp {
+}
+
+// 房间布局
+message RoomLayout {
+  int64 id = 1; // id
+  string code = 2; // 房间布局模式code
+  string name = 3; // 房间布局模式默认名称
+  map<string, string> name_lang = 4; // 房间布局模式名称，多语言
+  string pre_img = 5; // 预览示意图
+  int32 min_level = 6; // 最低等级
+  int32 max_level = 7; // 最高等级
+  int32 min_version = 8; // 最低版本
+  int32 max_version = 9; // 最高版本
+  int32 seat_count = 10; // 麦位数量
+  string remark = 11; // 备注
+  int32 sort = 12; // 显示排序
+  string create_by = 13; // 创建人员
+  string update_by = 14; // 编辑人员
+  int64 create_at = 15; // 创建时间 (时间戳)
+  int64 update_at = 16; // 更新时间 (时间戳)
+  bool published = 20;  // 已上架
+}
+
+message ListLayoutReq {
+}
+message ListLayoutRsp {
+  repeated RoomLayout list = 1;
+}
+
+message UpdateLayoutPublishStateReq {
+  int64 id = 1;
+  bool published = 2;
+}
+
+message UpdateLayoutPublishStateRsp {
+
+}
+
+
+message BatchGetRoomDetailReq {
+  repeated int64 room_ids = 1;                // 房间ID列表
+}
+
+message BatchGetRoomDetailRsp {
+  map<int64, RoomDetail> room_detail_map = 1; // 房间ID -> 房间详情
+}
+
+message RoomDetail {
+  api.astrorise.voiceroom.RoomInfo room = 1;               // 房间信息
+  comm.api.adapter.UserInfo owner = 2;      // 房主信息
+}

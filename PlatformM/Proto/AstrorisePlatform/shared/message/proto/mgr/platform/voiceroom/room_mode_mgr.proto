@@ -1,0 +1,285 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/roommode/handlermgr
+syntax = "proto3";
+
+package mgr.astrorise.voiceroom;
+
+import "api/platform/voiceroom/comm.proto";
+import "protobuf/api/common/common.proto";
+
+option java_package = "com.gene.biz.proto";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbroommodemgr";
+
+// 房间模式
+service RoomModeMgr {
+  // 房间模式分类-列表
+  rpc ListRoomModeCategory(ListRoomModeCategoryReq) returns (ListRoomModeCategoryRsp);
+  // 房间模式分类-新增
+  rpc CreateRoomModeCategory(CreateRoomModeCategoryReq) returns (CreateRoomModeCategoryRsp);
+  // 房间模式分类-修改
+  rpc UpdateRoomModeCategory(UpdateRoomModeCategoryReq) returns (UpdateRoomModeCategoryRsp);
+  // 房间模式分类-删除
+  rpc DeleteRoomModeCategory(DeleteRoomModeCategoryReq) returns (DeleteRoomModeCategoryRsp);
+  // 房间模式分类-有效状态设置(启用、禁用)
+  rpc SetRoomModeCategoryActiveStatus(SetRoomModeCategoryActiveStatusReq) returns (SetRoomModeCategoryActiveStatusRsp);
+
+  // 房间模式配置-列表
+  rpc ListRoomModeConfig(ListRoomModeConfigReq) returns (ListRoomModeConfigRsp);
+  // 房间模式配置-新增
+  rpc CreateRoomModeConfig(CreateRoomModeConfigReq) returns (CreateRoomModeConfigRsp);
+  // 房间模式配置-修改
+  rpc UpdateRoomModeConfig(UpdateRoomModeConfigReq) returns (UpdateRoomModeConfigRsp);
+  // 房间模式配置-删除
+  rpc DeleteRoomModeConfig(DeleteRoomModeConfigReq) returns (DeleteRoomModeConfigRsp);
+
+  // 房间模式上架-列表
+  rpc ListRoomModePublish(ListRoomModePublishReq) returns (ListRoomModePublishRsp);
+  // 房间模式上架-新增
+  rpc CreateRoomModePublish(CreateRoomModePublishReq) returns (CreateRoomModePublishRsp);
+  // 房间模式上架-修改
+  rpc UpdateRoomModePublish(UpdateRoomModePublishReq) returns (UpdateRoomModePublishRsp);
+  // 房间模式上架-删除
+  rpc DeleteRoomModePublish(DeleteRoomModePublishReq) returns (DeleteRoomModePublishRsp);
+  // 房间模式上架-有效状态设置(启用、禁用)
+  rpc SetRoomModePublishActiveStatus(SetRoomModePublishActiveStatusReq) returns (SetRoomModePublishActiveStatusRsp);
+}
+
+// 房间模式分类-有效状态
+enum RoomModeCategoryActiveStatus {
+  ROOM_MODE_CATEGORY_ACTIVE_STATUS_NONE = 0;
+  ROOM_MODE_CATEGORY_ACTIVE_STATUS_ENABLE = 1; // 启用
+  ROOM_MODE_CATEGORY_ACTIVE_STATUS_DISABLE = 2; // 禁用
+}
+
+// 房间模式分类-状态
+enum RoomModeCategoryStatus {
+  ROOM_MODE_CATEGORY_STATUS_NONE = 0;
+  ROOM_MODE_CATEGORY_STATUS_NORMAL = 1;//正常
+  ROOM_MODE_CATEGORY_STATUS_DELETED = 2;//已删除
+}
+
+message RoomModeCategory{
+  int64 id = 1;//房间模式分类id
+  string name = 2;//房间模式分类名称(缺省名称)
+  repeated api.astrorise.voiceroom.I18n name_i18n = 3;//房间模式分类名称-多语言
+  int32 position = 4;//排序
+  RoomModeCategoryActiveStatus active_status = 5;//有效状态
+
+  int64 created_at = 10;//创建时间戳
+  string creator = 11;//创建人
+  int64 updated_at = 12;//更新时间戳
+  string updater = 13;//更新人
+  int64 deleted_at = 14;//删除时间(0:未删除,>0:已删除)
+}
+
+message ListRoomModeCategoryReq {
+  scommon.Page page = 1;
+
+  RoomModeCategoryStatus status = 10;//状态
+}
+message ListRoomModeCategoryRsp {
+  scommon.Page page = 1;
+  repeated RoomModeCategory room_mode_categories = 10;
+}
+
+message CreateRoomModeCategoryReq {
+  string name = 2;//房间模式分类名称(缺省名称)
+  repeated api.astrorise.voiceroom.I18n name_i18n = 3;//房间模式分类名称-多语言
+  int32 position = 4;//排序
+  RoomModeCategoryActiveStatus active_status = 5;//有效状态
+}
+message CreateRoomModeCategoryRsp {
+  int64 id = 1;//房间模式分类id
+}
+
+message UpdateRoomModeCategoryReq {
+  int64 id = 1;//房间模式分类id
+  string name = 2;//房间模式分类名称(缺省名称)
+  repeated api.astrorise.voiceroom.I18n name_i18n = 3;//房间模式分类名称-多语言
+  int32 position = 4;//排序
+}
+message UpdateRoomModeCategoryRsp {
+}
+
+message DeleteRoomModeCategoryReq {
+  int64 id = 1;//房间模式分类id
+}
+message DeleteRoomModeCategoryRsp {
+}
+
+message SetRoomModeCategoryActiveStatusReq {
+  int64 id = 1;//房间模式分类id
+  RoomModeCategoryActiveStatus active_status = 4;//有效状态
+}
+message SetRoomModeCategoryActiveStatusRsp {
+}
+
+// 房间模式配置
+message RoomModeConfig{
+  int64 id = 1;//房间模式配置id
+  string name = 2;//名称(缺省名称)
+  repeated api.astrorise.voiceroom.I18n name_i18n = 3;//名称-多语言
+  string icon = 4;//图标(缺省图标)
+  repeated api.astrorise.voiceroom.I18n icon_i18n = 5;//图标-多语言
+  string room_bg_img_url = 6;//房间背景图地址
+  string room_bg_img_type = 7;//房间背景图类型
+  string play_url = 8;//玩法地址
+
+  // string room_mode_code = 9;//房间模式code
+  // string room_layout_code = 10;//麦位布局code
+  // string play_code = 11;//玩法code;eg:chat、ludo
+  repeated string room_layout_codes = 20; //支持的麦位布局code
+
+  int64 created_at = 12;//创建时间戳
+  string creator = 13;//创建人
+  int64 updated_at = 14;//更新时间戳
+  string updater = 15;//更新人
+  int64 deleted_at = 16;//删除时间(0:未删除,>0:已删除)
+}
+
+// 房间模式配置-状态
+enum RoomModeConfigStatus {
+  ROOM_MODE_CONFIG_STATUS_NONE = 0;
+  ROOM_MODE_CONFIG_STATUS_NORMAL = 1;//正常
+  ROOM_MODE_CONFIG_STATUS_DELETED = 2;//已删除
+}
+
+message ListRoomModeConfigReq {
+  scommon.Page page = 1;
+  int64 id = 10;//房间模式配置id
+  string name = 11;//名称
+  string updater = 12;//更新人
+  int64 updated_at_start = 13;//更新时间戳
+  int64 updated_at_end = 14;//更新时间戳
+  RoomModeConfigStatus status = 15;
+}
+message ListRoomModeConfigRsp {
+  scommon.Page page = 1;
+  repeated RoomModeConfig room_mode_configs = 10;
+}
+
+message CreateRoomModeConfigReq {
+  string name = 2;//名称(缺省名称)
+  repeated api.astrorise.voiceroom.I18n name_i18n = 3;//名称-多语言
+  string icon = 4;//图标(缺省图标)
+  repeated api.astrorise.voiceroom.I18n icon_i18n = 5;//图标-多语言
+  string room_bg_img_url = 6;//房间背景图地址
+  string room_bg_img_type = 7;//房间背景图类型 ??? TODO 后缀识别
+  string play_url = 8;//玩法地址
+  // string room_mode_code = 9;//房间模式code
+  // string room_layout_code = 10;//麦位布局code
+  // string play_code = 11;//玩法code;eg:chat、ludo
+  repeated string room_layout_codes = 20; //支持的麦位布局code
+}
+message CreateRoomModeConfigRsp {
+  int64 id = 1;//房间模式配置id
+}
+
+message UpdateRoomModeConfigReq {
+  int64 id = 1;//房间模式配置id
+  string name = 2;//名称(缺省名称)
+  repeated api.astrorise.voiceroom.I18n name_i18n = 3;//名称-多语言
+  string icon = 4;//图标(缺省图标)
+  repeated api.astrorise.voiceroom.I18n icon_i18n = 5;//图标-多语言
+  string room_bg_img_url = 6;//房间背景图地址
+  string room_bg_img_type = 7;//房间背景图类型 ??? TODO 后缀识别
+  string play_url = 8;//玩法地址
+  // string room_mode_code = 9;//房间模式code
+  // string room_layout_code = 10;//麦位布局code
+  // string play_code = 11;//玩法code;eg:chat、ludo
+  repeated string room_layout_codes = 20; //支持的麦位布局code
+}
+message UpdateRoomModeConfigRsp {
+}
+
+message DeleteRoomModeConfigReq {
+  int64 id = 1;//房间模式配置id
+}
+message DeleteRoomModeConfigRsp {
+}
+
+// 房间模式上架状态枚举
+enum RoomModePublishStatus {
+  ROOM_MODE_PUBLISH_STATUS_NONE = 0;
+  ROOM_MODE_PUBLISH_STATUS_UNPUBLISHED = 1;//未上架
+  ROOM_MODE_PUBLISH_STATUS_PUBLISHED = 2;//已上架
+  ROOM_MODE_PUBLISH_STATUS_PENDING = 3;//待生效
+  ROOM_MODE_PUBLISH_STATUS_DELETED = 4;//已删除
+}
+
+// 房间模式上架-有效状态
+enum RoomModePublishActiveStatus {
+  ROOM_MODE_PUBLISH_ACTIVE_STATUS_NONE = 0;
+  ROOM_MODE_PUBLISH_ACTIVE_STATUS_ENABLE = 1;//启用
+  ROOM_MODE_PUBLISH_ACTIVE_STATUS_DISABLE = 2;//禁用
+}
+
+message RoomModePublish{
+  int64 id = 1;//上架id
+  RoomModeConfig room_mode_config = 2;//房间模式配置
+  RoomModeCategory room_mode_category = 3;//房间模式分类
+  int32 position = 4;//排序
+  api.astrorise.voiceroom.RoomModePublishDefaultSelected default_selected = 5;//默认选中
+
+  RoomModePublishActiveStatus active_status = 6;//有效状态
+  RoomModePublishStatus publish_status = 7;//上架状态
+
+  repeated int64 room_id_whitelist = 8;//生效-房间白名单
+  int64 valid_time_start = 9;//生效-开始时间
+
+  int64 created_at = 10;//创建时间戳
+  string creator = 11;//创建人
+  int64 updated_at = 12;//更新时间戳
+  string updater = 13;//更新人
+  int64 deleted_at = 14;//删除时间(0:未删除,>0:已删除)
+}
+
+message ListRoomModePublishReq {
+  scommon.Page page = 1;
+
+  int64 room_mode_config_id = 10;//房间模式配置id
+  int64 room_mode_category_id = 12;//房间模式分类id
+
+  repeated RoomModePublishStatus publish_statuses = 13;//上架状态
+}
+message ListRoomModePublishRsp {
+  scommon.Page page = 1;
+  repeated RoomModePublish room_mode_publishes = 10;
+}
+
+message CreateRoomModePublishReq {
+  int64 room_mode_config_id = 1;//房间模式配置id
+  int64 room_mode_category_id = 2;//房间模式分类id
+  int32 position = 3;//排序
+  api.astrorise.voiceroom.RoomModePublishDefaultSelected default_selected = 4;//默认选中
+  repeated int64 room_id_whitelist = 5;//生效-房间白名单
+  int64 valid_time_start = 6;//生效-开始时间
+  RoomModePublishActiveStatus active_status = 7;//有效状态
+}
+message CreateRoomModePublishRsp {
+  int64 id = 1;//上架id
+}
+
+message UpdateRoomModePublishReq {
+  int64 id = 1;//上架id
+  int64 room_mode_config_id = 2;//房间模式配置id
+  int64 room_mode_category_id = 3;//房间模式分类id
+  int32 position = 4;//排序
+  api.astrorise.voiceroom.RoomModePublishDefaultSelected default_selected = 5;//默认选中
+  repeated int64 room_id_whitelist = 6;//生效-房间白名单
+  int64 valid_time_start = 7;//生效-开始时间
+}
+message UpdateRoomModePublishRsp {
+}
+
+message DeleteRoomModePublishReq {
+  int64 id = 1;//上架id
+}
+message DeleteRoomModePublishRsp {
+}
+
+message SetRoomModePublishActiveStatusReq {
+  int64 id = 1;//上架id
+  RoomModePublishActiveStatus active_status = 5;//有效状态
+}
+message SetRoomModePublishActiveStatusRsp {
+}

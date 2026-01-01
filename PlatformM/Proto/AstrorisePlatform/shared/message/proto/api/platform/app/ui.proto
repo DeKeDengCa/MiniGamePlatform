@@ -1,0 +1,51 @@
+syntax="proto3";
+
+package app.config.gene.ui;
+
+// options.proto 定义了一些options，options用于描述schema。必须import
+import "protobuf/api/sconfig/options.proto";
+
+// model.proto 会定义一些公共的配置。按需import
+// 比如 sconfig.model.Time 会生成一个时间选择框
+// sconfig.model.File 会生成一个文件上传按钮
+// import "common/sconfig/model.proto";
+
+option (sconfig.schema.biz_name)="UI配置";
+
+message Meta {
+    option (sconfig.schema.cfg_name) = "素材配置";
+
+    string http_prefix = 1 [(sconfig.schema.input) = {
+        name:"http前缀"
+    }];
+    int64 bg_color = 2 [(sconfig.schema.input) = {
+        name:"默认背景色"
+    }];
+
+    Cache cache = 3 [(sconfig.schema.input) = {
+        name:"缓存配置"
+    }];
+}
+
+message Cache {
+    int64 expire = 1 [(sconfig.schema.input) = {
+        name:"过期时间(秒)"
+    }];
+    int64 max_size = 2 [(sconfig.schema.input) = {
+        name:"缓存大小(M)"
+    }];
+    string dir = 3 [(sconfig.schema.input) = {
+        name:"缓存目录"
+    }];
+}
+
+message Theme {
+    option (sconfig.schema.cfg_name) = "主题配置";
+
+    string def = 1 [(sconfig.schema.input) = {
+        name:"默认主题"
+    }];
+    repeated string themes = 2 [(sconfig.schema.input) = {
+        name:"主题列表"
+    }];
+}

@@ -1,0 +1,169 @@
+syntax = "proto3";
+
+package api.astrorise.voiceroom.roommember;
+
+option java_package = "com.entertain.sns.api.gene.room.membership";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbroommembership";
+
+import "protobuf/api/privilege/v2/privilege.proto";
+import "api/platform/voiceroom/comm.proto";
+
+// 房间会员
+// serviceName: astrorise-voiceroom
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/roommembership/handler
+service RoomMembership {
+  // 查询房间会员中心
+  rpc GetRoomMembershipCenter(GetRoomMembershipCenterReq) returns (GetRoomMembershipCenterRsp);
+  // 购买房间会员
+  rpc BuyRoomMembership(BuyRoomMembershipReq) returns (BuyRoomMembershipRsp);
+  // 查询房间会员
+  rpc GetRoomMembershipInfo(GetRoomMembershipInfoReq) returns (GetRoomMembershipInfoRsp);
+}
+
+
+// 房间会员配置
+message RoomMembershipConfig {
+  int32 level = 1;                    // 等级
+  string name = 2;                    // 名称
+  string icon = 3;                    // 图标
+  int64 duration_sec = 5;             // 有效期，单位秒
+}
+
+// 购买消耗
+message RoomMembershipCost {
+  int64 gold = 1;                     // 金币数
+}
+
+// 购买获得
+message RoomMembershipBenefit {
+  repeated RoomMembershipPrivilege privileges = 1;  // 权益列表
+}
+
+// 房间会员信息
+message RoomMembershipInfo {
+  bool active = 1;                    // 是否处于有效期内
+  int32 level = 2;                    // 有效期内=当前等级，已过期=过期前的等级
+  int64 valid_from = 3;               // 有效期开始时间戳，单位秒
+  int64 valid_until = 4;              // 有效期截止时间戳，单位秒
+  int64 remaining_sec = 5;            // 正数表示剩余有效期，负数表示已过期时间，单位秒
+  RoomMembershipConfig config_snapshot = 50;  // 当前使用的方案快照
+}
+
+
+message RoomMembershipPurchaseInfo {
+  RoomMembershipConfig config = 1;     // 基础配置
+  RoomMembershipCost cost = 2;         // 购买或升级花费
+  RoomMembershipBenefit benefit = 3;   // 获得权益
+}
+
+// 查询会员中心
+message GetRoomMembershipCenterReq {
+  int64 room_id = 10;                                 // 要查询的房间ID
+}
+
+message GetRoomMembershipCenterRsp {
+  repeated RoomMembershipPurchaseInfo purchase_infos = 10;  // 购买列表
+  RoomMembershipInfo info = 11;                             // 当前房间会员状态，可能为null，表示从未购买过
+}
+
+
+
+// 购买房间会员
+message BuyRoomMembershipReq {
+  int64 room_id = 10;                  // 房间ID
+  int32 level = 11;                    // 购买等级
+}
+
+message BuyRoomMembershipRsp {
+  RoomMembershipCost shortage = 11;    // 余额不足时的差值
+}
+
+
+
+// 查询房间会员状态
+message GetRoomMembershipInfoReq {
+  int64 room_id = 10;                     // 要查询的房间ID
+}
+
+message GetRoomMembershipInfoRsp {
+  RoomMembershipInfo info = 10;           // 当前房间会员状态，可能为null，表示从未购买过
+}
+
+
+
+// 房间会员权益类型
+enum PrivilegeType{
+  PRIVILEGE_TYPE_NONE = 0;
+
+  PRIVILEGE_TYPE_ROOM_LEVEL_GROWTH_RATE = 1; // 房间等级成长速度
+
+  PRIVILEGE_TYPE_MAX_ADMIN_NUMBER = 10; // 房管数量
+  PRIVILEGE_TYPE_MAX_ONLINE_USER_NUMBER = 11; // 房间最大在线人数
+  PRIVILEGE_TYPE_MIC_NUMBER = 12; // 麦位数量
+
+  PRIVILEGE_TYPE_ROOM_ENTER_PERMISSION = 20; // 进房权限
+
+  PRIVILEGE_TYPE_FUNCTION_PK = 30; // 房间工具-PK
+  PRIVILEGE_TYPE_FUNCTION_LUCKY_BAG = 31; // 房间工具-红包
+
+  PRIVILEGE_TYPE_ROOM_BACKGROUND = 40; // 房间背景
+}
+
+// 房间会员权益，展示用
+message RoomMembershipPrivilege {
+  oneof Item {
+    RoomMembershipIcon icon = 1; // 会员图标
+    RoomMembershipLevelGrowthRate level_growth_rate = 2; // 房间等级成长速度
+    RoomMembershipMaxAdminNumber max_admin_number = 10; // 房管数量
+    RoomMembershipMaxOnlineUserNumber max_online_user_number = 11; // 房间最大在线人数
+    RoomMembershipMicNumber mic_number = 12; // 麦位数量
+    RoomMembershipEnterPermission enter_permission = 20; // 进房权限
+    RoomMembershipFunction room_function = 30; // 房间工具
+    RoomMembershipBackground room_background = 40; // 房间背景
+  }
+}
+
+message RoomMembershipIcon {
+  string icon = 2; // 图标
+}
+
+message RoomMembershipLevelGrowthRate {
+  int64 level_growth_rate = 2; // 增长百分比，例如20，则为20%
+}
+
+message RoomMembershipMaxAdminNumber {
+  int64 max_admin_number = 2; // 房管数量
+}
+
+message RoomMembershipMaxOnlineUserNumber {
+  int64 max_online_user_number = 2; // 房间最大在线人数
+}
+
+message RoomMembershipMicNumber {
+  repeated string room_layout_codes = 2;  // 房间麦位布局code;eg:chat_10,partner_9,partner_10,cp
+}
+
+message RoomMembershipEnterPermission {
+  repeated api.astrorise.voiceroom.RoomPerm enter_permissions = 2; // 进房权限
+}
+
+message RoomMembershipFunction {
+  bool pk_allowed = 2; // 是否允许PK
+  bool lucky_bag_allowed = 3; // 是否允许红包
+}
+
+message RoomMembershipBackground {
+  repeated api.privilege.v2.RoomBackground room_bg = 2; // 房间背景
+}
+
+
+
+// 信令
+message Notify {
+  NotifyRoomMembershipInfo notify_info = 10;
+}
+
+// 信令-状态变更
+message NotifyRoomMembershipInfo {
+  RoomMembershipInfo info = 10;         // 最新状态
+}

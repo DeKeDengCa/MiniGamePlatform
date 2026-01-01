@@ -1,0 +1,195 @@
+syntax = "proto3";
+
+package comm.svr.agency;
+
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsagency";
+
+service Guild {
+  // 获取单个公会
+  rpc GetGuild (GetGuildReq) returns (GetGuildRsp);
+  // 获取公会列表
+  rpc ListGuild (ListGuildReq) returns (ListGuildRsp);
+  // 新增公会
+  rpc AddGuild (AddGuildReq) returns (AddGuildRsp);
+  // 更新公会状态
+  rpc UpdateGuildStatus (UpdateGuildStatusReq) returns (UpdateGuildStatusRsp);
+  // 更新公会信息
+  rpc UpdateGuildInfo (UpdateGuildInfoReq) returns (UpdateGuildInfoRsp);
+  // 获取当前公会的邀请列表
+  rpc GetGuildInviteList(GetGuildInviteListReq) returns (GetGuildInviteListRsp);
+  // 获取存在邀请列表的所有公会
+  rpc GetSettleGuildList(GetSettleGuildListReq) returns (GetSettleGuildListRsp);
+}
+
+/*
+  公会状态枚举
+*/
+enum GuildStatus {
+  GUILD_STATUS_NONE = 0;
+  GUILD_STATUS_NORMAL = 1;
+  GUILD_STATUS_FREEZE = 2;
+}
+
+enum GuildSettlementCycle {
+  GUILD_SETTLEMENT_CYCLE_NONE = 0;
+  GUILD_SETTLEMENT_CYCLE_DAILY = 1;
+  GUILD_SETTLEMENT_CYCLE_WEEKLY = 2;
+}
+
+// 公会Model
+message GuildData {
+  int64 id = 1;
+  string business_id = 2;
+  string owner_id = 3;
+  string name = 4;
+  GuildStatus status = 5;
+  string invite_code = 6;
+  int64 guild_proportion = 7;
+  int64 first_level_proportion = 8;
+  string contact_info = 9;
+  string country = 10;
+  string intro = 11;
+  int64 ctime = 12;
+  int64 utime = 13;
+  int64 freeze_time = 14;// 冻结时间
+  string creator = 15;
+  string parent_guild_id = 16; //邀请公会id 当前公会是被这个公会邀请的
+  int64 divide_rate = 17; //邀请比例
+  int64 invite_bind_time = 18; // 绑定时间
+  int64 max_settlement_cycle = 19; // 最大结算周期
+  string pkg = 20; // 公会包名
+  GuildSettlementCycle settlement_cycle = 21; // 结算周期
+}
+
+message GetGuildReq {
+  string app_name = 1; // 必填，对应服务名称
+  int64 id = 2;
+  string business_id = 3;
+  string invite_code = 4;
+  GuildStatus status = 5;
+  string creator = 6;
+}
+
+message GetGuildRsp {
+  GuildData guild = 1;
+  bool is_exist = 2;
+}
+
+message ListGuildReq {
+  scommon.Page page = 1;
+  string app_name = 2; // 必填，对应服务名称
+  repeated string business_id = 3;
+  repeated GuildStatus status = 4;
+  repeated string invite_code = 5;
+  repeated string owner_id = 6;
+  // 公会名字，模拟查询
+  string name = 7;
+  repeated string country = 8;
+  string creator = 9;
+  repeated string exclude_business_id = 10;
+  string parent_guild_id = 11;
+  repeated string pkg = 12;
+  bool is_no_need_total = 13;
+}
+
+message ListGuildRsp {
+  scommon.Page page = 1;
+  repeated GuildData guilds = 2;
+}
+
+message AddGuildReq {
+  string app_name = 1; // 必填，对应服务名称
+  string name = 2; // 公会名称
+  string business_id = 3;
+  string owner_id = 4;
+  // 新增的邀请码
+  string invite_code = 5;
+  GuildStatus status = 6;
+  /*
+    节点信息/角色/权限/父节点
+  */
+  string role = 7;
+  int64 permission = 8;
+  string parent_business_id = 9;
+  int64 guild_proportion = 10;
+  int64 first_level_proportion = 11;
+  string contact_info = 12;
+  string country = 13;
+  string intro = 14;
+  string creator = 15;
+  string parent_guild_id = 16; //邀请公会id 当前公会是被这个公会邀请的
+  int64 divide_rate = 17; //邀请比例
+  string pkg = 18;
+  GuildSettlementCycle settlement_cycle = 19; // 结算周期
+  int64 max_settlement_cycle = 20; // 最大结算周期
+}
+
+message AddGuildRsp {}
+
+message UpdateGuildStatusReq{
+  string app_name = 1; // 必填，对应服务名称
+  string business_id = 2;
+  GuildStatus status = 3;
+}
+
+message UpdateGuildStatusRsp{}
+
+message UpdateGuildInfoReq{
+  string app_name = 1; // 必填，对应服务名称
+  string business_id = 2;  // 必填，对应公会id
+  string name = 3;
+  int64 guild_proportion = 4;
+  int64 first_level_proportion = 5;
+  string contact_info = 6;
+  string country = 7;
+  string intro = 8;
+  string parent_guild_id = 9; //邀请公会id 当前公会是被这个公会邀请的
+  int64 divide_rate = 10; //邀请比例
+  string pkg = 11;
+  GuildSettlementCycle settlement_cycle = 12; // 结算周期
+  int64 max_settlement_cycle = 13; // 最大结算周期
+  bool is_update_parent_guild_id = 14; // 是否更新父节点
+}
+
+message UpdateGuildInfoRsp{}
+
+message GetGuildInviteListReq {
+  string app_name = 1; // 必填，对应服务名称
+  string business_id = 2;  // 必填，对应公会id
+}
+
+message GetGuildInviteListRsp {
+  repeated GuildInviteList list = 1;
+}
+
+message GuildInviteList {
+  string business_id = 1;  //公会id
+  string name = 2;         //公会名称
+  int64 divide_rate = 3; //邀请比例
+  string owner_id = 4;  //工会长id
+  GuildSettlementCycle settlement_cycle = 5; // 结算周期
+  int64 max_settlement_cycle = 6; // 最大结算周期
+}
+
+message GetSettleGuildListReq {
+  string app_name = 1; // 必填，对应服务名称
+  GuildSettlementCycle settlement_cycle = 2; // 必填，需要查询的结算周期
+}
+
+message GetSettleGuildListRsp {
+   map<string,SettleGuildList> list = 1;
+}
+
+message SettleGuildList {
+  int64 divide_rate = 1;                     //邀请结算比例
+  repeated SettleGuildInfo invited_list = 2; //邀请列表
+  string settle_owner_id = 3;                //结算的公会id
+}
+
+message SettleGuildInfo {
+  string business_id = 1;  //公会id
+  string owner_id = 2;     //公会长id
+  int64 max_settlement_cycle = 3; //最大结算周期
+}

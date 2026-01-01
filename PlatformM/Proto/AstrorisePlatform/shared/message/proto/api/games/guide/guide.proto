@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package api.astrorise.games.novice_guide;
+
+
+// smicro:spath=gitit.cc/social/astrorise/argames/argcomm/biz/guide/handler
+option go_package = "gitit.cc/social/astrorise/arprotobuf/gencode/api/argames/pbguide";
+
+// 引导服务
+service Guide {
+  // 获取新手引导信息
+  rpc GetNoviceGuide(GetNoviceGuideRequest) returns (GetNoviceGuideResponse);
+  // 设置引导信息
+  rpc SetNoviceGuide(SetNoviceGuideRequest) returns (SetNoviceGuideResponse);
+}
+
+message GuideInfo {
+  int32 guide_id = 1; // 引导id
+  int32 step = 2; // 完成步骤
+  bool finished = 3;  // 是否完成
+}
+
+message GetNoviceGuideRequest {
+  int32 game_id = 1;
+}
+
+message GetNoviceGuideResponse {
+  repeated GuideInfo guide_infos = 1;
+}
+
+message SetNoviceGuideRequest {
+  int32 game_id = 1;
+  GuideInfo guide_info = 2;
+}
+
+
+message SetNoviceGuideResponse {
+}
+

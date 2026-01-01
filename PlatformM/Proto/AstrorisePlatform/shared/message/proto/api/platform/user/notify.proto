@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+import "protobuf/api/adapter/model.proto";
+
+package api.astrorise.user;
+
+option go_package = "gitit.cc/social/astrorise/arprotobuf/gencode/api/user/pbnotify";
+
+
+message Notify {
+  NotifyOnline online = 1;  // 在线通知
+}
+
+// 上线通知
+message NotifyOnline {
+  comm.api.adapter.UserInfo user_info = 1;
+}

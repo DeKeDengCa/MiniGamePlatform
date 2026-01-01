@@ -1,0 +1,257 @@
+syntax = "proto3";
+
+package api.privilege.v2;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/privilege/v2/resource_package.proto";
+import "protobuf/api/privilege/v2/privilege.proto";
+
+option java_package = "com.entertain.sns.api.privilege.v2";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbprivilege";
+
+// smicro:spath=gitit.cc/social/components-service/social-privilege/biz/resourcebag/handler
+
+// 资源背包接口
+// ServiceName: social-privilege
+service ResourceBagApi {
+  // 查询当前用户是否有资源背包权限(当前仅实现对用户资源背包权限的判断)
+  rpc GetUserResourceBagPrivilege(GetUserResourceBagPrivilegeReq) returns (GetUserResourceBagPrivilegeRsp);
+
+  // --- 特权资源背包相关服务(资源看板) ---
+  // 获取资源背包列表
+  rpc ListResourceBags(ListResourceBagsReq) returns (ListResourceBagsRsp);
+  // 发放特权用户的资源
+  rpc DistributeResourceBag(DistributeResourceBagReq) returns (DistributeResourceBagRsp);
+  // --- 特权资源背包相关服务 ---
+
+
+  // --- 发放与扣除记录相关服务 ---
+  // 获取资源发放日志列表
+  rpc ListResourceBagDistributeLogs(ListResourceBagDistributeLogsReq) returns (ListResourceBagDistributeLogsRsp);
+  // 获取资源扣除日志列表
+  rpc ListResourceBagDeductLogs(ListResourceBagDeductLogsReq) returns (ListResourceBagDeductLogsRsp);
+  // --- 发放与扣除记录相关服务 ---
+}
+
+
+// 资源拥有者类型
+enum ResourceBagTargetType {
+  RESOURCE_BAG_TARGET_TYPE_NONE = 0; // 无意义
+  RESOURCE_BAG_TARGET_TYPE_USER = 1; // 用户
+  RESOURCE_BAG_TARGET_TYPE_FAMILY = 2; // 家族
+}
+
+// 资源分配状态
+enum ResourceBagAllocateStatus {
+  RESOURCE_BAG_ALLOCATE_STATUS_NONE = 0; // 无意义
+  RESOURCE_BAG_ALLOCATE_STATUS_INITIAL = 1; // 初始状态
+  RESOURCE_BAG_ALLOCATE_STATUS_PENDING = 2; // 待分配
+  RESOURCE_BAG_ALLOCATE_STATUS_SUCCESS = 3; // 成功
+  RESOURCE_BAG_ALLOCATE_STATUS_FAILURE = 4; // 失败
+  RESOURCE_BAG_ALLOCATE_STATUS_PARTIAL_SUCCESS = 5; // 部分成功
+}
+
+// 资源分配审核状态
+enum ResourceBagAuditStatus {
+  RESOURCE_BAG_AUDIT_STATUS_NONE = 0; // 无意义
+  RESOURCE_BAG_AUDIT_STATUS_PENDING = 1; // 审核中
+  RESOURCE_BAG_AUDIT_STATUS_WITHDRAWN = 2; // 撤回
+  RESOURCE_BAG_AUDIT_STATUS_APPROVED = 3; // 通过
+  RESOURCE_BAG_AUDIT_STATUS_REJECTED = 4; // 拒绝
+}
+
+// 资源包状态
+enum ResourceBagStatus {
+  RESOURCE_BAG_STATUS_NONE = 0; // 无意义
+  RESOURCE_BAG_STATUS_NORMAL = 1; // 正常
+  RESOURCE_BAG_STATUS_EXPIRED = 2; // 已过期
+  RESOURCE_BAG_STATUS_RECLAIMED = 3; // 已回收
+}
+
+// 资源发放状态
+enum ResourceBagDistributeStatus {
+  RESOURCE_BAG_DISTRIBUTE_STATUS_NONE = 0; // 无意义
+  RESOURCE_BAG_DISTRIBUTE_STATUS_PENDING = 1; // 待发放
+  RESOURCE_BAG_DISTRIBUTE_STATUS_SUCCESS = 2; // 成功
+  RESOURCE_BAG_DISTRIBUTE_STATUS_FAILURE = 3; // 失败
+  RESOURCE_BAG_DISTRIBUTE_STATUS_PARTIAL_SUCCESS = 4; // 部分成功
+}
+
+// 资源发放-扣除状态
+enum ResourceBagDistributeLogDeductStatus {
+  RESOURCE_BAG_DISTRIBUTE_LOG_DEDUCT_STATUS_NONE = 0; // 无意义
+  RESOURCE_BAG_DISTRIBUTE_LOG_DEDUCT_STATUS_INITIAL = 1; // 初始状态
+  RESOURCE_BAG_DISTRIBUTE_LOG_DEDUCT_STATUS_PENDING = 2; // 扣除中
+  RESOURCE_BAG_DISTRIBUTE_LOG_DEDUCT_STATUS_SUCCESS = 3; // 已扣除
+  RESOURCE_BAG_DISTRIBUTE_LOG_DEDUCT_STATUS_FAILED = 4; // 失败
+}
+
+// 资源发放-扣除状态
+enum ResourceBagDeductLogStatus {
+  RESOURCE_BAG_DEDUCT_LOG_STATUS_NONE = 0; // 无意义
+  RESOURCE_BAG_DEDUCT_LOG_STATUS_INITIAL = 1; // 初始状态
+  RESOURCE_BAG_DEDUCT_LOG_STATUS_PENDING = 2; // 扣除中
+  RESOURCE_BAG_DEDUCT_LOG_STATUS_SUCCESS = 3; // 已扣除
+  RESOURCE_BAG_DEDUCT_LOG_STATUS_FAILED = 4; // 失败
+}
+
+// 特权资源背包表
+message ResourceBag {
+  int64 id = 1; // 主键
+
+  api.privilege.v2.ResourceBagTargetType target_type = 2; // 拥有者类型(1:用户,2:家族)
+  int64 target_id = 3; // 拥有者Id(uid/family_id)
+
+  int64 resource_package_id = 4; // 资源包id
+  int64 resource_package_detail_id = 24; // 资源包详情id
+  api.privilege.v2.ResourceType resource_type = 5; // 资源类型
+  int64 resource_id = 6; // 资源id
+  api.privilege.v2.EffectType effect_type = 13; // 生效类型
+
+  int64 quantity = 7; // 资源数量
+  int64 effective_time = 8; // 有效时间(单位:秒,值<=0:永久)
+  int64 remain_quantity = 9; // 资源剩余数量
+  int64 distribute_quantity = 10; // 资源已发放数量
+  int64 reclaim_quantity = 11; // 资源回收数量
+
+  int64 distribute_deadline = 12; // 资源发放截止时间
+}
+
+// 特权资源发放日志
+message ResourceBagDistributeLog {
+  int64 id = 1; // 主键
+
+  api.privilege.v2.ResourceBagTargetType target_type = 2; // 拥有者类型(1:用户,2:家族)
+  int64 target_id = 3; // 拥有者Id(uid/family_id)
+
+  int64 receive_uid = 4; // 接收资源用户ID
+  string receive_show_uid = 20; // 接收资源用户外显ID
+
+  int64 resource_package_detail_id = 5; // 资源包详情id
+  api.privilege.v2.ResourceType resource_type = 6; // 资源类型
+  int64 resource_id = 7; // 资源id
+  api.privilege.v2.EffectType effect_type = 19; // 生效类型
+
+  int64 quantity = 8; // 资源发放数量
+  int64 effective_time = 9; // 有效时间(单位:秒,值<=0:永久)
+
+  api.privilege.v2.ResourceBagDistributeStatus distribute_status = 10; // 发放状态(1:待发放,2:成功,3:失败,4:部分成功)
+  string distribute_fail_reason = 11; // 失败原因
+  int64 planned_distribute_time = 12; // 计划发放时间
+  int64 actual_distribute_time = 13; // 实际发放时间
+  int64 expire_time = 14; // 过期时间
+
+  string remark = 15; // 备注(来源:用户)
+
+  int64 deduct_quantity = 16; // 资源扣除数量
+  api.privilege.v2.ResourceBagDistributeLogDeductStatus deduct_status = 17; // 资源扣除状态(1:未扣除,2:扣除中,3:已扣除,4:失败)
+
+  int64 created_at = 18; // 创建时间
+}
+
+// 特权资源扣除日志
+message ResourceBagDeductLog {
+  int64 id = 1; // 主键
+
+  ResourceBagTargetType target_type = 2; // 拥有者类型(1:用户,2:家族)
+  int64 target_id = 3; // 拥有者Id(uid/family_id)
+
+  int64 receive_uid = 4; // 接收资源用户ID
+  string receive_show_uid = 20; // 接收资源用户外显ID
+
+  int64 resource_package_detail_id = 5; // 资源包详情id
+  api.privilege.v2.ResourceType resource_type = 6; // 资源类型
+  int64 resource_id = 7; // 资源id
+  api.privilege.v2.EffectType effect_type = 8; // 生效类型
+
+  int64 expected_quantity = 9; // 期望扣除数量
+  int64 expected_effective_time = 10; // 期望扣除有效时间(单位:秒,值<=0:永久)
+  int64 quantity = 11; // 实际资源数量
+  int64 effective_time = 12; // 实际扣除有效时间(单位:秒,值<=0:永久)
+
+  api.privilege.v2.ResourceBagDeductLogStatus status = 13; // 资源扣除状态(1:初始状态,2:扣除中,3:已扣除,4:失败)
+  string fail_reason = 14; // 失败原因
+
+  int64 created_at = 15; // 创建时间
+}
+
+message GetUserResourceBagPrivilegeReq {
+  repeated ResourceBagTargetType target_types = 1; // 拥有者类型(1:用户,2:家族)
+}
+message GetUserResourceBagPrivilegeRsp {
+  repeated UserResourceBagPrivilege privilege_statuses = 1;
+}
+message UserResourceBagPrivilege{
+  ResourceBagTargetType target_type = 1; // 拥有者类型(1:用户,2:家族)
+  ResourceBagPrivilegeStatus status = 2; // 权限状态
+}
+
+// 权限检查结果枚举
+enum ResourceBagPrivilegeStatus {
+  RESOURCE_BAG_PRIVILEGE_STATUS_NONE = 0; // 无意义
+  RESOURCE_BAG_PRIVILEGE_STATUS_DENIED = 1; // 没有权限
+  RESOURCE_BAG_PRIVILEGE_STATUS_GRANTED = 2; // 有权限
+}
+
+message ListResourceBagsReq {
+  scommon.Page page = 1; // 分页参数
+
+  api.privilege.v2.ResourceBagTargetType target_type = 10; // 拥有者类型(1:用户,2:家族)
+}
+message ListResourceBagsRsp {
+  scommon.Page page = 1; // 分页参数
+
+  repeated ResourceBag bags = 10;
+  map<int64, api.privilege.v2.ResourcePackageDetailInfo> resource_package_detail_infos = 11;  // map<资源包详情id, 资源包详情>
+  map<int64, api.privilege.v2.Resource> resources = 12; // map<特权资源id, 特权资源>
+}
+
+message DistributeResourceBagReq {
+  int64 resource_bag_id = 1; // 资源背包ID
+  repeated int64 receive_uids = 2; // 接收资源用户IDs
+  int64 quantity_per_person = 3; // 每人发放的数量
+  string remark = 4; // 备注
+}
+message DistributeResourceBagRsp {
+  DistributeResourceBagResult result = 1; // 发放结果结构体
+}
+message DistributeResourceBagResult {
+  int64 resource_bag_id = 1; // 资源背包ID
+  int64 total_count = 2; // 总数
+  int64 success_count = 3; // 成功数
+  int64 failure_count = 4; // 失败数
+  repeated DistributeResourceBagFailReason fail_reasons = 5; // 失败原因
+}
+message DistributeResourceBagFailReason{
+  repeated int64 failure_uids = 1; // 失败的UIDs
+  string fail_reason = 2; // 失败原因
+}
+
+
+message ListResourceBagDistributeLogsReq {
+  scommon.Page page = 1; // 分页参数
+
+  api.privilege.v2.ResourceBagTargetType target_type = 10; // 拥有者类型(1:用户,2:家族)
+  string user_identifier = 11; // 用户标识符，可为uid或show_id
+  repeated api.privilege.v2.ResourceType resource_types = 12; // 资源类型
+}
+message ListResourceBagDistributeLogsRsp {
+  scommon.Page page = 1; // 分页参数
+
+  repeated ResourceBagDistributeLog logs = 10;
+  map<int64, api.privilege.v2.ResourcePackageDetailInfo> resource_package_detail_infos = 11;  // map<资源包详情id, 资源包详情>
+}
+
+message ListResourceBagDeductLogsReq {
+  scommon.Page page = 1; // 分页参数
+
+  api.privilege.v2.ResourceBagTargetType target_type = 10; // 拥有者类型(1:用户,2:家族)
+  string user_identifier = 11; // 用户标识符，可为uid或show_id
+  repeated api.privilege.v2.ResourceType resource_types = 12; // 资源类型
+}
+message ListResourceBagDeductLogsRsp {
+  scommon.Page page = 1; // 分页参数
+
+  repeated ResourceBagDeductLog logs = 10;
+  map<int64, api.privilege.v2.ResourcePackageDetailInfo> resource_package_detail_infos = 11;  // map<资源包详情id, 资源包详情>
+}

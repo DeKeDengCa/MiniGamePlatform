@@ -1,0 +1,336 @@
+syntax = "proto3";
+
+package comm.api.family;
+
+import "protobuf/api/family/family-comm.proto";
+import "protobuf/api/common/common.proto";
+
+option java_package = "com.entertain.sns.comm.api.family";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbfamily";
+
+// ServiceName: social-biz
+// smicro:spath=gitit.cc/social/components-service/social-biz/biz/family/handler
+service FamilyApi {
+  // MyFamily 我的家族
+  rpc MyFamily(MyFamilyReq) returns (MyFamilyRsp);
+  // ListFamily 家族列表
+  rpc ListFamily(ListFamilyReq) returns (ListFamilyRsp);
+  // 用户家族列表
+  rpc ListUserFamilyInfo(ListUserFamilyInfoReq) returns (ListUserFamilyInfoRsp);
+  // GetFamilyDetail 获取家族详情
+  rpc GetFamilyDetail(GetFamilyDetailReq) returns (GetFamilyDetailRsp);
+  // 创建家族
+  rpc Create(CreateReq) returns (CreateRsp);
+  // 编辑家族信息
+  rpc EditFamilyInfo(EditFamilyInfoReq) returns (EditFamilyInfoRsp);
+  // 设置角色
+  rpc SetRole(SetRoleReq) returns (SetRoleRsp);
+  // 申请加入家族
+  rpc ApplyJoin(ApplyJoinFamilyReq) returns (ApplyJoinFamilyRsp);
+  // 操作申请记录
+  rpc OperateApply(OperateApplyReq) returns (OperateApplyRsp);
+  // 退出家族
+  rpc Quit(QuitReq) returns (QuitRsp);
+  // 获取申请列表
+  rpc ListApply(ListApplyReq) returns (ListApplyRsp);
+  // 成员列表
+  rpc ListMember(ListMemberReq) returns (ListMemberRsp);
+  // 踢出家族
+  rpc KickOut(KickOutReq) returns (KickOutRsp);
+  // 邀请成员
+  rpc InviteMember(InviteMemberReq) returns (InviteMemberRsp);
+  // 接受邀请
+  rpc AcceptInvitation(AcceptInvitationReq) returns (AcceptInvitationRsp);
+  // 拒绝邀请
+  rpc RejectInvitation(RejectInvitationReq) returns (RejectInvitationRsp);
+  // 分享
+  rpc Share(ShareReq) returns (ShareRsp);
+  // 修改加入权限
+  rpc ChangeJoinPermission(ChangeJoinPermissionReq) returns (ChangeJoinPermissionRsp);
+  // 解散家族
+  rpc Disband(DisbandReq) returns (DisbandRsp);
+  // 功能列表
+  rpc ListFunction(ListFunctionReq) returns (ListFunctionRsp);
+}
+
+enum MyFamilyErrCode {
+  ERR_CODE_MY_FAMILY_NONE = 0; // 无错误
+  ERR_CODE_MY_FAMILY_NOT_EXIST = 10;  // 不存在家族
+}
+message MyFamilyReq {
+
+}
+
+message MyFamilyRsp {
+  UserFamilyInfo user_family_info = 1; // 用户家族信息
+  FamilyStatus family_status = 2; // 家族状态
+}
+
+message ListFamilyReq {
+  scommon.Page page = 1;  // 分页参数
+  string keyword = 10;    // 搜索关键字
+}
+
+message ListFamilyRsp {
+  scommon.Page page = 1; // 分页参数
+  repeated FamilyDetail list = 2; // 家族列表
+  map<int64, ApplyStatus> user_apply_status = 3; // 申请状态
+}
+
+message ListUserFamilyInfoReq {
+  repeated int64 uids = 1; // 用户ID列表-客户端要控制数量,后端默认最大放行100
+}
+
+message ListUserFamilyInfoRsp {
+  map<int64, UserFamilyInfo> user_family_info = 1; // 用户家族信息
+}
+
+
+enum GetFamilyDetailErrCode {
+  ERR_CODE_GET_FAMILY_DETAIL_NONE = 0; // 无错误
+  ERR_CODE_GET_FAMILY_DETAIL_NOT_EXIST = 10; // 不存在家族
+}
+message GetFamilyDetailReq {
+  int64 family_id = 1; // 家族ID
+}
+
+message GetFamilyDetailRsp {
+  FamilyDetail detail = 1; // 家族详情
+}
+
+// 权限
+enum CreateErrCode {
+  ERR_CODE_CREATE_NONE = 0; // 无错误
+  ERR_CODE_CREATE_FAMILY_EXIST = 10; // 已经存在家族
+  ERR_CODE_CREATE_NOT_HAVE_PERMISSION = 20; // 没有权限
+  ERR_CODE_ALREADY_IS_FAMILY_MEMBER = 30; // 已经是家族成员
+}
+message CreateReq {
+  FamilyBaseInfo info = 1;  // 家族信息
+}
+
+message CreateRsp {
+  int64 family_id = 10;     // 家族ID
+}
+
+enum EditFamilyInfoErrCode {
+  ERR_CODE_EDIT_NONE = 0; // 无错误
+  ERR_CODE_EDIT_NOT_EXIST = 10; // 家族不存在
+  ERR_CODE_EDIT_NOT_OWNER = 20; // 非家族长
+}
+message EditFamilyInfoReq {
+  FamilyBaseInfo info = 1; // 家族信息
+  FamilyBaseInfo selector = 2; // 用来标明更新什么字段-selector字段非缺省值,表示需要更新info里对应值
+}
+
+message EditFamilyInfoRsp {
+
+}
+
+enum SetRoleErrCode {
+  ERR_CODE_SET_ROLE_NONE = 0; // 无错误
+  ERR_CODE_SET_ROLE_NOT_EXIST_FAMILY = 10; // 家族不存在
+  ERR_CODE_SET_ROLE_NOT_HAVE_PERMISSION = 20; // 没有对应权限
+  ERR_CODE_SET_ROLE_NUM_FULL = 30; // 满员
+}
+message SetRoleReq {
+  int64 target_uid = 1; // 目标用户
+  FamilyRoleType role = 2;  // 角色
+}
+
+message SetRoleRsp {
+}
+
+enum ApplyJoinFamilyErrCode {
+  ERR_CODE_APPLY_JOIN_FAMILY_NONE = 0; // 无错误
+  ERR_CODE_APPLY_JOIN_FAMILY_NOT_EXIST_FAMILY = 10; // 家族不存在
+  ERR_CODE_APPLY_JOIN_FAMILY_FAMILY_DISBAND = 20;  // 家族已解散
+  ERR_CODE_APPLY_JOIN_FAMILY_FAMILY_FULL = 30;  // 家族成员已满
+  ERR_CODE_APPLY_JOIN_FAMILY_NOT_PERMISSION = 40; // 没有权限
+  ERR_CODE_APPLY_JOIN_FAMILY_ALREADY_APPLY = 50;  // 已申请
+  ERR_CODE_APPLY_JOIN_FAMILY_ALREADY_MEMBER = 60; // 已经是该家族成员
+}
+message ApplyJoinFamilyReq {
+  int64 family_id = 1;  // 家族ID
+}
+
+message ApplyJoinFamilyRsp {
+  bool is_auto_join = 1;  // 是否自动加入
+}
+
+enum OperateApplyErrCode {
+  ERR_CODE_OPERATE_APPLY_NONE = 0; // 无错误
+  ERR_CODE_OPERATE_APPLY_ALREADY_HAVE_FAMILY = 10; // 已经存在家族
+  ERR_CODE_OPERATE_APPLY_NOT_EXIST_APPLY = 20; // 申请不存在
+  ERR_CODE_OPERATE_APPLY_NOT_HAVE_PERMISSION = 30; // 没有权限
+  ERR_CODE_OPERATE_APPLY_ALREADY_HANDLE = 40; // 已处理
+  ERR_CODE_OPERATE_APPLY_EXPIRED = 50;  // 已过期
+  ERR_CODE_OPERATE_APPLY_FULL = 60; // 满员
+}
+message OperateApplyReq {
+  int64 apply_id = 1; // 申请记录ID
+  int64 target_uid = 2; // 目标用户
+  ApplyOperation operation = 3; // 操作类型
+}
+
+message OperateApplyRsp {
+
+}
+
+enum QuitErrCode {
+  ERR_CODE_QUIT_NONE = 0; // 无错误 
+  ERR_CODE_QUIT_CAN_NOT_OWNER = 10; // 家族长不能退出
+  ERR_CODE_QUIT_NOT_IN_FAMILY = 20; // 用户不在家族中
+}
+message QuitReq {
+
+}
+
+message QuitRsp {
+
+}
+
+message ListApplyReq {
+  scommon.Page page = 1; // 分页参数
+}
+
+message ListApplyRsp {
+  scommon.Page page = 1;  // 分页参数
+  repeated ApplyInfo apply_list = 2;  // 申请列表
+}
+
+message ListMemberReq {
+  scommon.Page page = 1; // 分页参数
+  string keyword = 2; // 关键字搜索-目前支持的是uid模糊搜索
+  int64 family_id = 3; // 家族ID
+}
+
+message ListMemberRsp {
+  scommon.Page page = 1; // 分页参数
+  repeated FamilyMemberInfo member_list = 2; // 成员列表-包一层成员列表
+}
+
+enum KickOutErrCode {
+  ERR_CODE_KICK_OUT_NONE = 0; // 无错误
+  ERR_CODE_NOT_HAVE_PERMISSION = 10;  // 没有权限
+  ERR_CODE_NOT_KICK_OUT_OWNER = 20;  // 不允许踢出家族长
+}
+message KickOutReq {
+  int64 target_uid = 1; // 目标用户ID
+}
+
+message KickOutRsp {
+}
+
+
+enum InviteMemberErrCode {
+  ERR_CODE_INVITE_MEMBER_NONE = 0;  // 无错误
+  ERR_CODE_INVITE_MEMBER_NOT_HAVE_PERMISSION = 10; // 没有权限
+  ERR_CODE_INVITE_MEMBER_ALREADY_MEMBER = 20; // 用户已是该家族成员
+}
+message InviteMemberReq {
+  int64 target_uid = 1; // 目标用户ID
+}
+
+message InviteMemberRsp {
+  string invite_token = 10; // 邀请token(给自动化测试使用)
+}
+
+enum AcceptInvitationErrCode {
+  ERR_CODE_ACCEPT_INVITATION_NONE = 0;  // 无错误
+  ERR_CODE_ACCEPT_INVITATION_INVALID_TOKEN = 10; // 邀请无效
+  ERR_CODE_ACCEPT_INVITATION_ALREADY_JOINED = 20; // 已经加入家族
+  ERR_CODE_ACCEPT_INVITATION_EXPIRED = 30; // 邀请已过期
+  ERR_CODE_ACCEPT_INVITATION_FAMILY_DISBAND = 40; // 家族已解散
+  ERR_CODE_ACCEPT_INVITATION_MEMBER_FULL = 50; // 家族成员已满
+}
+message AcceptInvitationReq {
+  string invite_token = 1; // 邀请token
+}
+
+message AcceptInvitationRsp {
+}
+
+enum RejectInvitationErrCode {
+  ERR_CODE_REJECT_INVITATION_NONE = 0;  // 无错误
+  ERR_CODE_REJECT_INVITATION_INVALID_TOKEN = 10; // 邀请无效
+  ERR_CODE_REJECT_INVITATION_ALREADY_JOINED = 20; // 已经加入家族
+  ERR_CODE_REJECT_INVITATION_EXPIRED = 30; // 邀请已过期
+}
+message RejectInvitationReq {
+  string invite_token = 1;  // 邀请token
+}
+
+message RejectInvitationRsp {
+}
+
+message ShareReq {
+  int64 family_id = 1;  // 家族ID
+}
+
+message ShareRsp {
+  string redirect_url = 1;  // 重定向URL
+}
+
+enum ChangeJoinPermissionErrCode {
+  ERR_CODE_CHANGE_JOIN_PERMISSION_NONE = 0; // 无错误
+  ERR_CODE_CHANGE_JOIN_PERMISSION_NOT_OWNER = 10;  // 不是家族长
+}
+message ChangeJoinPermissionReq {
+  JoinPermissionType join_permission = 1; // 加入权限
+}
+
+message ChangeJoinPermissionRsp {
+
+}
+
+enum DisbandErrCode {
+  ERR_CODE_DISBAND_NONE = 0; // 无错误
+  ERR_CODE_DISBAND_NOT_OWNER = 10;  // 不是家族长
+}
+message DisbandReq {
+
+}
+
+message DisbandRsp {
+
+}
+
+message ListFunctionReq {
+  int64 family_id = 1; // 家族ID
+}
+
+message ListFunctionRsp {
+  repeated FamilyFunctionInfo functions = 1;  // 功能列表
+}
+
+// Notify 通知相关
+message Notify {
+  UserFamilyNotify user_family_notify = 1;  // 用户家族通知
+  NotifyFamilyRoleChange family_role_change = 2;  // 成员角色变更通知
+  NotifyDisbandFamily disband_family = 3; // 解散家庭通知
+}
+
+// NotifyFamilyRoleChange 成员角色变更通知
+message NotifyFamilyRoleChange {
+  int64 family_id = 1;  // 家族ID
+  FamilyRoleType original_role = 2; // 原角色
+  FamilyRoleType new_role = 3;  // 新角色
+}
+
+// NotifyDisbandFamily 解散家族通知
+message NotifyDisbandFamily {
+ int64 family_id = 1; // 家族ID
+}
+
+enum UserFamilyEventType {
+  USER_FAMILY_EVENT_TYPE_NONE = 0;
+  USER_FAMILY_EVENT_TYPE_JOIN = 1;  // 加入家族
+  USER_FAMILY_EVENT_TYPE_QUIT = 2;  // 退出家族
+  USER_FAMILY_EVENT_TYPE_KICK = 3;  // 踢出家族
+}
+
+message UserFamilyNotify {
+  UserFamilyEventType event_type = 1; // 事件类型
+  int64 family_id = 2;  // 家族ID
+}

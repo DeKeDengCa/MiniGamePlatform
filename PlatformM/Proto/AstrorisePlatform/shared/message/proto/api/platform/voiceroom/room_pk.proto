@@ -1,0 +1,291 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/roompk/handler
+syntax = "proto3";
+
+package api.astrorise.voiceroom.room.pk;
+
+import "api/platform/voiceroom/comm.proto";
+import "protobuf/api/common/common.proto";
+import "protobuf/api/activity/crank.proto";
+import "protobuf/api/adapter/model.proto";
+
+option java_package="com.entertain.sns.api.room.pk";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbroompk";
+
+// 跨房PK
+// serviceName: astrorise-voiceroom
+service RoomPK {
+  // 发起匹配PK
+  rpc Match(MatchReq) returns (MatchRsp);
+  // 取消匹配
+  rpc MatchCancel(MatchCancelReq) returns (MatchCancelRsp);
+
+  // 发起邀请
+  rpc InvitationSend(InvitationSendReq) returns (InvitationSendRsp);
+  // 接受邀请
+  rpc InvitationAccept(InvitationAcceptReq) returns (InvitationAcceptRsp);
+  // 拒绝邀请
+  rpc InvitationReject(InvitationRejectReq) returns (InvitationRejectRsp);
+
+  // 获取跨房PK信息
+  rpc GetInfo(GetInfoReq) returns (GetInfoRsp);
+  // 分页获取支持者取排行榜数据
+  rpc ListRank(ListRankReq) returns (ListRankRsp);
+
+  // 历史记录列表
+  rpc ListHistoryRecord(ListHistoryRecordReq) returns (ListHistoryRecordRsp);
+  // 历史房间列表
+  rpc ListHistoryRoom(ListHistoryRoomReq) returns (ListHistoryRoomRsp);
+  // 搜索房间
+  rpc SearchRoom(SearchRoomReq) returns (SearchRoomRsp);
+  // GetFollowRoomList 获取我关注的房间列表
+  rpc GetFollowRoomList(GetFollowRoomListReq) returns (GetFollowRoomListResp);
+
+  // 跨房pk用户设置
+  rpc SetUserSetting(SetUserSettingReq) returns (SetUserSettingRsp);
+  // 获取用户设置
+  rpc GetUserSetting(GetUserSettingReq) returns (GetUserSettingRsp);
+}
+
+message MatchReq {
+  int64 room_id = 10; // 发起方房间ID
+}
+
+message MatchRsp {
+}
+
+message MatchCancelReq {
+  int64 room_id = 10; // 发起方房间ID
+}
+
+message MatchCancelRsp {
+}
+
+
+// 邀请错误码
+enum InvitationSendErrCode {
+  ERR_CODE_INVITATION_SEND_NONE = 0;
+  ERR_CODE_INVITATION_EXIST = 10; // 已邀请
+  ERR_CODE_INVITATION_BLOCK = 20; // 邀请太多次，稍后重试
+  ERR_CODE_INVITATION_PERMISSION_DENY = 30; // 权限不足
+  ERR_CODE_INVITATION_OPPOSITE_BLOCK = 40;  // 对方拦截-eg:开启防骚扰等
+  ERR_CODE_INVITATION_OPPOSITE_IN_PK = 50; // 对方已在PK中
+}
+
+message InvitationSendReq {
+  int64 inviter_room_id = 10; // 邀请方房间ID
+  int64 invitee_room_id = 11; // 被邀请方房间ID
+}
+
+message InvitationSendRsp {
+}
+
+
+enum InvitationAcceptErrCode {
+  ERR_CODE_INVITATION_ACCEPT_NONE = 0;
+  ERR_CODE_INVITATION_ACCEPT_NOT_EXIST = 10; // 邀请不存在
+  ERR_CODE_INVITATION_ACCEPT_EXPIRED = 20; // 邀请已过期
+  ERR_CODE_INVITATION_ACCEPT_REJECT = 30; // 邀请已拒绝
+  ERR_CODE_INVITATION_ACCEPT_DONE = 40; // 邀请已接受
+  ERR_CODE_INVITATION_ACCEPT_PERMISSION_DENY = 50; // 权限不足
+  ERR_CODE_INVITATION_ACCEPT_OPPOSITE_LEAVE = 60; // 对方已离开pk模式
+  ERR_CODE_INVITATION_ACCEPT_OPPOSITE_IN_PK = 70; // 对方已在PK中
+}
+
+message InvitationAcceptReq {
+  int64 room_id = 10; // 被邀请方房间ID
+  string invite_token = 11;   // 邀请码
+}
+
+message InvitationAcceptRsp {
+  api.astrorise.voiceroom.RoomInfo room_info = 10; // 邀请方房间信息(只返回房间ID、名称)
+  int64 pk_id = 11;   // 跨房全局唯一ID
+}
+
+enum InvitationRejectErrCode {
+  ERR_CODE_INVITATION_REJECT_NONE = 0;
+  ERR_CODE_INVITATION_REJECT_NOT_EXIST = 10; // 邀请不存在
+  ERR_CODE_INVITATION_REJECT_EXPIRED = 20; // 邀请已过期
+  ERR_CODE_INVITATION_REJECT_DONE = 30; // 邀请已拒绝
+  ERR_CODE_INVITATION_REJECT_PERMISSION_DENY = 50; // 权限不足
+  ERR_CODE_INVITATION_REJECT_OPPOSITE_IN_PK = 60; // 对方已在PK中
+}
+
+message InvitationRejectReq {
+  int64 room_id = 10; // 被邀请方房间ID
+  string invite_token = 11;   // 邀请码
+}
+
+message InvitationRejectRsp {
+  api.astrorise.voiceroom.RoomInfo room_info = 10; // 邀请方房间信息(只返回房间ID、名称)
+}
+
+message GetInfoReq {
+  int64 room_id = 11; // 当前所在房间ID
+}
+
+message GetInfoRsp {
+  api.astrorise.voiceroom.RoomPKInfo room_pk_info = 10; // 跨房PK信息
+  OppositeRoomSeats opposite_room_seats = 11; // 对方房间麦位信息
+}
+
+message ListRankReq {
+  scommon.Page page = 1;
+  int64 pk_id = 10; // 跨房PK全局唯一ID
+}
+
+message ListRankRsp {
+  scommon.Page page = 1;
+  repeated crank.Item supporters= 15;  // 支持者排名列表
+}
+
+
+message ListHistoryRecordReq {
+  scommon.Page page = 1;
+  int64 room_id = 10; // 房间ID
+}
+
+// 跨房记录列表
+message ListHistoryRecordRsp {
+  scommon.Page page = 1;
+  repeated api.astrorise.voiceroom.RoomPKInfo room_pk_records = 10;
+}
+
+// pk模式房间信息
+message RoomInfo {
+  api.astrorise.voiceroom.RoomInfo room_info = 10;
+  bool show_pk_invite_btn = 20; // 是否显示PK邀请按钮
+  bool is_already_invite = 21; // 是否已经邀请
+  api.astrorise.voiceroom.RoomPkStatus pk_status = 22; // PK状态
+  comm.api.adapter.UserInfo owner_info = 23; // 房主信息
+}
+
+message ListHistoryRoomReq {
+  scommon.Page page = 1;
+  int64 room_id = 10; // 房间ID
+  RoomInfo room_selector = 11;
+}
+
+message ListHistoryRoomRsp {
+  scommon.Page page = 1;
+  repeated RoomInfo rooms = 10; // 跨房PK互动过的房间列表
+}
+
+// 搜索房间
+message SearchRoomReq {
+  scommon.Page page = 1;  // 分页参数
+  string keyword = 10;    // 搜索关键字
+  RoomInfo room_selector = 11;
+}
+// 搜索房间
+message SearchRoomRsp {
+  scommon.Page page = 1;                  // 分页参数
+  repeated RoomInfo rooms = 10;  // 房间列表
+}
+
+// 我关注的房间列表
+message GetFollowRoomListReq {
+  scommon.Page page = 1;
+  RoomInfo room_selector = 10;
+}
+
+// 关注房间列表
+message GetFollowRoomListResp {
+  scommon.Page page = 1;
+  repeated RoomInfo rooms = 10;
+}
+
+// PK玩法用户设置
+message SetUserSettingReq {
+  api.astrorise.voiceroom.RoomPkUserSetting setting = 10;
+}
+
+message SetUserSettingRsp {}
+
+message GetUserSettingReq {}
+
+message GetUserSettingRsp {
+  api.astrorise.voiceroom.RoomPkUserSetting setting = 10;
+}
+
+// 跨房PK事件
+enum Event {
+  EVENT_NONE = 0;
+  EVENT_MATCH_TIMEOUT = 10; // 匹配PK超时
+  EVENT_INVITATION_RECEIVED = 11;  // 收到PK邀请
+  EVENT_INVITATION_ACCEPT = 12;  // 接受PK邀请
+  EVENT_INVITATION_REJECT = 13; // 拒绝PK邀请
+  EVENT_BEGIN = 14; // PK开始
+  EVENT_END = 15; // PK结束
+  EVENT_REFRESH = 16; // 刷新PK分数+支持者列表信息
+}
+
+// 跨房PK通知消息
+message Notify {
+  NotifyMatchTimeout pk_match_timeout = 11;  // 匹配PK超时
+  NotifyInvitationReceived pk_invitation_received = 12;  // 收到邀请PK
+  NotifyInvitationReject pk_invitation_reject = 13;  // 邀请PK被拒绝
+  NotifyBegin pk_begin = 14; // 跨房PK开始
+  NotifyEnd pk_end = 15; // 跨房PK结束
+  NotifyRefresh pk_refresh_info = 16;  // 刷新分数 + 支持者列表 信息
+  NotifyOppositeSeatListChange opposite_seat_list_change = 17; // pk对方房间麦位变更
+}
+
+// 跨房PK匹配超时
+message NotifyMatchTimeout {
+  int64 timestamp = 1;   // 时间戳 毫秒
+}
+
+// 收到跨房PK邀请
+message NotifyInvitationReceived {
+  int64 timestamp = 1;  // 时间戳 毫秒
+
+  string invite_token = 10; // 邀请码
+  int64 invite_expire_ts = 11;  // 邀请过期时间戳
+  api.astrorise.voiceroom.RoomInfo inviter_room_info = 12; // 邀请方房间信息
+  api.astrorise.voiceroom.RoomInfo invitee_room_info = 13; // 被邀请方房间信息
+  comm.api.adapter.UserInfo inviter_user_info = 14; // 邀请人信息
+}
+
+// 跨房PK邀请被拒绝
+message NotifyInvitationReject {
+  int64 timestamp = 1;  // 时间戳 毫秒
+
+  api.astrorise.voiceroom.RoomInfo room_info = 10; // 被邀请房间信息
+}
+
+// 跨房PK开始
+message NotifyBegin {
+  int64 timestamp = 1;  // 时间戳 毫秒
+
+  int64 pk_id = 10; // 跨房PK全局唯一ID
+  api.astrorise.voiceroom.RoomPKInfo room_pk_info = 11; // 跨房PK信息
+  OppositeRoomSeats opposite_room_seats = 12; // 对方房间麦位信息
+}
+
+message NotifyEnd {
+  int64 timestamp = 1;  // 时间戳 毫秒
+
+  int64 pk_id = 10; // 跨房PK全局唯一ID
+  api.astrorise.voiceroom.RoomPKInfo room_pk_info = 11; // 跨房PK信息
+  OppositeRoomSeats opposite_room_seats = 12; // 对方房间麦位信息
+}
+
+message NotifyRefresh {
+  int64 timestamp = 1;  // 时间戳 毫秒
+
+  int64 pk_id = 10; // 跨房PK全局唯一ID
+  api.astrorise.voiceroom.RoomPkResult inviter_result = 11; // 邀请方PK结果
+  api.astrorise.voiceroom.RoomPkResult invitee_result = 12; // 被邀请方PK结果
+}
+
+// 麦位-麦位列表变更(通知对象:所有用户)
+message NotifyOppositeSeatListChange {
+  int64 timestamp = 1;  // 时间戳 毫秒
+
+  OppositeRoomSeats opposite_room_seats = 10;
+}
+
+// OppositeRoomSeats PK对方房间信息麦位信息
+message OppositeRoomSeats {
+  api.astrorise.voiceroom.SeatList seat_list = 10;// 麦位列表
+}

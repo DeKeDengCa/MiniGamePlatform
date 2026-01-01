@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+// social-activity
+package comm.svr.activity;
+
+import "protobuf/api/activity/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsactivity";
+
+// 任务阶段完成消息
+// topic: social-activity-task-stage-complete-message-{anm}
+message TaskStageCompleteMessage {
+    int64 ts = 1;                                           // 时间戳(秒)
+    string seq_id = 2;                                      // 幂等ID
+    comm.api.activity.RewardTargetType member_type = 10;     // 成员类型
+    int64 member_id = 11;                                   // 成员ID
+    string task_id = 20;                                    // 任务ID
+    int32 stage = 30;                                       // 任务阶段
+    int64 complete_times = 40;                              // 当前阶段完成次数
+    int64 complete_total = 41;                              // 任务完成总次数
+}

@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package pbsidgen;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsidgen";
+
+// smicro:spath=gitit.cc/social/components-service/social-account/business/id_gen/handler-svr/idgensvr
+service IDGen {
+  // 批量生成ID
+  rpc BatchGenIDs(BatchGenIDsReq) returns (BatchGenIDsRsp);
+  // 获取生成配置
+  rpc ListConfigs(ListConfigsReq) returns (ListConfigsRsp);
+}
+
+message BatchGenIDsReq {
+  string anm = 1; // 业务标识
+  string tag = 2;  // 模块标签
+  string sub_anm = 3; // 子业务标识
+
+  int64 size = 10; // 生成ID的数量
+}
+
+message BatchGenIDsRsp {
+  repeated int64 ids = 1; // 生成的ID列表
+}
+
+
+message ListConfigsReq {
+  string anm = 1;     // 业务标识
+  string sub_anm = 2; // 子业务标识
+}
+
+message ListConfigsRsp {
+  repeated IDGenConfig configs = 1;
+}
+
+message IDGenConfig {
+  string tag = 10;        // 业务标签
+  int64 start = 12;       // 起始值
+  int64 step = 13;        // 步长
+}

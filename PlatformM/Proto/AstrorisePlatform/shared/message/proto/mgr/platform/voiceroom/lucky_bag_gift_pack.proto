@@ -1,0 +1,48 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/luckybag/handlermgr
+syntax = "proto3";
+
+package mgr.astrorise.voiceroom.luckybag;
+
+import "api/platform/voiceroom/lucky_bag.proto";
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbmluckybag";
+
+// 红包-礼物包
+service LuckyBagGiftPackMgr {
+
+    // 查询礼物包
+    rpc ListGiftPack(ListGiftPackReq) returns (ListGiftPackRsp);
+
+    // 新增/更新礼物包
+    rpc SaveGiftPack(SaveGiftPackReq) returns (SaveGiftPackRsp);
+
+    // 删除礼物包
+    rpc DeleteGiftPack(DeleteGiftPackReq) returns (DeleteGiftPackRsp);
+}
+
+message ListGiftPackReq {
+    scommon.Page page = 1;
+}
+
+message ListGiftPackRsp {
+    scommon.Page page = 1;
+    repeated api.astrorise.voiceroom.luckybag.GiftPack gift_packs = 10;
+}
+
+message SaveGiftPackReq {
+    api.astrorise.voiceroom.luckybag.GiftPack gift_pack = 10;
+}
+
+message SaveGiftPackRsp {
+    int64 pack_id = 10;
+    int64 updated_at = 20;
+}
+
+message DeleteGiftPackReq {
+    repeated int64 pack_ids = 10;
+}
+
+message DeleteGiftPackRsp {
+
+}

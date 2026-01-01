@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package api.privilege;
+
+import "protobuf/api/privilege/enum.proto";
+
+option java_package = "com.entertain.sns.api.privilege";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbprivilegev1";
+
+// BagPrivilege 背包权益
+message BagPrivilege {
+  int64 id = 1; //背包ID
+  string name = 2;  //名称
+  string thumb = 3; //缩略图
+  string image = 4; //静图
+  string media_type = 5;  //动效类型
+  string media_url = 6;  //动效地址
+  int64 expired_at = 7;  //过期时间
+  int64 goods_id = 8; //商品ID
+  int64 category_id = 9;  // 分类ID
+  int64 sub_category_id = 10; // 子分类ID
+  CategoryAlias category_alias = 11; // 一级分类标识
+  CategoryAlias sub_category_alias = 12; // 二级分类标识
+  int64 uid = 13; // 用户UID
+  map<string, string> extra = 20; //额外信息
+}
+
+message MultiBagPrivilege {
+  map<int64, BagPrivilege> privileges = 1; // 权益map
+}

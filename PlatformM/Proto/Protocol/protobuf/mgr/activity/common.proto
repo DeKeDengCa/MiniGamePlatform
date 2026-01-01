@@ -1,0 +1,1086 @@
+syntax = "proto3";
+
+package comm.mgr.activity;
+
+import "protobuf/api/adapter/model.proto";
+import "protobuf/api/activity/common.proto";
+import "protobuf/mgr/guild/guild.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmactivity";
+
+message ActivityInfo {
+  Activity activity = 1;                  // 活动配置
+  repeated RankInfo rank_list = 2;        // 榜单配置，查询数据时返回
+  repeated TaskInfo task_list = 3;        // 任务配置
+  repeated PKInfo pk_list = 4;            // pk配置
+  repeated LotteryInfo lottery_list = 5;  // 抽奖配置
+  repeated RoomRecommendInfo room_recommend_list = 6; // 房间推荐配置
+  repeated SavePresentationConfig presentation_list = 7; // 展示配置
+  repeated PrizePoolInfo prize_pool_list = 8;       // 奖池配置
+  repeated PointsExchangeConfigInfo points_exchange_list = 9; // 积分兑换配置
+}
+
+message Activity {
+  int64 id = 1;           // 活动ID
+  string name = 2;        // 活动名称
+  int64 start_time = 3;   // 活动开始时间
+  int64 end_time = 4;     // 活动结束时间
+  repeated string display_gifts = 5;   // 展示礼物
+  string display_rewards = 14;   // 展示奖励
+  string remark = 6;        // 备注
+  string status = 7;       // 配置状态：normal disable del
+  string create_by = 8;     // 创建人
+  string update_by = 9;     // 最后更新人
+  string delete_by = 10;     // 删除人
+  int64 dtime = 11;         // 删除时间
+  int64 utime = 12;         // 更新时间
+  int64 ctime = 13;         // 创建时间
+  string url = 15; // 活动url地址多语言json格式{"en":"xx","ar":"xx"}
+  bool is_template = 16;    // 是否为模板。为模版时，在list时会排除掉这个数据
+
+  string activity_code = 20; // 活动唯一code, 用于运营和开发沟通.
+  string application_code = 21; // 应用code, 用于记录积木平台的应用标识.
+
+  string cou = 30; // 活动国家编码
+  string time_zone = 31; // 活动时区, 服务端根据国家编码返回, 前端不需要填.
+
+  repeated string special_sids = 100; // 活动启用的服ID列表，空为所有都
+}
+
+message RankInfo {
+  RankConfig rank_config = 1;                         // 榜单配置
+  repeated ListRankRewardObject list_rank_rewards = 2;// 奖励配置
+  repeated ListRankRewardObject list_supporter_rank_rewards = 3;// 子榜单奖励配置，一般是贡献榜
+}
+
+message RankConfig {
+  int64 id = 1;       // 榜单ID
+  int64 activity_id = 2;  // 活动ID
+  comm.api.activity.CycleType cycle = 4;      // 榜单周期
+  comm.api.activity.RankType rank_type = 5;  // 榜单类型
+  int32 show_top = 6;       // 上榜数量（top n）
+  comm.api.activity.RankSource source = 7;    // 数据来源
+  repeated string scenes = 8; // 场景（多个），不限制则留空
+  comm.api.activity.ScoreType score_type = 9;  // 分数累加类型
+  int32 ratio = 10;                  // 分数比例
+  map<int32, float> currency_ratio = 40; // 指定币种对应的分数比例, 1: 收礼获得的货币 2: 送礼消耗的货币 3: 币商使用的货币 4: 美金钱包
+  repeated string regions = 11;      // 榜单生效地区
+  string cou = 12;                   // 榜单国家编码（计算时区）
+  string time_zone = 43;             // 榜单时区, 服务端根据国家编码返回, 前端不需要填.
+  int64 start_time = 13;             // 开始时间
+  int64 end_time = 14;               // 结束时间
+  repeated int32 valid_periods = 42; // 有效时段列表，对于小时榜则表示每天有效小时列表, 例如: [8, 9, 10, 20, 21, 22] 表示上午/下午的 8/9/10 点才统计.
+  repeated string gift_types = 15;   // 指定礼物类型
+  repeated string room_types = 16;   // 指定房间类型
+  repeated string special_gifts = 17;  // 指定礼物ID
+  repeated int64 special_rooms = 18;    // 指定房间ID
+  repeated int64 special_guilds = 19;    // 指定公会ID
+  repeated int64 uid_black_list = 21;    // 用户黑名单，废弃，使用 user_black_bw_info 代替
+  repeated int64 room_id_black_list = 22;    // 房间黑名单
+  repeated int64 guild_id_black_list = 23;   // 公会黑名单
+  repeated string game_code_white_list = 41; // 游戏code白名单
+  string remark = 24;        // 备注
+  string status = 25;       // 配置状态：normal disable del
+  string create_by = 26;     // 创建人
+  string update_by = 27;     // 最后更新人
+  int64 utime = 28;         // 更新时间
+  int64 ctime = 39;         // 创建时间
+  repeated int64 special_families = 29;    // 指定家族ID
+  repeated int64 family_id_black_list = 30;    // 家族ID黑名单
+  repeated comm.api.adapter.FamilyRoleType special_family_roles = 31; // 指定家族成员角色
+  repeated comm.mgr.guild.MemberRole special_guild_roles = 32; // 指定工会成员角色
+  RankShowType rank_show_type = 33; // 榜单展示类型，目前只有公会跟家族类型会用到
+  repeated int64 special_input = 34; // 白名单原始输入
+  SpecialInputType special_input_type = 35; // 白名单类型
+  int32 show_history_period = 36; // 展示的历史榜单周期数量，前端用
+  RoomIDType bottom_show_room_type = 37; // 底下我的信息展示的房间类型
+  repeated string special_room_modes = 44;  // 指定房间模式
+  repeated string special_rec_gifts = 46;   // 指定收礼礼物ID
+  int32 promotion_num = 47;//晋级数量
+  repeated string uid_black_list_ids = 51;    // 用户黑名单id列表，废弃，使用 user_black_bw_info 代替
+  Switch pendant_switch =52; // 挂件开关
+  string pendant_background_images = 53; // 挂件背景图多语言json格式{"en":"xx.jpg","ar":"aa.jpg"}
+  string component_type = 56;                         // 前端组件类型，前端用
+  string limit_value = 57;                            // 限制值，比如说送礼榜用来过滤一些小价值礼物，可根据rankType来决定用作什么功能
+  int64 min_score = 58;                            // 最小上榜分数，小于这个分数会从榜单剔除且不发奖励
+  int64 max_score = 59;                            // 最大上榜分数，超过这个分数会从榜单剔除且不发奖励
+  string filter_expression = 60;                   // 过滤条件表达式，后端开发提供，原样保存即可
+  string name = 61;                                // 榜单名字，发奖用
+  BWInfo user_white_bw_info = 62;                  // 用户白名单bw信息
+  BWInfo family_owner_bw_info = 63;                // 家族长白名单bw信息
+  repeated SpecialGiftCurrencyRatio special_gift_currency_ratio = 64;   // 指定礼物分数比例，优先级比 currency_ratio 高
+  repeated RewardSubCategory selected_gift_sub_categorys = 65; // 已经选择的子分类
+  repeated RewardSubCategory rec_selected_gift_subcategorys = 66; // 已经选择的子分类，收到礼物
+  bool enable_backpack_gift = 69;                                // 是否开启背包礼物计算，只有礼物榜单生效
+  bool exclude_room_owner = 70;                                  // 是否排除房主贡献值，只有房间任务生效
+  int64 filter_expression_id = 71;                               // 过滤条件表达式id
+  BWInfo user_black_bw_info = 72;                                // 用户黑名单bw信息
+  RankExtend extend = 73;                                        // 额外扩展信息
+  bool is_permanent = 74;                                        // 常驻榜单
+}
+
+message RankExtend {
+  // RANK_TYPE_GAME_USER_BET_REBATE 返利用部分开始
+  comm.api.activity.RankRebateType rebate_type = 10;
+  repeated comm.api.activity.RankRebateWeight weight_config_list = 11;     // 权重配置
+  // RANK_TYPE_GAME_USER_BET_REBATE 返利用部分结束
+
+  // 周星榜用
+  bool use_week_star_gift = 20;
+
+  // 商品数量榜用
+  repeated comm.api.activity.RankRecGoodsShowType rec_goods_show_types = 30;  // 统计类型
+  repeated int64 special_goods_ids = 31;          // 指定商品id
+
+  // 礼物相关榜单用
+  repeated SpecialGiftCurrencyRatio gift_type_ratio = 40; // 礼物类型-》分数比例
+
+  // 共用部分
+  repeated string special_play_modes = 100; // 指定玩法
+}
+
+
+enum RoomIDType {
+  ROOM_ID_TYPE_NONE = 0; // none
+  ROOM_ID_TYPE_NORMAL = 1; // 普通房
+  ROOM_ID_TYPE_FAMILY = 2; // 家族房
+
+  ROOM_ID_TYPE_COMMON = 3; // 秀场房
+  ROOM_ID_TYPE_GAME = 4; // 游戏房
+  ROOM_ID_TYPE_CHAT = 5; // 语聊房
+}
+
+enum SpecialInputType {
+  SPECIAL_INPUT_TYPE_NONE = 0; // none
+  SPECIAL_INPUT_TYPE_ID = 1; // 公会 or 家族id
+  SPECIAL_INPUT_TYPE_MEMBER_ID = 2; // 公会成员id or 家族成员id or 房间owner id
+  SPECIAL_INPUT_TYPE_USER_LABEL = 3; // 用户标签
+}
+
+enum RankShowType {
+  RANK_SHOW_TYPE_NONE = 0;         // none
+  RANK_SHOW_TYPE_MEMBER = 1;       // 家族/公会/房间成员
+  RANK_SHOW_TYPE_SENDER = 2;       // 送礼者
+}
+
+// 数量类型
+enum AmountType {
+  AMOUNT_TYPE_NONE = 0;     // 无需数量类型的
+  AMOUNT_TYPE_DURATION = 1; // 时长型
+  AMOUNT_TYPE_QUANTITY = 2; // 数量型
+  AMOUNT_TYPE_QUANTITY_AND_DURATION = 3; // 数量+时长型
+}
+
+// 数量单位, 时长型的奖励才需要.
+enum AmountUnit {
+  AMOUNT_UNIT_NONE = 0;
+  AMOUNT_UNIT_SECOND = 1; // 秒
+  AMOUNT_UNIT_MINUTE = 2; // 分
+  AMOUNT_UNIT_HOUR = 3; // 小时
+  AMOUNT_UNIT_DAY = 4; // 天
+  AMOUNT_UNIT_PERMANENT = 10; // 永久
+}
+
+// 奖励分类, 虽然奖励分类的标识业务可以自己定义, 但是最好参照以下的名字便于多个业务之间叫法一致和阅读理解.
+//    GIFT: 礼物
+//    ROOM_BACKGROUND: 房间背景
+//    RING: 戒指
+//    HEADWEAR: 头像框
+//    MOUNT: 座驾
+//    MIC_STYLE: 麦位光圈
+//    ON_MIC_EFFECT: 上麦特效
+//    MESSAGE_BUBBLE: 公屏消息气泡
+//    PROFILE_ANIMATION: 个人主页动画
+//    STORE_PROP: 道具
+//    INTIMACY_CARD: 亲密关系卡
+//    TITLE: 称号
+//    MEDAL: 勋章
+//    CELEBRITY_TITLE: 名人称号
+//    ...
+//
+//
+//
+//    __SPECIAL__: 特殊奖励, 这个奖励分类是指一些普通奖励之外的特殊奖励, 由运营在活动平台直接创建, 中台进行维护, 业务方发放时需要特殊处理.
+message RewardCategory {
+  string category_key = 1; // 奖励分类标识, 参考上面的注释.
+  string category_name = 2; // 奖励分类名称, 例如: 礼物 / 头像框 / 房间背景 ..., 这是缺省名称, 如果 oms 需要国际化显示则需要提供 i18n_category_name 字段.
+  map<string, string> i18n_category_name = 3; // 国家化的奖励分类名称, key 的取值有 zh / en / ar / tr ...
+  AmountType amount_type = 4; // 此类奖励的数量类型, 例如礼物的数量类型是数量型, 头像框的数量类型是时长型
+}
+
+// 奖励配置项
+message RewardItem {
+  string item_id = 1; // 奖励配置项ID, 为了通用这里采用字符串形式, 例如礼物ID, 头像框ID, 房间背景ID, ...
+  string item_name = 2; // 奖励配置项名称, 例如: 礼物的名称 / 头像框的名称. 这是缺省名称, 如果 oms 需要国际化显示则需要提供 i18n_category_name 字段.
+  map<string, string> i18n_item_name = 3; // 国家化的奖励配置项名称, key 的取值有 zh / en / ar / tr ...
+  string item_icon = 4; // 奖励配置项图标, 例如: 礼物的图标 / 头像框的图标. 这是缺省图标, 如果 oms 需要国际化显示则需要提供 i18n_category_icon 字段.
+  map<string, string> i18n_item_icon = 5; // 国家化的奖励配置项图标, key 的取值有 zh / en / ar / tr ...
+  string item_animation = 6; // 奖励配置项动画资源
+  string reward_sub_type = 7; // 子类型,具体业务决定, 对应 goods的 goods_type \ badge 的 badge_type \ gift 的 gift_type
+  repeated string sub_category_ids = 8; // 属于子分类的id
+
+  string expand = 20; // 拓展信息, 应当设计成一个 JSON 便于后续拓展.
+
+  // 以下部分是活动管理后台用
+  string creator = 30;
+  string modifier = 31;
+  string remark = 32;
+  string item_grade = 33; // 奖励等级，具体业务决定, 管理后台过滤用，goods 类型对应 grade，gift类型对应 gift level
+  string item_tag = 34; // 奖励标签，具体业务决定，管理后台过滤用
+  int64 num = 35; // 数量
+  int64 expire_secs = 36; // 有效期(秒)
+  string category_key = 37; // 奖励分类
+  comm.api.adapter.RankRewardTargetType reward_type = 38; // 奖励目标类型
+}
+
+message RankRewardObject{
+  int64 id = 1 ;//榜单奖励Id
+  int64 activity_id = 2 ;//活动Id
+  int64 rank_id = 3 ;//榜单Id
+  int64 min_value = 4 ;//奖励区间-最小值(包含)
+  int64 max_value = 5 ;//奖励区间-最大值(包含)
+  int64 min_score = 10;// 发放此奖励所需的最低榜单得分, 0 表示无限制.
+  string creator = 6 ;//创建人
+  int64 created_at = 7 ;//创建时间
+  string updater = 8 ;//修改人
+  int64 updated_at = 9 ;//修改时
+  int64 parent_id = 11 ;//父奖励id
+  bool is_for_supporter = 12 ;//是否为支持者奖励
+
+  repeated RankRewardObject childs = 100;
+}
+
+message RankRewardDetailObject{
+  int64 id = 1;//榜单奖励详情Id
+  int64 activity_id = 2;//活动Id
+  int64 rank_id = 3;//榜单Id
+  int64 rank_reward_id = 4;//榜单奖励Id
+  RewardType reward_type = 5;//奖励类型(1:空奖励,2:奖励包,3:动效奖励)
+  string reward_object_json = 6;//奖励内容(奖励配置的json序列化字符串;eg:RewardPackage,RewardAnimationEffect)
+  string creator = 7;//创建人
+  int64 created_at = 8;//创建时间
+  string updater = 9;//修改人
+  int64 updated_at = 10;//修改时
+  comm.api.activity.RewardTargetType reward_target_type = 11; // 奖励发放位置
+}
+
+message BatchUpdateRankReward{
+  UpdateRankReward update_rank_reward = 1;                         // 榜单奖励
+  repeated UpdateRankRewardDetail update_rank_reward_details = 2;  // 修改-榜单奖励详细配置
+  repeated int64 delete_rank_reward_detail_ids = 3;                // 删除-榜单奖励详情配置-榜单奖励详情Id
+  repeated BatchUpdateRankReward sub_rank_rewards = 4;             // 支持者奖励
+}
+
+message UpdateRankReward {
+  int64 id = 1; // 榜单奖励Id(0:新增)
+  int64 min_value = 2; // 奖励区间-最小值(包含)
+  int64 max_value = 3; // 奖励区间-最大值(包含)
+  int64 min_score = 4; // 发放此奖励所需的最低榜单得分, 0 表示无限制.
+}
+
+message UpdateRankRewardDetail{
+  int64 rank_reward_detail_id = 1; // 榜单奖励详情Id(0:新增)
+  RewardType reward_type = 2; // 奖励类型(1:空奖励,2:奖励包,3:动效奖励)
+  string reward_object_json = 3; // 奖励内容
+  comm.api.activity.RewardTargetType reward_target_type = 4; // 奖励发放位置
+}
+
+
+message ListRankRewardObject{
+  RankRewardObject rank_reward = 1;     // 榜单奖励, 区间
+  repeated RankRewardDetailObject rank_reward_details = 2;    // 榜单奖励详情
+  repeated ListRankRewardObject sub_rank_rewards = 3;                  // 支持者榜单奖励详情
+}
+
+
+// 奖励类型
+enum RewardType{
+  REWARD_TYPE_NONE = 0;// none
+  REWARD_TYPE_EMPTY = 1;// 空奖励
+  REWARD_TYPE_PACKAGE = 2;// 奖励包
+  REWARD_TYPE_ANIMATION_EFFECT = 3;// 动效奖励
+  REWARD_TYPE_GENERIC = 4;// 通用奖励
+}
+//奖励内容数据结构定义-空奖励
+message RewardEmpty{
+}
+//奖励内容数据结构定义-奖励包
+message RewardPackage{
+  string package_id = 1;//奖励包Id
+}
+//奖励内容数据结构定义-动效奖励
+message RewardAnimationEffect{
+  string animation_effect_url = 1;//动效地址
+  PlayLocation play_location = 2;//播放位置(1.所有房间,2.用户所在房间,3.所有界面)
+  string text_color = 3; // 字体颜色 类似 #000000
+  repeated MgrSvgaImage images = 4; // svga图片
+}
+enum PlayLocation{
+  PLAY_LOCATION_NONE = 0;// NONE
+  PLAY_LOCATION_ALL_ROOM = 1;// 所有房间
+  PLAY_LOCATION_USER_ROOM = 2;// 用户所在房间
+  PLAY_LOCATION_ALL = 3;// 所有界面
+}
+message MgrSvgaImage {
+  string key = 1; // 约定好的key(eg:ar_title:阿语,en_title:英语)
+  string url = 2; // 图片地址
+}
+
+// 活动任务相关协议定义
+
+//活动任务
+message TaskInfo {
+  TaskConfig task_config = 1;// 活动任务配置
+  repeated TaskSubConfig task_sub_configs = 2;// 活动子任务配置
+  repeated TaskRewardConfig task_reward_configs = 3;// 活动任务奖励配置
+  repeated TaskH5Config task_h5_configs = 4;// 活动任务h5配置, 前端用，后端不用
+}
+
+//活动任务配置
+message TaskConfig {
+  int64 id = 1; // 任务ID
+  int64 activity_id = 2; // 活动ID
+  repeated string scenes = 3; // 任务场景
+  string task_code = 4; // 任务代码
+  string task_name = 5; // 任务名称
+  int64 start_time = 6; // 开始时间
+  int64 end_time = 7; // 结束时间
+  comm.api.activity.TaskCycle task_cycle = 8; // 任务周期
+  string cou = 9; // 国家编码(计算时区)
+  string to_finish_deeplink = 10; // 去完成任务deeplink
+  repeated string gift_white_list = 11; // 礼物白名单, 即将废弃，用task_sub的
+  repeated int64 user_send_white_list = 12; // 用户送礼白名单
+  repeated int64 user_send_black_list = 13; // 用户送礼黑名单
+  int32 exclude_self = 14; // 是否统计给自己送礼(0:统计,1:不统计), 即将废弃，用task_sub的
+  repeated int64 user_receive_white_list = 15; // 用户收礼白名单
+  repeated int64 user_receive_black_list = 16; // 用户收礼黑名单
+  repeated int64 room_white_list = 17; // 房间收礼白名单
+  repeated int64 room_black_list = 18; // 房间收礼黑名单
+  string creator = 19;                            // 创建人
+  int64 created_at = 20;                          // 创建时间
+  string updater = 21;                            // 修改人
+  int64 updated_at = 22;                          // 修改时间
+  int32 ver = 23;                                 // 版本，1是旧平台，2是新平台
+  repeated string special_room_type = 26;         // 房间类型白名单
+  comm.api.activity.TaskMode task_mode = 28;      // 任务模式
+  repeated string game_code_white_list = 29;      // 游戏code白名单
+  int32 max_complete_times = 30;                  // 最大可完成次数
+  int64 switch_bits = 31;                         // 开关位图，定义：TaskSwitch
+  SpecifyParticipants specify_participants = 32;  // 任务可见人群
+  string task_desc = 35;                          // 任务描述
+  repeated string rec_gift_white_list = 36;       // 收礼礼物白名单
+  int64 relate_lottery_id = 44;                   // 关联的抽奖id
+  bool auto_reward = 45;                          // 自动领奖
+  string status = 46;                             // 配置状态：normal disable del
+  bool disable_take_reward_batch = 47;            // 禁止批量领奖
+  string component_type = 48;                     // 前端组件类型，前端用
+  comm.api.activity.TaskCycleSettleType cycle_settle = 50;  // 周期性发奖，周期为task_cycle，不能跟自动领奖同时开启
+  TimeSlot time_slot = 51;                        // 生效时间段
+  int32 sort = 52;                                // 排序值
+  int64 task_component_id = 53;                   // 前端组件id，仅前端用
+  BWInfo user_white_bw_info = 54;                 // 用户白名单bw信息
+  BWInfo user_black_bw_info = 55;                 // 用户黑名单bw信息
+  BWInfo show_user_white_bw_info = 56;            // 可见人群白名单bw信息
+  BWInfo show_user_black_bw_info = 57;            // 可见人群黑名单bw信息
+  BWInfo room_owner_white_bw_info = 58;           // 房主白名单bw信息
+  BWInfo room_owner_black_bw_info = 59;           // 房主黑名单bw信息
+  SpecifyParticipants specify_black_participants = 60;  // 任务不可见人群
+  repeated RewardSubCategory selected_gift_sub_categorys = 61; // 已经选择的子分类, 即将废弃，用task_sub的
+  repeated RewardSubCategory rec_selected_gift_subcategorys = 62; // 已经选择的子分类，收到礼物, 即将废弃，用task_sub的
+  TaskExtendConfig extend_config = 64;
+}
+
+message TaskExtendConfig {
+  int32 grid_num = 11; // 宫格数
+  bool grid_has_reward = 12; // 宫格是否有奖励，前端用
+
+  int32 extra_reward_max_take_times = 20; // 最大领取次数
+  comm.api.activity.TaskCycle extra_reward_refresh_cycle = 21; // 额外奖励刷新周期
+}
+
+
+// 黑白名单信息
+message BWInfo {
+  repeated int64 ids = 10;              // 用户id (填)
+  repeated string bw_ids = 11;          // 黑白名单id列表, 人群包id列表（选）
+  repeated string labels = 12;          // 黑白名单label列表, category = LABEL_CATEGORY_USER
+  repeated string realtime_labels = 13; // 黑白名单label列表, category = LABEL_CATEGORY_USER_REALTIME
+}
+
+// 指定可见人群
+enum SpecifyParticipants {
+  SPECIFY_PARTICIPANTS_NONE = 0;// 不指定
+  SPECIFY_PARTICIPANTS_HAS_ROOM = 1;
+  SPECIFY_PARTICIPANTS_HAS_GUILD = 2;
+  SPECIFY_PARTICIPANTS_HAS_FAMILY = 3;
+  SPECIFY_PARTICIPANTS_WHITE_LIST = 4;// 指定用户
+}
+
+enum TaskSwitch {// 二进制开关，1，2，4，8 这样定义
+  TASK_SWITCH_NONE = 0;
+  TASK_SWITCH_ONLY_MY_FAMILY_ROOM = 1;
+  TASK_SWITCH_ONLY_MY_NORMAL_ROOM = 2;
+}
+
+//活动任务-子任务配置
+message TaskSubConfig {
+  int64 id = 1; // 子任务ID
+  int64 activity_id = 2; // 活动ID
+  int64 task_id = 3; // 任务ID
+  comm.api.activity.TaskType task_type = 5;  // 任务类型
+  comm.api.activity.TaskScoreType task_score_type = 6;  // 分数累加类型
+  string task_name = 7; // 任务名称
+  int64 task_target_value = 8; // 任务完成目标值
+  string to_finish_deeplink = 9; // 完成任务路由
+  string extend_json = 10; // 扩展json， 阶段任务的时候是StageTaskExtendInfo, 即将废弃，用 task_sub_extend_info
+  string creator = 11; // 创建人
+  int64 created_at = 12; // 创建时间
+  string updater = 13; // 修改人
+  int64 updated_at = 14; // 修改时间
+  int32 ver = 15; //版本，1是旧平台，2是新平台
+  map<string, float> currency_ratio = 16; // 指定币种对应的分数比例, 1: 收礼获得的货币 2: 送礼消耗的货币 3: 币商使用的货币 4: 美金钱包
+  string task_desc = 17; // 任务描述多语言
+  repeated string special_room_mode = 18; // 房间模式白名单
+  int64 task_limit_value = 19;//任务限制值，有效上麦时长用到
+  //  ButtonH5Config jump_button = 20; // 跳转按钮配置
+  string btn_text = 21;        // 文案
+  string btn_font_color = 22;  // 字体颜色
+  int32 btn_font_size = 23;    // 字体大小
+  string btn_bg_color = 24;    // 背景颜色
+  string btn_bg_image = 25;    // 背景图片
+  repeated string scenes = 26; // 任务场景
+  repeated string game_code_white_list = 27;      // 游戏code白名单
+  repeated RechargeSource recharge_source = 28;   // 充值来源
+  string filter_expression = 29;                  // 过滤表达式
+  repeated string gift_white_list = 30;           // 礼物白名单
+  repeated string rec_gift_white_list = 31;       // 收礼礼物白名单
+  repeated string gift_types = 32;                // 礼物类型白名单
+  repeated SpecialGiftCurrencyRatio special_gift_currency_ratio = 33;   // 指定礼物分数比例，优先级比 currency_ratio 高
+  bool enable_backpack_gift = 34;                                       // 是否开启背包礼物计算，只有礼物榜单生效
+  bool exclude_room_owner = 35;                                         // 是否排除房主贡献值，只有房间任务生效
+  int64 filter_expression_id = 36;                                      // 过滤条件表达式id
+  repeated int64 lottery_ids = 37;                                      // 抽奖id数组，抽奖任务用，只有抽奖任务生效
+  repeated RewardSubCategory selected_gift_sub_categorys = 38; // 已经选择的子分类
+  repeated RewardSubCategory rec_selected_gift_subcategorys = 39; // 已经选择的子分类，收到礼物
+  int32 exclude_self = 40; // 是否统计给自己送礼(0:统计,1:不统计)
+  TaskSubExtendConfig extend_config = 50; // 扩展信息
+}
+
+message TaskSubExtendConfig {
+  // 共用部分
+  repeated int64 target_values = 10;  // 阶段目标值
+  repeated string special_play_modes = 11; // 指定玩法
+
+  // BizActivityEventTask 用
+  repeated int64 event_tag_ids = 20; // 活动标签id
+
+  // pk任务用
+  repeated string pk_modes = 30;  // 指定pk 模式，
+
+  // 商品任务用
+  repeated int64 special_goods_ids = 40; // 指定商品id
+
+  // 格子序号，1到9，连线奖励为序号连线，如：1-2-3 ，九宫格任务用
+  string grid_key = 50;
+
+  comm.api.activity.RoomLiveDayMode room_live_day_mode = 61; // 任务维度-房间开播天数-开播方式
+
+  // 礼物相关榜单用
+  repeated SpecialGiftCurrencyRatio gift_type_ratio = 70; // 礼物类型-》分数比例
+}
+
+message SpecialGiftCurrencyRatio {
+  string id = 10; // 礼物id or 礼物类型
+  map<int32, float> ratio = 11; // 货币-》比例, 注意：如果 key 为 999 则表示数量
+}
+
+enum RechargeSource {
+  RECHARGE_SOURCE_NONE = 0;
+  RECHARGE_SOURCE_ONLINE = 1;     // 线上充值
+  RECHARGE_SOURCE_OFFLINE = 2;    // 线下充值，包括币商充值、美金钱包充值
+}
+
+// 废弃，用TaskSubExtendConfig代替
+message StageTaskExtendInfo {
+  repeated int64 target_values = 10;  // 阶段目标值
+}
+
+// 废弃，用TaskSubExtendConfig代替
+message BizActivityEventTaskExtendInfo {
+  repeated int64 target_values = 10;  // 阶段目标值,阶段任务用
+  repeated int64 event_tag_ids = 11; // 活动标签id
+}
+
+// 废弃，用TaskSubExtendConfig代替
+message PKEventTaskExtendInfo {
+  repeated int64 target_values = 10;  // 阶段目标值,阶段任务用
+  repeated string pk_modes = 11;      // 指定pk 模式
+}
+
+//活动任务奖励配置
+message TaskRewardConfig {
+  int64 id = 1; // 奖励ID
+  int64 activity_id = 2; // 活动ID
+  int64 task_id = 3; // 任务ID
+  comm.api.activity.TaskRewardType reward_type = 4; // 奖励类型(2:奖励包)
+  string reward_object_json = 5; // 奖励内容
+  string extend_json = 6;// 扩展json
+  string creator = 7; // 创建人
+  int64 created_at = 8; // 创建时间
+  string updater = 9; // 修改人
+  int64 updated_at = 10; // 修改时间
+  int32 stage = 11; // 阶段性任务用
+  int64 daily_inventory = 12; // 每日库存数量
+  map<string, string> sys_msg_i18n = 13; // 如果这个不为空，发放奖励的时候会推送系统消息给用户，json存
+  comm.api.activity.RewardTargetType reward_target_type = 14; // 奖励发放位置
+
+  TaskRewardExtendConfig extend_config = 50;
+}
+
+message TaskRewardExtendConfig {
+  string grid_key = 10; // 格子序号，1到9，连线奖励为序号连线，如：1-2-3 ，九宫格任务用
+
+  // 随机九宫格奖励用
+  int64 weight = 20;               // 抽奖权重，抽奖算概率用
+  int32 stock = 21;                // 总次数限制
+  comm.api.activity.CycleType stock_cycle = 22;      // 库存限制周期
+  int32 limit = 23;                // 每个人抽中次数限制
+  comm.api.activity.CycleType limit_cycle = 24;      // 每个人抽中次数限制周期
+  repeated int32 must_hit_times = 25;       // 满多少次必抽中
+}
+
+//活动任务h5配置
+message TaskH5Config {
+  int64 id = 10; // 奖励ID
+  int64 activity_id = 11; // 活动ID
+  int64 task_id = 12; // 任务ID
+  int32 stage = 13; // 阶段性任务用
+  string icon_close = 14; // 关闭状态宝箱icon
+  string icon_open = 15; // 打开状态宝箱icon
+  string icon_received = 16; // 领取完毕的宝箱icon
+  string title = 17; // 主标题
+  string sub_title = 18;// 副标题
+  string extend_json = 19;// 扩展json
+  string creator = 20; // 创建人
+  int64 created_at = 21; // 创建时间
+  string updater = 22; // 修改人
+  int64 updated_at = 23; // 修改时间
+}
+
+//任务奖励内容-空奖励
+message TaskRewardEmpty{
+}
+
+//任务奖励内容-奖励包
+message TaskRewardPackage{
+  string package_id = 1;//奖励包Id
+}
+
+//任务奖励内容-榜单积分
+message TaskRewardRankPoints{
+  int64 rank_id = 1;// 榜单id
+  int64 score = 2;//  要增加的积分
+  TaskRewardRankPointsUnit unit = 3;//  积分单位，目前时长类的榜单会用到
+}
+
+enum TaskRewardRankPointsUnit {
+  TASK_REWARD_RANK_POINTS_UNIT_NONE = 0;
+  TASK_REWARD_RANK_POINTS_UNIT_MINUTE = 1; //分钟
+}
+
+//任务奖励内容-积分
+message TaskRewardPoints{
+  int64 exchange_id = 10;        // 积分兑换id
+  int64 points = 11;             //  要增加的积分
+}
+
+//任务奖励内容-抽奖机会
+message TaskRewardLotteryChance{
+  int64 lottery_id = 1;// 抽奖id
+  int64 times = 2;//  要增加的抽奖次数
+}
+
+//任务奖励内容-任务分数
+message TaskRewardTaskScore{
+  int64 task_id = 1;      // 任务id
+  int64 sub_task_id = 2;  // 子任务id
+  int64 score = 3;        // 分数值
+  string grid_key = 4;    // 九宫格索引，九宫格用
+}
+
+//通用奖励配置的外层结构
+message RewardGenerics {
+  repeated RewardGeneric items = 1;
+}
+
+//通用奖励配置项
+message RewardGeneric {
+  RewardCategory reward_category = 1;
+  RewardItem reward_item = 2; // 奖励配置项
+  int64 amount = 3;           // 发放数量
+  AmountUnit amount_unit = 4; // 发放数量单位, 例如: 分钟 / 小时 / 天
+  int64 duration = 5; // 发放时长, 单位: 秒, AMOUNT_TYPE_QUANTITY_AND_DURATION 类型用，其他类型不用
+  AmountUnit duration_unit = 6; // 发放时长, 单位: 秒
+}
+
+// 排序规则
+enum SortType {
+  SORT_TYPE_NONE = 0;
+  SORT_TYPE_ASC = 1;
+  SORT_TYPE_DESC = 2;
+}
+
+enum ActivityStatus {
+  ACTIVITY_STATUS_NONE = 0;
+  ACTIVITY_STATUS_WAITING = 1;// 未开始
+  ACTIVITY_STATUS_RUNNING = 2;// 进行中
+  ACTIVITY_STATUS_END = 3;// 已结束
+}
+
+message PKInfo {
+  PKConfig pk_config = 10;
+  repeated PKDetail details = 11;
+}
+
+message PKConfig {
+  int64  id = 10;
+  int64 activity_id = 11;//活动Id
+  string title = 12;
+  string cou = 13;                   // 榜单国家编码（计算时区）
+  int64 start_time = 14;             // 开始时间
+  int64 end_time = 15;               // 结束时间
+  comm.api.activity.PKType pk_type = 16;               //pk 类型
+  comm.api.activity.ScoreType score_type = 17;         //分数累计类型
+  map<int32, float> currency_ratio = 18; // 指定币种对应的分数比例, 1: 收礼获得的货币 2: 送礼消耗的货币 3: 币商使用的货币 4: 美金钱包
+  repeated string special_gifts = 19;   // 指定送礼礼物ID
+  repeated string special_rec_gifts = 20;   // 指定收礼礼物ID
+  int64 relate_rank_id = 21;                // 关联榜单id, 废弃，用extend 的 relate_source_id 代替
+  string status = 22;       // 配置状态：normal disable del
+  string remark = 23;       // 备注
+  string create_by = 24;     // 创建人
+  string update_by = 25;     // 最后更新人
+  string delete_by = 26;     // 删除人
+  int64 ctime = 27;         // 创建时间
+  int64 dtime = 28;         // 删除时间
+  int64 utime = 29;         // 更新时间
+  repeated string special_room_pk_modes = 30;// 指定房间pk模式, 房内1v1: 1v1, 房内多人：multi, 跨房多人: cross_room_multi
+  Switch pendant_switch =31; // 挂件开关
+  string pendant_background_images = 32; // 挂件背景图多语言json格式{"en":"xx.jpg","ar":"aa.jpg"}
+  repeated SpecialGiftCurrencyRatio special_gift_currency_ratio = 33;   // 指定礼物分数比例，优先级比 currency_ratio 高
+  string component_type = 34;       // 前端组件类型，前端用
+  int32 ratio = 35;                 // 分数比例
+
+  // hala & ahchat 需要, 放 ext 部分
+  bool enable_pk_mode = 36;         // true：表示在对应PK模式下统计收送礼行为数据 false：表示无需限制PK模式，只要有收送礼行为数据都统计
+  bool turn_based = 37;             // 回合制，true: 表示按设置的回合时间段结算PK胜负 false: 表示按设置的PK倒计时段结算PK胜负
+  bool special_room = 38;           // 指定房间
+  bool only_from_cp = 39;           // ● 是否限制从对方收礼： true：表示组成CP的两个用户，只能统计从对方收到的礼物积分数 false：表示组成CP的两个用户，统计无需限定从对方收到的礼物积分数，从其他用户收到的礼物积分数，也会统计上
+  bool enable_backpack_gift = 40;   // 是否开启背包礼物计算
+  repeated string special_room_modes = 41;  // 指定房间模式
+  repeated string scenes = 42;      // 收送礼场景值
+
+  repeated string gift_types = 50;       // 指定礼物类型
+  repeated string rec_gift_types = 51;   // 指定收礼礼物类型
+
+  PKMemberSource member_source = 60; // 参赛者来源
+  bool auto_source = 61;             // 是否自动获取参赛者
+  bool same_source = 62;             // 是否使用同一个关联来源
+  bool show_rank = 63;               // 是否展示排名
+
+  PKExtend extend = 100; // 配置扩展字段
+}
+
+// pk 参赛者来源
+enum PKMemberSource {
+  PK_MEMBER_SOURCE_NONE = 0;
+  PK_MEMBER_SOURCE_CUSTOM = 1; // 自定义，运营自己填用户
+  PK_MEMBER_SOURCE_RANK = 2;   // 来源自榜单
+  PK_MEMBER_SOURCE_PK = 3;     // 来源自pk
+}
+
+message PKExtend {
+  // 礼物相关用
+  repeated SpecialGiftCurrencyRatio gift_type_ratio = 10; // 礼物类型-》分数比例
+  repeated SpecialGiftCurrencyRatio rec_gift_type_ratio = 11; // 收到礼物类型-》分数比例
+
+  bool include_self = 20; // 是否包含自己送给自己，目前只有cp pk用到
+
+  int64 relate_source_id = 30;                //关联的榜单or pk id
+}
+
+// 存数据库ext字段的结构
+message PKConfigExt {
+  bool enable = 10;                 // true: 表示启用ext配置，这里是为了解决旧数据没有ext字段的问题，如果都是空不知道是旧数据还是新数据没有设置值，所以这里设置一个默认值
+  bool enable_pk_mode = 11;         // true：表示在对应PK模式下统计收送礼行为数据 false：表示无需限制PK模式，只要有收送礼行为数据都统计
+  bool turn_based = 12;             // 回合制，true: 表示按设置的回合时间段结算PK胜负 false: 表示按设置的PK倒计时段结算PK胜负
+  bool special_room = 13;           // 指定房间
+  bool only_from_cp = 14;           // ● 是否限制从对方收礼： true：表示组成CP的两个用户，只能统计从对方收到的礼物积分数 false：表示组成CP的两个用户，统计无需限定从对方收到的礼物积分数，从其他用户收到的礼物积分数，也会统计上
+  bool enable_backpack_gift = 15;   // 是否开启背包礼物计算
+  repeated string special_room_modes = 16;  // 指定房间模式
+  repeated string scenes = 17;      // 收送礼场景值
+}
+
+
+message PKDetail {
+  int64 id = 10;
+  int64 activity_id = 11;//活动Id
+  int64 pk_id = 12;
+  repeated PKPlayer players = 13;
+  repeated PKRound rounds = 14;
+  string status = 15;        // 配置状态：normal disable del
+  string create_by = 16;     // 创建人
+  string update_by = 17;     // 最后更新人
+  string delete_by = 18;     // 删除人
+  int64 ctime = 19;          // 创建时间
+  int64 dtime = 20;          // 删除时间
+  int64 utime = 21;          // 更新时间
+  int64 start_time = 22;     // 开始时间
+  int64 end_time = 23;       // 结束时间
+  int64 settle_time = 24;    // 结算时间
+  PKDetailSettleStatus settle_status = 25;  // 结算状态
+}
+
+enum PKDetailSettleStatus {
+  PK_DETAIL_SETTLE_STATUS_NONE = 0;   // 未结算
+  PK_DETAIL_SETTLE_STATUS_DONE = 1;   // 已结算
+}
+
+message PKRound {
+  int64 start_time = 11;             // 开始时间
+  int64 end_time = 12;               // 结束时间
+  string biz_pk_id = 15;             // 对应业务的pk id，过滤消息用
+}
+
+message PKPlayer {
+  string member_id = 10;
+  int64 special_room_id = 11;// 指定房间，如果不指定，所有房间都算
+  repeated string player_ids = 12; // 参赛用户列表
+  int32 position = 13;// 位置
+
+  // 指定来源
+  int64 source_relate_id = 14; // 对应的榜单、pk id，空则从PKConfig 取
+  int64 source_relate_rank = 15; // 对应的榜单、pk排名
+}
+
+message GuildInfo {
+  int64 id = 10;    // 公会ID
+  string name = 11; // 公会名称
+  string avatar = 12; //公会LOGO
+}
+
+message FamilyInfo {
+  int64 id = 10;    // 家族ID
+  string name = 11; // 家族名称
+  string avatar = 12; // 家族头像
+}
+
+// 抽奖配置
+message LotteryInfo {
+  LotteryConfig config = 10;
+  repeated LotteryRewardConfig reward_configs = 11;
+  repeated TaskInfo relate_task_infos = 12;
+}
+
+message LotteryConfig {
+  int64 id = 10;
+  int64 activity_id = 11;
+  string title = 12;
+  string cou = 13;
+  int64 start_time = 14;
+  int64 end_time = 15;
+  string status = 16;                             // 配置状态：normal disable del
+  string remark = 17;                             // 备注
+  SpecifyParticipants specify_participants = 18;  // 任务可见人群
+  string creator = 22;                            // 创建人
+  int64 created_at = 23;                          // 创建时间
+  string updater = 24;                            // 修改人
+  int64 updated_at = 25;                          // 修改时间
+  LotteryComponentType component_type = 26;       // 前端组件类型，前端用
+  BWInfo show_user_white_bw_info = 27;            // 用户白名单bw信息
+  BWInfo show_user_black_bw_info = 28;            // 用户黑名单bw信息
+  SpecifyParticipants specify_black_participants = 29;  // 任务不可见人群
+  repeated comm.api.activity.LotteryPaidRule paid_rules = 30;       // 付费抽奖规则
+  comm.api.activity.LotteryType lottery_type = 31;      // 抽奖类型
+}
+
+
+enum LotteryComponentType {
+  LOTTERY_COMPONENT_TYPE_NONE = 0;
+  LOTTERY_COMPONENT_TYPE_REWARD_SLIDE_DRAW = 1;     // 奖励滑动抽奖
+  LOTTERY_COMPONENT_TYPE_NINE_GRID = 2;             // 九宫格抽奖
+  LOTTERY_COMPONENT_TYPE_WHEEL_DRAW = 3;            // 转盘抽奖
+}
+
+//抽奖奖励配置
+message LotteryRewardConfig {
+  int64 id = 10;                   // 奖励ID
+  int64 activity_id = 11;          // 活动ID
+  int64 lottery_id = 12;           // 任务ID
+  comm.api.activity.TaskRewardType reward_type = 13; // 奖励类型(2:奖励包)
+  string reward_object_json = 14;  // 奖励内容
+  string extend_json = 15;         // 扩展json
+  bool show_banner = 16;           // 是否会触发客户端横幅
+  bool show_barrage = 17;          // 是否会触发h5弹幕
+  RewardBannerConfig banner_config = 18;  // 客户端横幅配置，样式svga、字体颜色、用户昵称字体颜色、横幅展示位置等，对应下方的RewardBannerConfig
+  int64 weight = 19;               // 抽奖权重，抽奖算概率用
+  string status = 20;              // 配置状态：normal disable del
+  string creator = 21;             // 创建人
+  int64 created_at = 22;           // 创建时间
+  string updater = 23;             // 修改人
+  int64 updated_at = 24;           // 修改时间
+  int32 sort = 25;                 // 排序值，越小越前显示
+  int32 stock = 26;                // 库存限制
+  comm.api.activity.CycleType stock_cycle = 27;      // 库存限制周期
+  int32 limit = 28;                // 每个人抽中次数限制
+  comm.api.activity.CycleType limit_cycle = 29;      // 每个人抽中次数限制周期
+  repeated int32 must_hit_times = 30;  // 满多少次必抽中
+  string title = 31;                // 奖励自定义标题
+  string img = 32;                  // 奖励自定义图片
+  bool hide_badge = 33;             // 是否隐藏角标，前端用
+}
+
+// 奖励横幅配置
+message RewardBannerConfig {
+  map<string,string> svga = 10;               //样式svga
+  string font_color = 11;                     //字体颜色
+  string nickname_font_color = 12;            //用户昵称字体颜色
+  string banner_position = 13;                //横幅展示位置
+}
+
+enum Switch {
+  SWITCH_NONE = 0;
+  SWITCH_OPEN = 1; // 开
+  SWITCH_CLOSE = 2; // 关
+}
+
+message RoomRecommendConfig {
+  int64 id = 10;
+  int64 activity_id = 11;
+  RoomRecommendType recommend_type = 12;                                  // 指定房间id、指定用户白名单, = 1 的时候，需要后端转成房间id
+  repeated RoomIDType room_type_list = 13;                                // 个人房\家族房
+  string white_list_id = 14;                                              // 指定白名单id
+  repeated int64 room_id_white_list = 15;                                 // 房间id白名单列表
+  comm.api.activity.RoomRecommendDisplayInfo display_info = 16;           // 组件展示对象
+  map<string,string> room_desc_map = 17;                                  // 房间介绍
+  RoomRecommendComponentType component_type = 18;                         // 组件类型，前端用
+  string white_list_category = 19;                                        // 黑白名单分类，USER\ROOM，recommend_type== 1 的时候用
+  string status = 20;                                                     // 配置状态：normal disable del
+  string creator = 21;                                                    // 创建人
+  int64 created_at = 22;                                                  // 创建时间
+  string updater = 23;                                                    // 修改人
+  int64 updated_at = 24;                                                  // 修改时间
+  repeated int64 uid_list = 25;                                           // 用户id列表
+  map<int64,string> uid_desc_map = 26;                                    // uid -> 房间介绍
+  repeated string room_id_or_show_id_list = 27;                           // 房间id 或者 show id 白名单列表
+  repeated string uid_or_show_id_list = 28;                               // 用户id or show id 列表
+  int64 rank_id = 30;                                                     // 榜单ID，当 RoomRecommendType 为榜单时使用
+  int64 rank_top_count = 31;                                              // 榜单展示前几
+  int32 rank_cycle_offset = 32;                                           // 榜单周期偏移数，0表示当前周期，-1表示上个周期
+}
+
+enum RoomRecommendComponentType {
+    ROOM_RECOMMEND_COMPONENT_TYPE_NONE = 0;
+    ROOM_RECOMMEND_COMPONENT_TYPE_CAROUSEL = 1;     //轮播
+    ROOM_RECOMMEND_COMPONENT_TYPE_TILE_DISPLAY = 2; //平铺
+    ROOM_RECOMMEND_COMPONENT_TYPE_WITH_INTRO = 3;   //带介绍
+}
+
+enum RoomRecommendType {
+  ROOM_RECOMMEND_TYPE_NONE = 0;
+  ROOM_RECOMMEND_TYPE_SPECIAL_USER_WHITE_LIST = 1; // 指定用户白名单
+  ROOM_RECOMMEND_TYPE_SPECIAL_ROOM_ID = 2;         // 指定房间id
+  ROOM_RECOMMEND_TYPE_SPECIAL_USER_ID = 3;         // 指定用户id
+  ROOM_RECOMMEND_TYPE_SPECIAL_RANK_ID = 10;        // 指定榜单id
+}
+
+// 房间推荐配置
+message RoomRecommendInfo {
+  RoomRecommendConfig config = 10;
+}
+
+message UserRoomInfo {
+  int64 uid = 10;// 用户id
+  int64 room_id = 11;// 房间id
+  RoomIDType room_type = 12;       // 房间类型
+}
+
+
+// 展示配置
+message PresentationConfig {
+  int64 id = 10;
+  int64 activity_id = 11;
+  repeated PresentationConfigItem items = 12;
+  PresentationComponentType component_type = 13;       // 前端组件类型
+  string status = 14;                                  // 配置状态：normal disable del
+  string creator = 15;                                 // 创建人
+  int64 created_at = 16;                               // 创建时间
+  string updater = 17;                                 // 修改人
+  int64 updated_at = 18;                               // 修改时间
+}
+
+message PresentationConfigItem {
+  repeated int64 uids = 10; // 用户id 列表
+  string title = 11;        // 标题
+  string desc = 12;         // 描述
+  repeated string uid_or_show_id_list = 13; // 用户id 或者 show id 列表
+}
+
+message SavePresentationConfig {
+  PresentationConfig config = 10;
+}
+
+enum PresentationComponentType {
+  PRESENTATION_COMPONENT_TYPE_NONE = 0;
+  PRESENTATION_COMPONENT_TYPE_CP = 1;     // 双人展示
+  PRESENTATION_COMPONENT_TYPE_HONOR = 2;  // 荣誉展示
+}
+
+// 时间段
+message TimeSlot {
+  TimeSlotType type = 1;      // 时间粒度
+  repeated int32 slots = 2;   // 如果type是小时，那么对应的是小时列表
+}
+
+// 时间粒度
+enum TimeSlotType {
+  TYPE_NONE = 0;
+  TYPE_HOUR = 5;  // 小时粒度
+}
+
+// 奖励子分类 RewardSubCategory
+message RewardSubCategory {
+  string sub_category_id = 1;  // 子分类的id
+  string sub_category_name = 2; // 子分类的名字
+}
+
+// 奖池配置
+message PrizePoolInfo {
+  PrizePoolConfig config = 10;
+  RankInfo relate_rank_info = 11;
+}
+
+message PrizePoolConfig {
+  int64 id = 10;
+  int64 activity_id = 11;
+  comm.api.activity.PrizePoolCalType cal_type = 12;                       // 奖池累加类型
+  bool auto_reward = 13;                                // true：自动发奖，false：运营自己导出，然后发奖
+  string reward_category_key = 14;                      // 奖励配置项key, 对应 common reward, 只支持发放个数类型的奖励
+  string reward_item_id = 15;                           // 奖励配置项ID, 对应 common reward, 只支持发放个数类型的奖励
+  int64 min_rank_score = 16;                            // 最小榜单分,用户榜单分数大于它，才可以参加奖池总数计算
+  int64 max_pool_num = 17;                              // 最大奖池数量
+  comm.api.activity.PrizePoolWeightType weight_type = 18;                 // 奖池瓜分权重类型
+  repeated comm.api.activity.PrizePoolWeight weight_config_list = 19;     // 奖池瓜分权重列表,json 存数据库
+  int64 relate_rank_id = 20;                            // 关联的榜单id
+  int64 start_time = 21;                                // 开始时间
+  int64 end_time = 22;                                  // 结束时间
+  comm.api.activity.CycleType cycle = 23;               // 周期
+  float pool_ratio = 24;                                // 比例值，奖池分数：所有上榜用户的榜单总分*比例值
+  int64 prize_rank_score_limit = 25;                    // 瓜分奖池限制，用户榜单分数大于它，才可以参加奖池瓜分
+
+  string component_type = 100;                          // 前端组件类型
+  string status = 101;                                  // 配置状态：normal disable del
+  string creator = 102;                                 // 创建人
+  int64 created_at = 103;                               // 创建时间
+  string updater = 104;                                 // 修改人
+  int64 updated_at = 105;                               // 修改时间
+  int64 component_id = 106;                        // 前端组件id，仅前端用
+}
+
+
+message WeeklyStarGiftConfig {
+  int64 id = 10;         // 配置id
+  int64 start_time = 11; // 周星礼物配置生效开始时间
+  int64 end_time = 12;   // 周星礼物配置生效结束时间
+  repeated WeeklyStarGift gifts = 13;
+
+  string status = 101;                                  // 配置状态：normal disable del
+  string creator = 102;                                 // 创建人
+  int64 created_at = 103;                               // 创建时间
+  string updater = 104;                                 // 修改人
+  int64 updated_at = 105;                               // 修改时间
+}
+
+message WeeklyStarGift {
+  string gift_id = 10;
+}
+
+// 积分兑换信息
+message PointsExchangeConfigInfo {
+  PointsExchangeConfig exchange_config = 10;       // 积分兑换配置
+  repeated PointsExchangePoolConfig exchange_pool_configs = 11;       // 活动积分兑换奖池配置
+  repeated PointsExchangeRewardConfig exchange_reward_configs = 12;   // 活动积分兑换奖池礼物配置
+}
+
+message PointsExchangeConfig {
+  int64 id = 10;            // 任务ID
+  int64 activity_id = 11;   // 活动ID
+  string cou = 12;          // 国家编码(计算时区)
+  int64 start_time = 13;    // 开始时间
+  int64 end_time = 14;      // 结束时间
+
+  string creator = 20;                            // 创建人
+  int64 created_at = 21;                          // 创建时间
+  string updater = 22;                            // 修改人
+  int64 updated_at = 23;                          // 修改时间
+  string status = 24;                             // 配置状态：normal disable del
+
+  int64 component_id = 30;                      // 前端组件id，仅前端用
+  string component_type = 31;                   // 前端组件类型，仅前端用
+
+  BWInfo user_white_bw_info = 40;                       // 用户白名单bw信息
+  BWInfo user_black_bw_info = 41;                       // 用户黑名单bw信息
+  BWInfo show_user_white_bw_info = 42;                  // 可见人群白名单bw信息
+  BWInfo show_user_black_bw_info = 43;                  // 可见人群黑名单bw信息
+  SpecifyParticipants specify_participants = 44;        // 可见人群
+  SpecifyParticipants specify_black_participants = 45;  // 不可见人群
+
+  PointsExchangeExtendConfig extend_config = 50;
+}
+
+message PointsExchangeExtendConfig {
+
+}
+
+message PointsExchangePoolConfig {
+  int64 id = 10;
+  int64 activity_id = 11;   // 活动ID
+  int64 exchange_id = 12;   // 兑换ID
+  int32 stage = 13;         // 对应奖池1，2，3
+  comm.api.activity.PointsExchangeUnlockType unlock_type = 14;     // 解锁下一个奖池的条件类型
+  int64 exchange_times_for_unlock = 15;          // 解锁需要的兑换次数
+  string desc = 16; // 描述
+
+  string creator = 20;                            // 创建人
+  int64 created_at = 21;                          // 创建时间
+  string updater = 22;                            // 修改人
+  int64 updated_at = 23;                          // 修改时间
+  string status = 24;                             // 配置状态：normal disable del
+}
+
+message PointsExchangeRewardConfig {
+  int64 id = 10;
+  int64 activity_id = 11;   // 活动ID
+  int64 exchange_id = 12;   // 兑换ID
+  int32 stage = 13;         // 奖池1，2，3
+  int64 sort = 14;          // 排序
+  comm.api.activity.PointsExchangeType exchange_type = 15; // 积分兑换类型
+  int64 points_need = 16;                 // 所需积分
+  int64 points_origin = 17;               // 划线积分
+
+  string creator = 20;                            // 创建人
+  int64 created_at = 21;                          // 创建时间
+  string updater = 22;                            // 修改人
+  int64 updated_at = 23;                          // 修改时间
+  string status = 24;                             // 配置状态：normal disable del
+
+  int64 stock = 30;                // 库存限制
+  comm.api.activity.CycleType stock_cycle = 31;      // 库存限制周期
+  int64 limit = 32;                // 每个人次数限制
+  comm.api.activity.CycleType limit_cycle = 33;      // 每个人次数限制周期
+
+  comm.api.activity.TaskRewardType reward_type = 40; // 奖励类型(2:奖励包)
+  string reward_object_json = 41;  // 奖励内容
+  string extend_json = 42;         // 奖励扩展json
+  comm.api.activity.PointsExchangeRewardDisplayType reward_display_type = 43; // 奖励显示类型
+  int64 currency_total = 44;       // 货币总量
+}

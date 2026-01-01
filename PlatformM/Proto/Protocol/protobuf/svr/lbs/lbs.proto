@@ -1,0 +1,124 @@
+syntax = "proto3";
+
+package comm.svr.lbs;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pblbs";
+
+// smicro:spath=gitit.cc/social/components-service/social-biz/biz/lbs/handlersvr
+// ServiceName: social-biz
+// LBS 服务
+service LocationBased {
+
+  // 放置兴趣点
+  rpc BatchPutPoi(BatchPutPoiReq) returns (BatchPutPoiRsp);
+
+  // 摘除兴趣点
+  rpc BatchDropPoi(BatchDropPoiReq) returns (BatchDropPoiRsp);
+
+  // 获取兴趣点
+  rpc BatchGetPoi(BatchGetPoiReq) returns (BatchGetPoiRsp);
+
+  // 设置属性
+  rpc BatchSetAttr(BatchSetAttrReq) returns (BatchSetAttrRsp);
+
+  // 删除属性
+  rpc BatchDeleteAttr(BatchDeleteAttrReq) returns (BatchDeleteAttrRsp);
+
+  // 获取属性
+  rpc BatchGetAttr(BatchGetAttrReq) returns (BatchGetAttrRsp);
+}
+
+message Point {
+  float x = 1;  // x 坐标, 经度
+  float y = 2;  // y 坐标, 纬度
+}
+
+message Line {
+  repeated Point points = 1;
+}
+
+message Polygon {
+  repeated Point points = 1;
+}
+
+// 兴趣点
+message Poi {
+  string refer_type = 1;  // 指代物类型
+  string refer_id = 2;    // 指代物ID
+
+  // 空间位置
+  oneof Geometry {
+    Point point = 10;     // 点
+    Line line = 20;       // 线
+    Polygon polygon = 30; // 面
+  }
+}
+
+
+message BatchPutPoiReq {
+  repeated Poi pois = 1;
+}
+
+message BatchPutPoiRsp {
+
+}
+
+
+message BatchDropPoiReq {
+  string refer_type = 1;
+  repeated string refer_ids = 2;
+}
+
+message BatchDropPoiRsp {
+
+}
+
+
+message BatchGetPoiReq {
+  string refer_type = 1;
+  repeated string refer_ids = 2;
+}
+
+message BatchGetPoiRsp {
+  string refer_type = 1;
+  map<string, Poi> pois = 2;
+}
+
+
+// 属性
+message Attr {
+  map<string, string> kv = 1;
+}
+
+
+message BatchSetAttrReq {
+  string refer_type = 1;        // 指代物类型
+  map<string, Attr> attrs = 2;  // 指代物ID -> 属性
+  bool whole = 3;               // 是否全量设置, true 表示全量设置, 即设置前会清空原有的属性, false 表示增量设置.
+}
+
+message BatchSetAttrRsp {
+
+}
+
+
+message BatchDeleteAttrReq {
+  string refer_type = 1;
+  repeated string refer_ids = 2;  // 指代物ID
+  repeated string attr_keys = 3;  // 属性key, 空表示获取全部属性.
+}
+
+message BatchDeleteAttrRsp {
+
+}
+
+message BatchGetAttrReq {
+  string refer_type = 1;          // 指代物类型
+  repeated string refer_ids = 2;  // 指代物ID
+  repeated string attr_keys = 3;  // 属性key, 空表示获取全部属性.
+}
+
+message BatchGetAttrRsp {
+  string refer_type = 1;        // 指代物类型
+  map<string, Attr> attrs = 2;  // 指代物ID -> 属性
+}

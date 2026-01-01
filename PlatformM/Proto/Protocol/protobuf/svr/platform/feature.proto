@@ -1,0 +1,184 @@
+syntax = "proto3";
+
+package comm.svr.platform.activation;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/common/common-net.proto";
+import "protobuf/api/platform/feature.proto";
+
+option java_package = "com.activation.proto";
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/appfeature/handlersvr
+option go_package = "gitit.cc/social/protobuf/gencode/svr/platform/pbsactivation";
+
+// app特征
+service FeaturesSvr {
+  // 根据id来获取特征
+  rpc GetFeatures(GetFeaturesReq) returns (GetFeaturesRsp);
+
+  // 根据配置来匹配是否具备审核特征
+  rpc JudgeFeatures(JudgeFeaturesReq) returns (JudgeFeaturesRsp);
+
+  // 根据配置来匹配是否具备审核特征: 批量模式
+  rpc JudgeBatchFeatures(JudgeBatchFeaturesReq) returns (JudgeBatchFeaturesRsp);
+
+  // 获取审核版本。变化少，客户端作全局缓存，过期时间可定为10s
+  rpc GetAuditVercs(GetAuditVercsReq) returns (GetAuditVercsRsp);
+
+  // 获取审核用户。变化少，客户端作全局缓存，过期时间可定10s
+  rpc GetAuditUsers(GetAuditUsersReq) returns (GetAuditUsersRsp);
+  rpc GetAuditUsers2Map(GetAuditUsers2MapReq) returns (GetAuditUsers2MapRsp);
+
+  // 判断其他属性：ip，did...变化少，客户端作全局缓存。过期时间可为分钟级别，根据客户端数量来定为几分钟
+  rpc JudgeOtherAttrs(JudgeOtherAttrsReq) returns (JudgeOtherAttrsRsp);
+
+  // 获取审核模式did列表
+  rpc GetAuditDIDs(GetAuditDIDsReq) returns (GetAuditDIDsRsp);
+
+  // 根据配置来匹配是否具备审核特征,并且会加到审核池：uid，did，ip
+  rpc SubmitAuditFeatures(SubmitAuditFeaturesReq) returns (SubmitAuditFeaturesRsp);
+
+}
+
+message IpFeature {
+  string ip = 1;
+  string country = 2;
+  string state = 3;
+  string city = 4;
+  string isp = 5;
+}
+
+message AppFeature {
+  // c端
+  scommon.PubPara c_feature = 1;
+
+  // ip
+  IpFeature ip_feature = 10;
+
+  // uid
+  int64 uid = 20;
+
+  // clientinfo
+  comm.api.platform.activation.ClientInfo client_info = 40;
+
+  // 创建时间
+  int64 create_at = 30;
+  int64 id = 31;
+  repeated string labels = 32;                            // 特征标签列表
+}
+
+message GetFeaturesReq {
+  scommon.Page page = 1;
+
+  int64 id = 10;
+  int64 verc = 11;                                        // 必填，为了减少查询范围
+  string did = 12;
+  int64 create_begin_at = 13;                             // 特征值的创建开始时间
+  int64 create_end_at = 14;                               // 特征值的创建结束时间
+  string label = 15;                                      // 标签
+}
+message GetFeaturesRsp{
+  scommon.Page page = 1;
+
+  repeated AppFeature data = 10;
+}
+
+message JudgeFeaturesReq{
+  AppFeature data = 10;
+}
+message JudgeFeaturesRsp{
+  bool audit_toggle = 10;                       // 是否具备审核特征
+  string name = 11;                             // 特征集名称
+  repeated string labels = 13;                  // 特征标签列表
+  VersionInfo current_version_info = 14;        // 当前版本信息, 也就是参数中 verc 对应的版本信息, 如果不传则此值为空.
+}
+// 版本信息
+message VersionInfo {
+  int64 verc = 1;                               // 版本号
+  scommon.OSType os_type = 2;                   // 系统类型
+  bool is_first_pub = 3;                        // 是否为首次发布版本
+  string pkg = 4;                               // 包名
+}
+
+message SvrFeature {
+  int64  verc = 1;                             // 版本
+  scommon.OSType os_type = 2;                  // 系统类型
+  int64 uid = 3;                               // uid
+  string client_ip = 4;                        // 客户端ip，做个预留，svr一般情况下是不用对于客户端ip进行判断的
+  string pkg = 5;                              // 包名
+}
+message JudgeBatchFeaturesReq{
+  repeated SvrFeature data = 10;               // 支持最大个数：100个，超过则返回失败
+}
+message JudgeFeaturesResult{
+  int64 uid = 1;                               // svr调用，req有uid的话
+  bool audit_toggle = 2;                       // 是否具备审核特征
+  string name = 3;                             // 特征集名称
+  repeated string labels = 4;                  // 特征标签列表
+}
+message JudgeBatchFeaturesRsp{
+  repeated JudgeFeaturesResult results = 10;   // 数组的顺序按照req中数组的顺序
+}
+
+
+message GetAuditVercsReq{
+  scommon.OSType os_type = 1;                   // 系统：1 ANDROID 2 ios
+  string pkg = 2;                               // 包名
+}
+message AuditVerc {
+  int64 verc = 2;                               // 版本号
+  scommon.OSType os_type = 3;                   // 系统：1 ANDROID 2 ios
+  string pkg = 4;                               // 包名
+  bool  first_pub_status = 5;                   // 是否第一次发布
+}
+message  GetAuditVercsRsp{
+  repeated AuditVerc vercs = 1;
+}
+
+message GetAuditUsersReq{
+  scommon.Page page = 1;                        // 分页
+  int64  last_time = 2;                         // 上次获取时间
+}
+message GetAuditUsersRsp{
+  repeated int64 uids = 1;
+  scommon.Page page = 2;                        // 分页，后加的，只能放在后面了
+  int64 curr_time = 3;                          // 当前时间
+}
+
+message GetAuditUsers2MapReq{
+}
+message GetAuditUsers2MapRsp{
+  map<int64,bool> uids = 1;
+}
+
+message JudgeOtherAttrsReq{
+  scommon.OSType os_type = 1;                   // 系统：1 ANDROID 2 ios
+  string client_ip = 2;                         // 客户端ip
+  string did = 3;                               // did
+  string cha = 4;                               // 投放渠道（广告渠道）
+  string pkg = 5;                               // 包名
+}
+message JudgeOtherAttrsRsp{
+  repeated string labels = 1;                  // 具备审核特征的名称：ip，did。。。
+  bool audit_toggle = 2;                       // 是否具备审核特征
+}
+
+// did列表的请求
+message GetAuditDIDsReq{
+  scommon.Page page = 1;                        // 分页
+  string anm = 10;                              // 安卓是获取的全量，ios 是获取的业务did。安卓did是全业务打通了的
+  scommon.OSType os_type = 11;
+}
+message GetAuditDIDsRsp{
+  scommon.Page page = 1;                        // 分页
+  repeated string dids = 10;
+}
+
+message SubmitAuditFeaturesReq{
+  AppFeature data = 10;
+}
+message SubmitAuditFeaturesRsp{
+  bool audit_toggle = 10;                       // 是否具备审核特征
+  string name = 11;                             // 特征集名称
+  repeated string labels = 12;                  // 特征标签列表
+  string isp = 14;                              // 客户端ip 的isp
+}

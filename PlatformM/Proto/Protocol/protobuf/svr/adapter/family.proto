@@ -1,0 +1,66 @@
+// smicro:spath=gitit.cc/social/components-service/social-biz/biz/adapter/handlersvr
+syntax = "proto3";
+
+package pbsadapter;
+
+import "protobuf/api/adapter/model.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsadapter";
+
+// 家族相关接口
+service CommonFamily {
+  // 批量获取用户的所在家族及其家族角色
+  rpc GetUserFamilyRole(GetUserFamilyRoleReq) returns (GetUserFamilyRoleRsp) {}
+
+  // 批量查询家族信息
+  rpc BatchGetFamilyInfo(BatchGetFamilyInfoReq) returns (BatchGetFamilyInfoRsp) {}
+
+  // 同步家族房间号和群聊号
+  rpc SyncFamilyGroup(SyncFamilyGroupReq) returns (SyncFamilyGroupRsp) {}
+}
+
+// 用户所在家族及其家族角色
+message UserFamilyRole {
+  int64 uid = 1;                // 用户UID
+  string family_id = 2;         // 用户所在家族ID
+  comm.api.adapter.FamilyRoleType role_type = 3; // 用户家族角色类型
+}
+
+// 批量获取用户的所在家族及其家族角色
+message GetUserFamilyRoleReq {
+  repeated int64 uids = 10;     // 用户UID列表
+}
+
+// 批量获取用户的所在家族及其家族角色
+message GetUserFamilyRoleRsp {
+  repeated UserFamilyRole user_family_roles = 10; // 用户的所在家族及其家族角色列表
+}
+
+message BatchGetFamilyInfoReq {
+  repeated int64 family_ids = 1;
+}
+
+message BatchGetFamilyInfoRsp {
+  repeated FamilyInfo list = 1;
+}
+
+message FamilyInfo {
+  int64 family_id = 1;     // 家族ID
+  int64 show_id = 2;       // 家族ID，靓号
+  string family_name = 3;  // 家族名称
+  string avatar = 4;       // 头像
+  int64 owner_uid = 5;     // 家族长UID
+  int64 room_id = 6;       // 家族房间
+  string group_id = 7;     // 家族群聊
+}
+
+message SyncFamilyGroupReq {
+  int64 family_id = 1;     // 家族ID
+  int64 room_id = 6;       // 家族房间
+  string group_id = 7;     // 家族群聊
+}
+
+message SyncFamilyGroupRsp {
+
+}
+

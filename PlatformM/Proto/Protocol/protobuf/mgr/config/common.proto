@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package comm.mgr.config;
+
+// option go_package = "gitit.cc/social/components-service/social-config/proto/pbmconfig";
+option go_package="gitit.cc/social/protobuf/gencode/mgr/pbmconfig";
+
+enum ConfigType {
+  CONFIG_TYPE_BIZ = 0;    // 业务配置
+  CONFIG_TYPE_PC = 1;     // 程序配置
+  CONFIG_TYPE_APP = 2;    // APP配置
+  CONFIG_TYPE_ABTEST = 3; // ABTest配置
+}
+
+message ConfigBiz {
+  string biz_key = 1;  // 业务标识
+  string biz_name = 2; // 业务名称
+}
+
+message ConfigSchema {
+  string biz_key = 1;  // 业务标识
+  string schema = 10;  // 配置Schema
+}
+
+message ConfigKey {
+  string biz_key = 1;  // 配置业务标识
+  string item_key = 2; // 配置项标识
+
+  string template_code = 10;  // 活动模板code
+  string instance_code = 11;  // 活动实例code
+}
+
+message ConfigValue {
+  string key = 99;        // 配置key
+  string value = 1;       // 配置值
+  string remark = 2;      // 备注
+  int64 submit_at = 10;   // 提交时间
+  string submit_by = 11;  // 提交人
+  int64 publish_at = 12;  // 发布时间
+  string publish_by = 13; // 发布人
+  int64 invalid_at = 14;  // 失效时间
+  string invalid_by = 15; // 失效人
+}

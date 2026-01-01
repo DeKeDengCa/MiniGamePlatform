@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package api.astrorise.platform;
+
+option java_package="com.entertain.sns.astrorise.platform";
+option go_package = "gitit.cc/social/astrorise/arprotobuf/gencode/api/pbcnotify";
+
+message Notify {
+    NotifyFloatWindow float_window = 1;
+}
+
+// 飘窗信令
+message NotifyFloatWindow {
+  FloatWindowType type = 1;                             // 飘窗类型
+  FloatWindowAnimation animation = 10;                  // 飘窗动画
+  repeated FloatWindowData datas = 20;                  // 填充数据
+  string link = 30;                                     // 飘窗跳转链接
+}
+
+// 飘窗类型
+enum FloatWindowType {
+  FLOAT_WINDOW_TYPE_NONE = 0;
+
+  FLOAT_WINDOW_TYPE_BANNER = 10;                        // 横幅类飘窗, 例如幸运礼物中奖...
+}
+
+// 飘窗动画
+message FloatWindowAnimation {
+  FloatWindowAnimationType animation_type = 1;          // 动画类型, SVGA / MP4 / ...
+  map<string, string> animation_urls = 2;               // 动画地址, 支持多语言
+}
+
+// 动画类型
+enum FloatWindowAnimationType {
+  FLOAT_WINDOW_ANIMATION_TYPE_NONE = 0;
+
+  FLOAT_WINDOW_ANIMATION_TYPE_SVGA = 10;                // SVGA
+  // 后续可能拓展 mp4 ...
+}
+
+// 替换数据
+message FloatWindowData {
+  FloatWindowDataType data_type = 1;                    // 数据类型
+  string data_key = 2;                                  // 数据key
+  FloatWindowText text = 10;                            // 文本数据
+  FloatWindowImage image = 20;                          // 图片数据
+}
+
+// 飘窗数据类型
+enum FloatWindowDataType {
+  FLOAT_WINDOW_DATA_TYPE_NONE = 0;
+  FLOAT_WINDOW_DATA_TYPE_TEXT = 10;                     // 文本
+  FLOAT_WINDOW_DATA_TYPE_IMAGE = 11;                    // 图片
+}
+
+// 文本数据
+message FloatWindowText {
+  map<string, string> contents = 1;                     // 文本内容, 支持多语言
+  string color = 2;                                     // 文本颜色
+  int32 size = 3;                                       // 字体大小
+}
+
+// 图片数据
+message FloatWindowImage {
+  map<string, string> urls = 1;                         // 图片地址, 支持多语言
+  int32 radius = 2;                                     // 圆角半径
+}

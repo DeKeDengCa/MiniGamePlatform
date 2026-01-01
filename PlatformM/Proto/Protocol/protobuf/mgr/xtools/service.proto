@@ -1,0 +1,102 @@
+syntax = "proto3";
+
+package mgr.pbxtools;
+
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmgrxtools";
+
+// 服务
+// smicro:spath=gitit.cc/social/components-service/xtools/handler/service
+
+service Service {
+  // 创建服务
+  rpc CreateService(CreateServiceReq) returns (CreateServiceRsp);
+  // 编辑服务
+  rpc EditService(EditServiceReq) returns (EditServiceRsp);
+  // 查询服务
+  rpc ListService(ListServiceReq) returns (ListServiceRsp);
+  // 查询服务运行状态
+  rpc ListRunningStatus(ListRunningStatusReq) returns (ListRunningStatusRsp);
+  // 获取服务
+  rpc GetService(GetServiceReq) returns (GetServiceRsp);
+}
+
+message ServiceInfo {
+  int64 id = 1;// 服务Id
+  int64 business_id = 2;// 业务Id
+  string business_name = 3;// 业务名称
+  string name = 4;// 服务名称，一旦创建不可更改，比如hala-api/hala-family/ahchat-api等
+  string smicro_name = 5;// smicro服务名称
+  int32 server_type = 6;// 服务类型(1:云主机,2:K8S)
+  string desc = 7;// 服务描述
+  string git_url = 8;// 服务git地址
+  string api_url = 9;// 服务api url
+  string aws_api_url = 16;// aws服务api url
+  string owner_email = 10;// 负责人-邮箱
+  repeated string maintainers_email = 11;// 维护人-邮箱
+  string creator = 12;// 创建人
+  int64 created_at = 13;// 创建时间，unix timestamp, seconds
+  string updater = 14;// 更新人
+  int64 updated_at = 15;// 更新时间
+}
+
+message CreateServiceReq {
+  int64 business_id = 1;// 业务Id
+  string name = 2;// 服务名称，一旦创建不可更改，比如hala-api/hala-family/ahchat-api等
+  string smicro_name = 3;// smicro服务名称
+  int32 server_type = 4;// 服务类型(1:云主机,2:K8S)
+  string desc = 5;// 服务描述
+  string git_url = 6;// 服务git地址
+  string api_url = 7;// 服务api url
+  string aws_api_url = 10;// aws服务api url
+  string owner_email = 8;// 负责人-邮箱
+  repeated string maintainers_email = 9;// 维护人-邮箱
+}
+message CreateServiceRsp {
+  int64 id = 1;// 服务Id
+}
+
+message EditServiceReq {
+  int64 id = 1;// 服务Id
+  string smicro_name = 3;// smicro服务名称
+  int32 server_type = 4;// 服务类型(1:云主机,2:K8S)
+  string desc = 5;// 服务描述
+  string git_url = 6;// 服务git地址
+  string api_url = 7;// 服务api url
+  string aws_api_url = 10;// aws服务api url
+  string owner_email = 8;// 负责人-邮箱
+  repeated string maintainers_email = 9;// 维护人-邮箱
+}
+message EditServiceRsp {
+}
+
+message ListServiceReq {
+  scommon.Page page = 1;
+  int64 business_id = 2;// 业务Id
+  string service_name = 3;// 服务名称(支持模糊查询)
+}
+message ListServiceRsp {
+  scommon.Page page = 1;
+  repeated ServiceInfo items = 2;
+}
+
+message RunningStatus {
+  string summer = 1;// 概要信息
+  string detail = 2;// 详细信息
+  string term_token = 3; // 连接terminal的token
+  string cloud_provider = 4; // 服务运行的云服务商;ali_cloud:阿里云,aws:亚马逊云
+}
+message ListRunningStatusReq {
+  int64 id = 1;// 服务Id
+}
+message ListRunningStatusRsp {
+  repeated RunningStatus statuses = 10;
+}
+
+message GetServiceReq {
+  int64 id = 1;// 服务Id
+}
+message GetServiceRsp {
+  ServiceInfo serviceInfo = 1;
+}

@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ProjectConfig>
+  <Package Name="BBQ" Dll="Assets/MiniGames/BBQ/HotUpdate/BBQHotUpdate.dll.bytes">
+    <SubPackage Name="BBQAsset" AppendExtension="false" />
+    <SubPackage Name="BBQRaw" AppendExtension="true" />
+  </Package>
+  <Package Name="Framework" Dll="Assets/Framework/Dll/HotUpdate/Framework.dll.bytes">
+    <SubPackage Name="FrameworkRaw" AppendExtension="false" />
+  </Package>
+</ProjectConfig>

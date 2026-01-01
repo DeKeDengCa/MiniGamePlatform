@@ -1,0 +1,162 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/activity/handlermgr
+syntax = "proto3";
+
+package mgr.astrorise.voiceroom;
+
+import "protobuf/api/common/common.proto";
+import "api/platform/voiceroom/comm.proto";
+
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbmactivitycenter";
+
+service ActivityCenterMgr {
+
+  // 添加活动栏目
+  rpc AddActivityColumn(AddActivityColumnReq) returns (AddActivityColumnRsp);
+  // 删除活动栏目
+  rpc DelActivityColumn(DelActivityColumnReq) returns (DelActivityColumnRsp);
+  // 更新活动栏目
+  rpc UpdateActivityColumn(UpdateActivityColumnReq) returns (UpdateActivityColumnRsp);
+  // 获取活动栏目
+  rpc GetActivityColumn(GetActivityColumnReq) returns (GetActivityColumnRsp);
+  // 查询活动栏目
+  rpc ListActivityColumn(ListActivityColumnReq) returns (ListActivityColumnRsp);
+  // 批量更新排序值
+  rpc BatchUpdateActivityColumnSort(BatchUpdateActivityColumnSortReq) returns (BatchUpdateActivityColumnSortRsp);
+
+
+  // 添加活动
+  rpc AddActivity(AddActivityReq) returns (AddActivityRsp);
+  // 删除活动
+  rpc DelActivity(DelActivityReq) returns (DelActivityRsp);
+  // 更新活动
+  rpc UpdateActivity(UpdateActivityReq) returns (UpdateActivityRsp);
+  // 获取活动
+  rpc GetActivity(GetActivityReq) returns (GetActivityRsp);
+  // 查询活动
+  rpc ListActivity(ListActivityReq) returns (ListActivityRsp);
+
+}
+
+message BatchUpdateActivityColumnSortReq {
+  repeated int64 column_ids = 10; // 栏目ID列表
+}
+
+message BatchUpdateActivityColumnSortRsp {
+}
+
+message ActivityColumnInfo {
+  int64 id = 10;                 // 唯一id，add不填
+  repeated api.astrorise.voiceroom.I18n name_i18n = 11; // 栏目名称多语言
+  int32 sort = 12;               // 排序值, 越小越前
+
+  int64 create_at = 50;         // 创建者，add/update操作忽略，内部自动赋值
+  string create_by = 51;        // 创建unix时间戳，add/update操作忽略，内部自动赋值
+  int64 update_at = 52;         // 更新者，add/update操作忽略，内部自动赋值
+  string update_by = 53;        // 更新unix时间戳，add/update操作忽略，内部自动赋值
+  int64 delete_at = 54;         // 删除者，add/update操作忽略，内部自动赋值
+  string delete_by = 55;        // 删除unix时间戳，add/update操作忽略，内部自动赋值
+}
+
+message AddActivityColumnReq {
+  ActivityColumnInfo data = 10;
+}
+message AddActivityColumnRsp {
+  int64 id = 10;
+}
+
+message DelActivityColumnReq {
+  repeated int64 ids = 10;
+}
+message DelActivityColumnRsp {
+  int32 count = 10;
+}
+
+message UpdateActivityColumnReq {
+  ActivityColumnInfo data = 10;
+}
+message UpdateActivityColumnRsp {
+  int64 id = 10;
+}
+
+message GetActivityColumnReq {
+  int64 id = 10;
+}
+message GetActivityColumnRsp {
+  ActivityColumnInfo data = 10;
+}
+
+message ListActivityColumnReq {
+  scommon.Page page = 1;
+  int64 operate_begin = 10; // 操作时间 查询开始点
+  int64 operate_end = 11;   // 操作时间 查询结束点
+  string operator = 12;     // 操作人
+}
+
+message ListActivityColumnRsp {
+  scommon.Page page = 1;
+  repeated ActivityColumnInfo list = 10;
+}
+
+message ActivityInfo {
+  int64 id = 10;                // 唯一id，add不填
+  int64 column_id = 11;         // 所属栏目id，banner类目不用填
+  repeated api.astrorise.voiceroom.I18n name_i18n = 12;              //名称-多语言
+  repeated api.astrorise.voiceroom.I18n desc_i18n = 13;              // 描述-多语言
+  int64 begin_time = 14;        // 活动开始时间，秒级时间戳
+  int64 end_time = 15;          // 活动结束时间，秒级时间戳
+  string image_url = 16;        // 图地址
+  string jump_url = 17;         // 跳转链接
+  bool is_banner = 18;          // 是否banner活动
+  int64 show_time_begin = 19;   // 展示开始时间，秒级时间戳
+  int64 show_time_end = 20;     // 展示结束时间，秒级时间戳
+  int32 sort = 21;              // 排序值，越大越前
+
+  int64 create_at = 50;         // 创建unix时间戳，add/update操作忽略，内部自动赋值
+  string create_by = 51;        // 创建者，add/update操作忽略，内部自动赋值
+  int64 update_at = 52;         // 更新unix时间戳，add/update操作忽略，内部自动赋值
+  string update_by = 53;        // 更新者，add/update操作忽略，内部自动赋值
+  int64 delete_at = 54;         // 删除unix时间戳，add/update操作忽略，内部自动赋值
+  string delete_by = 55;        // 删除者，add/update操作忽略，内部自动赋值
+}
+
+message AddActivityReq {
+  ActivityInfo data = 10;
+}
+message AddActivityRsp {
+  int64 id = 10;
+}
+
+message DelActivityReq {
+  repeated int64 ids = 10;
+}
+message DelActivityRsp {
+  int32 count = 10;
+}
+
+message UpdateActivityReq {
+  ActivityInfo data = 10;
+}
+message UpdateActivityRsp {
+  int64 id = 10;
+}
+
+message GetActivityReq {
+  int64 id = 10;
+}
+message GetActivityRsp {
+  ActivityInfo data = 10;
+}
+
+message ListActivityReq {
+  scommon.Page page = 1;
+  int64 operate_begin = 10; // 操作时间 查询开始点
+  int64 operate_end = 11;   // 操作时间 查询结束点
+  string operator = 12;     // 操作人
+  int64 column_id = 13;     // 栏目id
+  bool is_banner = 14;      // 是否banner活动
+}
+
+message ListActivityRsp {
+  scommon.Page page = 1;
+  repeated ActivityInfo list = 10;
+}

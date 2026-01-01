@@ -1,0 +1,271 @@
+syntax = "proto3";
+
+package pbsrevenue;
+
+import "protobuf/api/revenue/common.proto";
+import "protobuf/svr/adapter/wallet.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsrevenue";
+option java_package = "com.revenue.biz.proto";
+
+// smicro:spath=gitit.cc/social/components-service/social-revenue/handler-svr/walletsvr
+service WalletSvr {
+  // 账户扣款, 单币种
+  rpc DeductBalance(DeductBalanceReq) returns (DeductBalanceRsp) {}
+  // 获取自己的余额, 支持多个币种同时查询.
+  rpc GetUserBalance(GetUserBalanceReq) returns (GetUserBalanceRsp) {}
+  // 账户增加钱包, 多币种
+  rpc IncreaseBalance(IncreaseBalanceReq) returns (IncreaseBalanceRsp) {}
+  // 批量账户扣款, 多币种
+  rpc BatchDeductBalance(BatchDeductBalanceReq) returns (BatchDeductBalanceRsp) {}
+  // 退款, 多币种
+  rpc RefundBalance(RefundBalanceReq) returns (RefundBalanceRsp) {}
+  // 批量账户操作, 多币种
+  rpc BatchOperateBalance(BatchOperateBalanceReq) returns (BatchOperateBalanceRsp) {}
+
+  // 批量设置账户保证金门槛
+  rpc BatchSetGuaranteeThreshold(BatchSetGuaranteeThresholdReq) returns (BatchSetGuaranteeThresholdRsp) {}
+
+  // 批量获取账户余额, 支持多用户+多币种同时查询.
+  rpc BatchGetUserBalance(BatchGetUserBalanceReq) returns (BatchGetUserBalanceRsp) {}
+
+  // 扣除保证金
+  rpc DeductGuaranteeAmount(DeductGuaranteeAmountReq) returns (DeductGuaranteeAmountRsp) {}
+
+  // 批量获取钱包交易记录
+  rpc BatchGetWalletTransaction(BatchGetWalletTransactionReq) returns (BatchGetWalletTransactionRsp) {}
+
+  // 批量查询交易支统计信息-需指定时间区间 + 单币种
+  rpc BatchGetTransactionStat(BatchGetTransactionStatReq) returns (BatchGetTransactionStatRsp) {}
+}
+
+message BatchDeductBalanceReq {
+  repeated DeductBalanceReq deduct_balance = 1;
+  string app =2; //服务
+}
+
+message BatchDeductBalanceRsp {
+  repeated pbrevenue.Balance balance = 1;  //账号余额
+}
+
+// 扣款策略
+enum DeductBalanceStrategy {
+  DEDUCT_BALANCE_STRATEGY_NONE = 0;                   // 默认策略, 余额不足时返回错误.
+  DEDUCT_BALANCE_STRATEGY_TO_ZERO_IF_NOT_ENOUGH = 10; // 强制扣款, 余额不足时扣除至 0.
+}
+
+message DeductBalanceReq {
+  string seq_id = 1;                            // 客户端seq
+  pbrevenue.CurrencyType currency_type = 2;     // 币种
+  int64 amount = 3;                             // 数额
+  pbrevenue.BusinessType business_type  = 4;    // 扣费业务类型 废除改成源于业务方
+  string business_type_text = 5;                // 扣费业务类型文案
+  DeductBalanceExtra extra = 6;                 // 消费扩展信息
+  string origin_business_type = 7;              // 业务类型
+  string app =8;                                // 服务
+  int64 uid =9;                                 // 用户uid
+  DeductBalanceStrategy strategy = 10;          // 扣款策略
+  bool ignore_frozen = 11;                      // 是否忽略账户被冻结
+  pbsadapter.DeductPriority priority = 12;      // 扣款顺序
+  string biz_context = 100;                     // 透传的业务上下文, 中台不关心其结构与内容只是单纯在 MQ 处带回给业务.
+}
+
+message DeductBalanceExtra {
+  int64 to_uid = 1;//消费对象
+  string sub_business_type = 2; //子类型
+  string sub_business_type_text = 3; //子类型文案
+  int64 item_id = 4;  //商品或物品ID
+  string item_name = 5;//商品或物品名称
+  string icon = 6; //道具icon
+  int64 unit = 7; //数量或时长
+  int64 from_uid = 8;//送礼用户UID
+}
+
+message DeductBalanceRsp {
+  pbrevenue.Balance balance = 1;  //账号余额
+  int64 deduct_amount = 10;       // 扣除总数额
+  int64 deduct_free_amount = 11;  // 其中扣除的免费数额, 如果要计算扣除的付费数额则可以用: deduct_amount - deduct_free_amount
+  repeated DeductBalanceRsp subs = 12; // 第一顺序消费的货币余额不足时，接下来的顺序消费货币的扣款情况
+}
+
+// 免费标识
+enum FreeFlag {
+  FREE_FLAG_NONE = 0;   // 默认策略, 目前是认作免费的.
+  FREE_FLAG_FREE = 10;  // 免费的
+  FREE_FLAG_PAID = 20;  // 付费的
+}
+
+message IncreaseBalance {
+  pbrevenue.CurrencyType currency_type = 1; // 币种
+  int64 amount = 2;                         // 增加总额
+  string seq_id = 3;                        // 幂等ID
+  FreeFlag free_flag = 4;                   // 免费标识
+}
+
+message IncreaseBalanceReq {
+  string seq_id = 1;                            //客户端seq
+  repeated IncreaseBalance increase_balance= 2; //多币种增加
+  string origin_business_type = 3;              //业务类型
+  string business_type_text = 4;                //扣费业务类型文案
+  IncreaseBalanceExtra extra = 5;               //扩展信息
+  string app =6;                                //服务 
+  int64 uid =7;                                 //用户uid 
+  string biz_context = 100;                     // 透传的业务上下文, 中台不关心其结构与内容只是单纯在 MQ 处带回给业务.
+}
+
+message IncreaseBalanceExtra {
+  string sub_business_type = 1; //子类型
+  string sub_business_type_text = 2; //子类型文案
+  int64 item_id = 3;  //商品或物品ID
+  string item_name = 4;//商品或物品名称
+  string icon = 5; //道具icon
+  int64 unit = 6; //数量或时长
+  int64 from_uid = 7;//送礼用户UID
+
+  map<string,string> expand = 10; // 业务自定义扩展信息
+}
+
+message IncreaseBalanceRsp {
+  repeated pbrevenue.Balance balance = 1;  //账号余额
+}
+
+message GetUserBalanceReq {
+  int64 uid = 1;
+  string app = 2;
+  repeated pbrevenue.CurrencyType currency_types = 3;
+}
+
+message GetUserBalanceRsp {
+  repeated pbrevenue.Balance balances = 1;
+}
+
+message RefundBalanceReq {
+  string app =1; //服务
+  int64 uid =2; //用户uid
+  string seq_id = 3; //序列号
+  repeated RefundBalance refund_balance= 4;
+  string origin_business_type  = 5; //退款业务类型
+  string business_type_text = 6; //退款业务类型文案
+  RefundBalanceExtra extra = 7; //消费扩展信息
+}
+
+message RefundBalance {
+  pbrevenue.CurrencyType currency_type = 1;// 货币类型，需要跟扣款的一致，否则退款失败
+  int64 amount = 2;// 需要退款的数量，-1 为全部退款
+  string seq_id = 3;// 幂等id
+  string origin_seq_id = 4;// 要退款的订单id，即扣款时候的seq_id
+}
+
+message RefundBalanceExtra {
+  string sub_business_type = 1; //子类型
+  string sub_business_type_text = 2; //子类型文案
+}
+
+message RefundBalanceRsp {
+  repeated pbrevenue.Balance balance = 1;  //账号余额
+}
+
+enum BalanceOperateType {
+  BALANCE_OPERATE_TYPE_NONE  = 0;
+  BALANCE_OPERATE_TYPE_INCREASE = 1; //加
+  BALANCE_OPERATE_TYPE_DEDUCT = 2; //扣
+}
+
+message BatchOperateBalanceReq {
+  repeated OperateBalance operate_balances = 10;
+}
+
+message OperateBalance {
+  BalanceOperateType operate_type = 10;
+  IncreaseBalanceReq increase_balance = 11;// 增加类型传
+  DeductBalanceReq deduct_balance = 12; // 扣除类型传
+}
+
+message BatchOperateBalanceRsp {
+  repeated pbrevenue.Balance balance = 10;  //账号余额
+}
+
+// 保证金门槛
+message GuaranteeThreshold {
+  int64 uid = 1;
+  pbrevenue.CurrencyType currency_type = 2;
+  int64 threshold = 3;
+}
+
+message BatchSetGuaranteeThresholdReq {
+  repeated GuaranteeThreshold guarantee_thresholds = 10;
+}
+
+message BatchSetGuaranteeThresholdRsp {
+
+}
+
+message UserBalance {
+  int64 uid = 1;                            // UID
+  pbrevenue.CurrencyType currency_type = 2; // 币种
+  int64 amount = 3;                         // 余额
+  int64 free_amount = 4;                    // 其中包含的免费余额
+
+  int64 guarantee_amount = 10;              // 保证金总额
+  int64 guarantee_threshold = 11;           // 保证金门槛
+
+  bool frozen = 20;                         // 是否已冻结
+}
+
+message BatchGetUserBalanceReq {
+  string app = 10;                                      // 业务
+  repeated int64 uids = 11;                             // uid
+  repeated pbrevenue.CurrencyType currency_types = 12;  // 币种
+}
+
+message BatchGetUserBalanceRsp {
+  repeated UserBalance user_balances = 10;              // 调用方自行将其转换为 map 来使用.
+}
+
+// 扣除保证金
+message DeductGuaranteeAmountReq {
+  string seq_id = 1;
+  string app = 2;
+
+  int64 uid = 11;
+  pbrevenue.CurrencyType currency_type = 12;
+  int64 amount = 13;
+}
+
+message DeductGuaranteeAmountRsp {
+  UserBalance balance = 1;
+}
+
+message BatchGetWalletTransactionReq {
+  repeated string seq_ids = 10;
+}
+
+message BatchGetWalletTransactionRsp {
+  map<string, WalletTransaction> transaction_map = 10;
+}
+
+message WalletTransaction {
+  string seq_id = 1;                          // 交易记录唯一ID
+  int64 uid = 2;                              // 交易记录归属用户
+  pbrevenue.CurrencyType currency_type = 5;   // 交易币种
+  int64 amount = 6;                           // 交易金额
+  int64 transaction_time = 10;                // 交易时间
+}
+
+// BatchGetTransactionStatReq 批量获取交易统计信息
+message BatchGetTransactionStatReq {
+  repeated int64 ts_range = 10; // 必填 统计时间范围 unix-timestamp 精确到秒.范围区间不超过180天
+  pbrevenue.CurrencyType currency_type = 11; // 必传-货币类型
+  repeated int64 uids = 12; // uid列表
+  repeated string exclude_origin_business_type = 13; // 不包含的业务类型(把这部分类型的流水剔除)
+}
+
+message TransactionStatInfo {
+  int64 net_amount = 1; // 净额 = 收益金额 - 支出金额
+  int64 income_amount = 2; // 收入金额
+  int64 consume_amount = 3; // 支出金额
+}
+
+message BatchGetTransactionStatRsp {
+  map<int64, TransactionStatInfo> stat_map = 10;
+}

@@ -1,0 +1,274 @@
+syntax = "proto3";
+
+package pbrevenue;
+
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbrevenue";
+option java_package = "com.entertain.sns.pbrevenue";
+option swift_prefix = "CommRevenue";
+
+// 错误码
+enum ErrCode {
+  ERR_CODE_NONE = 0;
+
+  ERR_CODE_ILLEGAL_PARAMETER = 4001;  // 参数错误
+  ERR_CODE_ANM_NOT_EXIST = 4002;      // 参数错误-没有传 APP 字段
+  ERR_CODE_ANM_NOT_SUPPORT = 4003;    // 参数错误-APP字段不合法
+  ERR_CODE_SERVER_ERROR = 5001;       // 系统错误
+
+  ERR_CODE_GOODS_NOT_FOUND = 10004;             // 充值档位不存在
+  ERR_CODE_GOODS_CREATE_ORDER_FAIL = 10005;     // 创建充值订单失败
+  ERR_CODE_GOODS_PAY_APP_NOT_SUPPORT = 10006;   // APP 未配置
+  ERR_CODE_GOODS_PAY_TYPE_NOT_SUPPORT = 10007;  // 支付方式不支持
+  ERR_CODE_GOODS_PAY_ORDER_NOT_FOUND = 10008;   // 充值订单不存在
+  ERR_CODE_GOODS_MGR_SKU_IS_EMPTY = 11008;      // SKU 为空
+
+  ERR_CODE_GIFT_BLOCKED = 20001;                // 已将对方拉黑
+  ERR_CODE_GIFT_BE_BLOCKED = 20002;             // 已被对方拉黑
+  ERR_CODE_GIFT_TO_SELF = 20003;                // 送礼给自己
+  ERR_CODE_GIFT_REPEAT_OPERATION = 20004;       //重复操作
+  ERR_CODE_GIFT_GIFT_NOT_EXIST = 20005;         //礼物不存在
+  ERR_CODE_GIFT_RECEIVER_NOT_EXIST = 20006;     //收礼人不存在
+  ERR_CODE_GIFT_UNABLE_GET_USER_INFO = 20007;   //无法获取用户信息
+  ERR_CODE_GIFT_UNABLE_GET_SENDER_INFO = 20008; //无法获取送礼用户信息
+  ERR_CODE_GIFT_REPEATED_CLAIM = 20009;         // 重复领取
+  ERR_CODE_GIFT_EXPIRED_CLAIM = 20010;          // 领取时间已经过期
+
+  ERR_CODE_BALANCE_NOT_ENOUGH = 30001;          //账户余额不足(金币)
+  ERR_CODE_BALANCE_CRYSTAL_NOT_ENOUGH = 30002;  //账户水晶不足
+  ERR_CODE_BALANCE_DIAMOND_NOT_ENOUGH = 30003;  //账户钻石不足
+  ERR_CODE_BALANCE_COIN_NOT_ENOUGH = 30004;     //账户硬币不足
+
+  ERR_CODE_GOODS_BUY_ONCE = 31001;                //该商品已经购买过了（只能买一次）
+
+  ERR_CODE_EXCHANGE_QUANTITY_ERROR = 40001;       // 钻石兑换金币时, 输入数量比最低数量少
+  ERR_CODE_EXCHANGE_COIN_QUANTITY_ERROR = 40002;  // 经营货币兑换金币时, 输入数量比最低数量少
+}
+
+// 所有业务的币种统一放在这一个枚举中
+enum CurrencyType {
+  CURRENCY_TYPE_NONE = 0;
+  CURRENCY_TYPE_DOLLAR = 1;   // 虚拟美金
+  CURRENCY_TYPE_GOLD = 10;    // 金币
+  CURRENCY_TYPE_CRYSTAL = 11; // 水晶
+  CURRENCY_TYPE_DIAMOND = 12; // 钻石
+  CURRENCY_TYPE_COIN = 13; // 硬币，carne经营货币
+  CURRENCY_TYPE_GOLDEN_TICKET = 14; // 币商货币-金票
+  CURRENCY_TYPE_FREE_GOLD  = 15;  // 免费金币，tomeet蓝钻
+  // Darling 独有的两个币种, 用于给会长/主播发佣金
+  CURRENCY_TYPE_GUILD_DOLLAR_CENT = 20;   // 发给会长的美分
+  CURRENCY_TYPE_ANCHOR_DOLLAR_CENT = 21;  // 发给会长旗下主播的美分, 实际上也是挂在会长uid之下.
+}
+
+// 支付币种单位
+enum Unit {
+  USD = 0;  // 美金
+  UNIT_NONE = -1;      // 补充一个值来区分为空的情况，新的支付接口是在 pay，会另外单独定义一份，旧的接口在服务端做映射处理
+  IDR = 10; // 印尼盾
+  AED = 11; // 阿联酋
+  EGP = 12; // 埃及
+  SAR = 13; // 沙特阿拉伯
+  KWD = 14; // 科威特
+  JOD = 15; // 约旦
+  QAR = 16; // 卡塔尔
+  BHD = 17; // 巴林
+  OMR = 18; // 阿曼
+  INR = 19; // 印度
+  IQD = 20; // 伊拉克
+  TRY = 21; // 土耳其
+  PKR = 22; // 巴基斯坦
+  BDT = 23; // 孟加拉
+  BRL = 24; // 巴西
+  MXN = 25; // 墨西哥
+  CLP = 26; // 智利
+  AUD = 27; // 澳元
+  CAD = 28; // 加元
+  PEN = 29; // 秘鲁
+  MYR = 30; // 马来西亚
+  NGN = 31; // 尼日利亚
+}
+
+enum GoodsType {
+  CURRENCY = 0;             // 虚拟币，原来的枚举值没定义好，不应该使用0
+  PACKAGE = 10;             // 组合包裹（奖励包）
+  GoodsType_NONE = -1;      // 补充一个值来区分为空的情况
+  GoodsType_VIP = 20;       // vip
+}
+
+// LimitType 限制购买类型
+enum GoodsLimitType {
+  GoodsLimitType_NONE = 0;     // 默认值，无意义
+  GoodsLimitType_ONCE = 10;    // 只能买一次（首充）
+}
+
+// GoodsGoodsStyle 商品显示样式定义
+message GoodsStyle {
+  map<string, string> dialog_svga = 1;   // 弹窗样式图片，多语言
+  map<string, string> btn_svga = 2;      // 按钮图片，多语言
+}
+
+// 支付状态
+enum PayStatus {
+  NONE = 0;     // 未支付
+  UNPAID = 10;  // UNPAID:等待支付
+  PAID = 20;    // PAID:支付成功
+  FAIL = 30;    // FAIL:支付失败
+  REFUND = 100; // REFUND 已退款
+}
+
+// 退款状态
+enum RefundStatus {
+  REFUND_NONE = 0;    // 未退款
+  REFUND_REFUNDING = 10; // 退款中
+  REFUND_DONE = 20;   // 退款成功
+  REFUND_FAIL = 30;   // 退款失败
+}
+
+// 用户认证信息
+message UserAuthInfo {
+  string icon = 1;        // icon地址
+  string content = 2;     // 认证内容
+  string text_color = 3;  // 字体颜色
+  string bg_color = 4;    // 背景颜色
+}
+
+// 用户信息
+message UserInfo {
+  int64 uid = 1;
+  string show_uid = 2;
+  string nickname = 3;
+  string avatar = 4;
+  UserAuthInfo auth_info = 5;
+  string medal_icon = 6;
+  bytes  biz_info = 7; //用户信息业务透传(各自业务端用户信息pb解析)
+}
+
+message Balance {
+  CurrencyType currency_type = 1; // 币种
+  int64 amount = 2;               // 余额
+  string detail_url = 3;          // 流水记录URL
+  int64 guarantee_amount = 4;     // 保证金总额
+  int64 guarantee_threshold = 5;  // 保证金门槛
+  bool frozen = 6;                // 是否已冻结
+}
+
+// 商品订单信息
+message GoodsOrderInfo {
+  string order_no = 1;       // 充值订单订单号
+  string pay_order_id = 2;   // 支付中台订单ID
+  string plat_order_id = 3;  // 支付平台供应商订单
+  string refund_id = 4;      // 退款单ID
+  int64  uid = 5;            // 充值到账用户ID
+  string mid = 6 ;           // 支付mid
+  int64  goods_id = 7;       // 商品ID
+  int32  num = 8;            // 购买数量
+  string sku = 9;            // 支付平台配置的sk
+  int64  pay_amount = 10;     // 支付金额：分（美分）
+  string unit = 11;           // 货币单位：USD
+  CurrencyType currency_type = 12; // 获得金额货币类型
+  int64  amount = 13;         // 或的虚拟币金额
+  string pay_type = 14;       // 支付方式
+  string client_type = 15;    // 客户端类型
+  string client_version = 16; // 客户端版本
+  string did = 17;            // 设备标识
+  string channel_id = 18;     // 支付渠道ID
+  PayStatus status = 19;         // 支付状态
+  int64  pay_time = 21;       // 支付时间
+  RefundStatus refund_status = 20;  // 退款状态
+  int64  refund_time = 22;          // 退款时间
+  string goods_name = 23;           // 购买商品名称
+  int64 fuid = 24;                  // 发起充值的用户ID
+  string pay_amount_dollar = 25;   // pay_amount换算成元单位
+  int64 ctime = 26;                 // 创建订单时间
+  GoodsType goods_type = 27;        // 购买商品类型
+  PackageItem package_item = 28;    // 礼包详情
+  string pkg = 29; // 客户端包名
+  string location = 30; // 第三方支付参数，国家编码
+  bool sandbox = 31;    // 是否是沙盒支付
+}
+
+message GoodsInfo {
+  // deprecated 注意！！这个goods_id不是对应oms里的，而是映射到商品的某个具体支付方式的item_id
+  int64 goods_id = 1; // 商品ID
+  GoodsType goods_type = 2; // 商品类型，如：虚拟币，包裹
+  string sku_id = 3; // 支付渠道定义的 sku_id
+  string name = 4; // 商品名称
+  string desc = 5; // 商品描述
+  string images = 6; // 商品图片
+  string tag_images = 7; // 标签图片
+  string tag_text = 8; // 标签
+  int64 price = 9; // 支付金额（分，美元就是美分）
+  Unit unit = 10; // 支付金额单位，如：美元（USD），印尼盾(IDR)...
+  int64 amount = 11; // 获得金额
+  CurrencyType currency_type = 12; // 获得金额货币类型
+  int64 num = 13; // 购买数量，不能小于1
+  int64 additional_num = 14; // 额外福利数量
+  string ext = 15; // 扩展信息，创建订单时原样带回
+  string price_dollar = 25;   // price换算成元单位
+  map<string, string> name_lang = 26; // 商品名称，多语言
+  map<string, string> desc_lang = 27; // 商品描述，多语言
+  map<string, string> tag_lang = 28;  // 标签，多语言
+  int32 discount_rate = 29;        // 折扣百分比，只会大于0，eg: 10 即 10%，即1折，等于0为无折扣，而不是0%
+  string package_id = 30;          // 奖励包ID
+  GoodsLimitType limit_type = 31; // 限制购买类型
+  GoodsStyle style = 32;     // 显示样式，不同场景需要的样式不同
+  map<string, StringList> param_filter = 33;  // 过滤参数配置，多个参数是与的关系
+  int64 product_id = 34; // 商品ID，对应oms的goods_id
+}
+
+enum BusinessType {
+  BUSINESS_TYPE_NONE = 0;
+  BUSINESS_TYPE_SEND_GIFT = 1; // 送礼
+  BUSINESS_TYPE_HEADWEAR = 2; // 头像
+  BUSINESS_TYPE_VEHICLE = 3; // 座驾
+  BUSINESS_TYPE_SPONSTOR_CARNI = 4; // 嘉年华
+  BUSINESS_TYPE_RECEIVE_GIFT = 5; // 收礼
+  BUSINESS_TYPE_RECEIVE_EXCHANGE = 7; // 交换
+  BUSINESS_TYPE_TRANSFER = 8; // 转账
+}
+
+enum ClientType {
+  CLIENT_TYPE_NONE = 0;
+  CLIENT_TYPE_ANDROID = 1; // Android
+  CLIENT_TYPE_IOS = 2; // IOS
+  CLIENT_TYPE_WEB = 3; // Web
+}
+
+// 奖励包信息
+message PackageItem {
+  string item_id = 1; // 奖励配置项ID, 为了通用这里采用字符串形式, 例如礼物ID, 头像框ID, 房间背景ID, ...
+  string item_name = 2; // 奖励配置项名称, 例如: 礼物的名称 / 头像框的名称. 这是缺省名称, 如果 oms 需要国际化显示则需要提供 i18n_category_name 字段.
+  map<string, string> i18n_item_name = 3; // 国家化的奖励配置项名称, key 的取值有 zh / en / ar / tr ...
+  string item_icon = 4; // 奖励配置项图标, 例如: 礼物的图标 / 头像框的图标. 这是缺省图标, 如果 oms 需要国际化显示则需要提供 i18n_category_icon 字段.
+  map<string, string> i18n_item_icon = 5; // 国家化的奖励配置项图标, key 的取值有 zh / en / ar / tr ...
+  string item_animation = 6; // 奖励配置项动画资源
+  string expand = 20; // 拓展信息, 应当设计成一个 JSON 便于后续拓展.
+}
+
+message StringList {
+  repeated string values = 1;
+}
+
+
+// 礼物的业务拓展信息 JSON 字符串, 对应 biz_ext 字段，每个业务都有自己的结构体，例如: GiftBizExtDarling
+
+// darling 的业务拓展信息
+message GiftBizExtDarling {
+  int64 pk_points = 1; // PK 积分.
+  WishGiftType wish_gift_type = 2; // 是否为心愿礼物
+}
+
+// 是否为心愿礼物
+enum WishGiftType {
+  WISH_GIFT_TYPE_NONE = 0; // 未知
+  WISH_GIFT_TYPE_NO = 1; // 不是心愿礼物
+  WISH_GIFT_TYPE_YES = 2; // 是心愿礼物
+}
+
+
+// 跳转方式
+enum JumpType {
+  JUMP_TYPE_NONE = 0;       // 无意义
+  JUMP_TYPE_H5 = 10;        // h5
+  JUMP_TYPE_ROOM = 20;      // 房间
+  JUMP_TYPE_DEEPLINK = 30;  // 路由
+}

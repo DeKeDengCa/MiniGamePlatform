@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package pbsaccount;
+
+import "protobuf/api/account/user.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsaccount";
+
+// smicro:spath=gitit.cc/social/components-service/social-account/handler-svr/usersvr
+service UserSvr {
+
+  // 批量查询用户信息
+  rpc BatchGetUserInfo(BatchGetUserInfoReq) returns (BatchGetUserInfoRsp);
+
+  // 修改用户信息
+  rpc ModifyUserInfo(ModifyUserInfoReq) returns (ModifyUserInfoRsp);
+ 
+  // 查询用户列表
+  rpc ListUsers(ListUsersReq) returns (ListUsersRsp);
+
+  // 获取全部默认头像
+  rpc GetDefaultAvatars(GetDefaultAvatarsReq) returns (GetDefaultAvatarsRsp);
+}
+
+message BatchGetUserInfoReq {
+  repeated int64 uids = 10;       // 用户id, 同时有值时, 此字段生效.
+  repeated string show_uids = 11; // 用户show-uid, 同时有值时, 此字段忽略.
+}
+
+message BatchGetUserInfoRsp {
+  repeated pbaccount.UserInfo user_infos = 10; // 用户信息
+}
+
+message ModifyUserInfoReq {
+  pbaccount.UserInfo user_info = 10;
+}
+
+message ModifyUserInfoRsp {
+}
+
+message Version {
+  double min = 1;
+  double max = 2;
+}
+
+message ListUsersReq {
+  int64 min_uid = 1; // 最小uid
+  int64 max_uid = 2; // 最大uid
+  int64 limit = 3;
+
+  Version app = 10; // app版本选择
+  Version ios = 11; // ios版本选择
+  Version android = 12; // android版本选择
+}
+
+message ListUsersRsp {
+  repeated pbaccount.UserInfo user_infos = 10; // 用户信息
+}
+
+message GetDefaultAvatarsReq {
+}
+
+message GetDefaultAvatarsRsp {
+  repeated string default_avatars = 10; // 默认头像
+}

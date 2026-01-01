@@ -1,0 +1,56 @@
+// smicro:spath=gitit.cc/social/components-service/social-offical/handler-mgr/oaccount
+syntax = "proto3";
+
+package comm.mgr.offical;
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/offical/pbmoaccount";
+option java_package = "com.offical.oaccount.proto";
+
+message User {
+  string email = 1; // 邮箱
+  string nickName = 2;  // 昵称
+  string userCode = 3;  // 员工代号
+}
+
+// 错误码
+enum AccountErrCode {
+  ACCOUNT_ERR_CODE_NONE = 0;
+
+  ACCOUNT_ERR_CODE_USER_ALREADY_BINDED = 100000;   // 用户已经绑定了员工代号
+  ACCOUNT_ERR_CODE_CODE_ALREADY_BINDED = 100001;   // 员工代号已经被绑定了
+}
+
+// OAccount 内部账号管理
+// serviceName: social.offical
+service OAccount {
+  // 绑定员工代号
+  rpc BindUserCode(BindUserCodeReq) returns (BindUserCodeRsp);
+
+  // 查询自己绑定的员工代号
+  rpc QueryBindUserCode(QueryBindUserCodeReq) returns (QueryBindUserCodeRsp);
+
+  // 根据员工代号查询绑定的email
+  rpc QueryBindEmail(QueryBindEmailReq) returns (QueryBindEmailRsp);
+}
+
+message BindUserCodeReq {
+  string userCode = 1;   // 申请绑定的员工代号
+}
+message BindUserCodeRsp {
+}
+
+message QueryBindUserCodeReq {
+}
+message QueryBindUserCodeRsp {
+  string userCode = 1;  // 员工代号,返回空表示未绑定
+}
+
+message QueryBindEmailReq {
+  string userCode = 1;  // 员工代号
+}
+message QueryBindEmailRsp {
+  string email = 1;     // 邮箱,返回空表示未绑定
+  string nickName = 2;  // 昵称
+  string userCode = 3;  // 员工代号
+  int64 createdAt = 4;  // 绑定时间
+}

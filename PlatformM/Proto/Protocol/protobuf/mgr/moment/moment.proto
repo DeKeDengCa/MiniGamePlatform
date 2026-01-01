@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package comm.mgr.moment;
+
+option java_package = "com.entertain.sns.comm.mgr.moment";
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmmoment";
+
+import "protobuf/api/moment/moment-api.proto";
+import "protobuf/api/moment/moment-comm.proto";
+
+// 动态
+message Moment {
+  comm.api.moment.Moment base_info = 1;       // C端可见信息
+  comm.api.moment.MomentStats real_stats = 2; // 真实统计数据
+}
+
+// 评论
+message Comment {
+  comm.api.moment.Comment base_info = 1;        // C端可见信息
+  comm.api.moment.CommentStats real_stats = 2;  // 真实统计数据
+}
+
+// 发布动态的草稿
+message MomentDraft {
+  comm.api.moment.MomentDraft draft = 1;  // C端的结构，是必须的
+  int64 published_at = 2;                 // 发布时间
+  map<string, string> attribute = 62;     // 自定义属性, 因为这块会被中台服务端和 OMS 端读取, 所以定义成 map<string, string> 结构便于使用.
+}

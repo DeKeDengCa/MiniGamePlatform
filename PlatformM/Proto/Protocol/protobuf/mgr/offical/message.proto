@@ -1,0 +1,40 @@
+// smicro:spath=gitit.cc/social/components-service/social-offical/handler-mgr/dingtalkmessage
+syntax = "proto3";
+
+package comm.mgr.offical;
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/offical/pbmmessage";
+option java_package = "com.offical.messagemgr.proto";
+
+// 错误码
+enum MessageErrCode {
+  MESSAGE_ERR_CODE_NONE = 0;
+
+  MESSAGE_ERR_CODE_MOBILE_INVALID = 100000;// 手机号码无效
+  MESSAGE_ERR_CODE_MOBILE_NOT_MATCH_USER = 100001;// 手机号码没有匹配到用户
+  MESSAGE_ERR_CODE_MESSAGE_SEND_FAIL = 100002;// 发送消息失败
+}
+
+// DingtalkMessage 钉钉消息
+service DingtalkMessage {
+  // 发送消息
+  rpc SendMessageByMobile(SendMessageByMobileReq) returns (SendMessageByMobileRsp);
+
+  // 获取最新的验证码
+  rpc GetLatestVerifyCode(GetLatestVerifyCodeReq) returns (GetLatestVerifyCodeRsp);
+}
+
+message SendMessageByMobileReq {
+  string mobile = 1;// 手机号码
+  string msgText = 2;// 消息
+}
+message SendMessageByMobileRsp {
+}
+
+message GetLatestVerifyCodeReq {
+  string mobile = 1;  // 手机号码
+}
+
+message GetLatestVerifyCodeRsp {
+  string verify_code = 1; // 验证码
+}

@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package pbguild;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsguildold";
+
+// 公会/主播系统回调业务的接口
+service GuildCallback {
+  // 通用的操作预检查
+  rpc PreCheck(PreCheckReq) returns (PreCheckRsp) {}
+
+  // 是否可申请成为主播
+  rpc CanApply(CanApplyReq) returns (CanApplyRsp) {}
+}
+
+// 预检查类型
+enum PreCheckType {
+  PRE_CHECK_TYPE_NONE = 0;          // 无意义
+  PRE_CHECK_TYPE_BECOME_OWNER = 1;  // 成为公会长
+  PRE_CHECK_TYPE_BECOME_ANCHOR = 2; // 能否成为主播
+  PRE_CHECK_TYPE_BECOME_BROKER = 3; // 成为经纪人
+}
+
+// 预检查请求
+message PreCheckReq {
+  PreCheckType type = 1;    // 预检查类型
+  repeated int64 uids = 2;  // 用户UID
+  int64 guild_id = 3;       // 公会ID
+  int64 owner_uid = 4;      // 公会长UID
+  string lan = 5;           // 语言: zh / en / ar ...
+}
+
+// 预检查结果
+message PreCheckResult {
+  int64 uid = 1;      // 用户UID
+  bool pass = 2;      // 是否检查通过
+  string reason = 3;  // 不通过的理由, 需要根据请求的语言字段进行选择对应文案.
+}
+
+// 预检查响应
+message PreCheckRsp {
+  repeated PreCheckResult results = 1; // 检查结果
+}
+
+// 可申请成为主播请求
+message CanApplyReq {
+  int64 uid = 1;  // 用户UID
+  string lan = 2; // 语言: zh / en / ar ...
+}
+
+// 可申请成为主播响应
+message CanApplyRsp {
+  bool can = 1;                   // 是否可以
+  repeated int64 owner_uids = 2;  // 可申请进入的公会的会长UID列表
+  string reason = 3;              // 不可以的理由, 需要根据请求的语言字段进行选择对应文案.
+}

@@ -1,0 +1,146 @@
+syntax = "proto3";
+
+package comm.svr.guild;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/svr/guild/common.proto";
+import "protobuf/svr/guild/info.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsguild";
+option java_package = "com.guild.biz.anchor";
+
+service SocialGuildAnchor {
+  // 多参数分页查询主播信息
+  // Deprecated, 由于多参数且分页查询带来的查询复杂度和难以缓存问题, 请根据情况使用下面的三个查询接口.
+  rpc ListAnchor(ListAnchorReq) returns (ListAnchorRsp) {}
+  // 根据用户UID批量查询主播信息, 结果非实时, 存在短时间缓存.
+  rpc ListAnchorByUids(ListAnchorByUidsReq) returns (ListAnchorByUidsRsp) {}
+  // 查询经纪人旗下的所有主播信息, 结果非实时, 存在短时间缓存.
+  rpc ListAnchorByBrokerUid(ListAnchorByBrokerUidReq) returns (ListAnchorByBrokerUidRsp) {}
+  // 查询公会旗下的所有主播信息, 结果非实时, 存在短时间缓存.
+  rpc ListAnchorByGuildID(ListAnchorByGuildIdReq) returns (ListAnchorByGuildIdRsp) {}
+  // 删除会长旗下的主播
+  rpc RemoveAnchorByUids(RemoveAnchorByUidsReq) returns (RemoveAnchorByUidsRsp) {}
+}
+
+// 主播标签
+message AnchorTag {
+  int64 tag_id = 1; // 标签ID
+  string tag_name = 2; // 标签名称
+}
+
+// 主播来源
+enum AnchorSource {
+  ANCHOR_SOURCE_NONE = 0;  // 无意义
+  ANCHOR_SOURCE_ADMIN = 1; // 运营添加
+  ANCHOR_SOURCE_GUILD = 2; // 公会添加
+}
+
+// 主播审核状态
+enum AnchorAuditStatus {
+  ANCHOR_AUDIT_STATUS_NONE = 0;     // 无意义
+  ANCHOR_AUDIT_STATUS_AUDITING = 1; // 审核中
+  ANCHOR_AUDIT_STATUS_APPROVED = 2; // 已通过
+  ANCHOR_AUDIT_STATUS_REJECTED = 3; // 已拒绝
+}
+
+// 主播签约状态
+enum AnchorSignStatus {
+  ANCHOR_SIGN_STATUS_NONE = 0;          // 无意义
+  ANCHOR_SIGN_STATUS_UNSIGNED = 1;      // 未签约
+  ANCHOR_SIGN_STATUS_ACCEPTED = 2;      // 已签约
+  ANCHOR_SIGN_STATUS_DECLINED = 3;      // 已拒绝
+  ANCHOR_SIGN_STATUS_AUTO_DECLINED = 4; // 已自动拒绝
+}
+
+// 主播角色
+enum AnchorRole {
+  ANCHOR_ROLE_NONE = 0; // 无意义
+  ANCHOR_ROLE_ANCHOR = 1; // 普通主播
+  ANCHOR_ROLE_BROKER = 2; // 经纪人
+}
+
+// 主播信息
+message Anchor {
+  int64 id = 1; // 主播ID
+  int64 uid = 2; // 主播UID
+  int64 guild_id = 3; // 公会ID
+  int64 migrated_at = 4; // 上次转公会时间
+  repeated AnchorTag tags = 5; // 主播标签列表
+  string name = 6; // 主播姓名
+  Country country = 7; // 主播国家
+  string whatsapp = 8; // 主播 whatsapp
+  string mobile = 9; // 主播手机号
+  string email = 10; // 主播邮箱
+  repeated string id_cards = 11; // 主播身份证照片
+  AnchorRole role = 12; // 主播角色
+  int64 broker_uid = 13; // 所属经纪人UID
+  AnchorSource source = 14; // 主播来源
+  AnchorAuditStatus audit_status = 15; // 审核状态
+  int64 audited_at = 16; // 审核时间
+  AnchorSignStatus sign_status = 17; // 签约状态
+  int64 signed_at = 18; // 签约时间
+  bool show_entrance = 19; // 可进入主播公会系统
+  bool valid = 20; // 是否为有效主播
+  int64 created_at = 21; // 创建时间
+  int64 updated_at = 22; // 更新时间
+  Guild guild = 30; // 公会信息, 需要请求参数 include_guild_info == true 才返回.
+}
+
+message ListAnchorReq {
+  scommon.Page page = 1;           // 分页参数
+  repeated int64 uids = 10;        // 主播UID
+  repeated int64 guild_ids = 11;   // 公会ID
+  repeated int64 broker_uids = 12; // 经纪人UID
+}
+
+message ListAnchorRsp {
+  scommon.Page page = 1;         // 分页参数
+  repeated Anchor anchors = 10;  // 主播列表
+}
+
+message ListAnchorByUidsReq {
+  repeated int64 uids = 10;        // 主播UID
+  bool include_guild_info = 11;    // 同时查询公会信息
+}
+
+message ListAnchorByUidsRsp {
+  repeated Anchor anchors = 10;  // 主播列表
+}
+
+message ListAnchorByBrokerUidReq {
+  int64 broker_uid = 10; // 经纪人UID
+  bool include_guild_info = 11;    // 同时查询公会信息
+}
+
+message ListAnchorByBrokerUidRsp {
+  repeated Anchor anchors = 10;  // 主播列表
+}
+
+message ListAnchorByGuildIdReq {
+  int64 guild_id = 10;   // 公会ID
+  bool include_guild_info = 11;    // 同时查询公会信息
+}
+
+message ListAnchorByGuildIdRsp {
+  repeated Anchor anchors = 10;  // 主播列表
+}
+
+message RemoveAnchorByUidsReq {
+  int64 owner_uid = 10;            // 会长UID, 为了避免错误地把主播从别的公会删除了, 所以要求业务把他的会长UID也带上.
+  repeated int64 anchor_uids = 11; // 主播UID
+  string reason = 12;              // 删除原因
+  bool need_audit = 13;            // 是否需要审批
+}
+
+// 删除主播结果
+message RemoveAnchorResult {
+  int64 anchor_uid = 1;       // 主播UID
+  bool success = 2;           // 是否成功, 对于需要审批的删除成功则表示生成了主播删除审批工单, 是否最终删除需等运营操作.
+  int32 error_code = 3;       // 错误码, 0: 成功, 1: 公会不存在 2: 主播不存在或不在此会长旗下, ...
+  string error_message = 4;   // 错误消息
+}
+
+message RemoveAnchorByUidsRsp {
+  map<int64, RemoveAnchorResult> results = 10; // 删除主播结果
+}

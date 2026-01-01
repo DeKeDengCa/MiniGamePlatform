@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package pbsrevenue;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsrevenue";
+option java_package = "com.revenue.biz.proto";
+
+
+// 缓存控制
+// 初衷是给业务控制要不要缓存，如果要缓存那么缓存多久
+// 中台自己随便设置缓存可能反向优化，徒增i/o
+message CacheCtrl {
+  // 默认false查缓存，true是不查缓存
+  bool nocache = 1;
+
+  // 调用场景，用于拼接key以针对不同场景设置不同的TTL，可传空
+  // 对于高频且时延高的接口，可能需要区分场景精细化控制TTL
+  // e.g. A场景容忍缓存10分钟，B场景只能容忍缓存1分钟
+  // 1. A和B调用频率都较为平稳，通常原则是取最小容忍度，即统一缓存1分钟，场景传空即可
+  // 2. B场景调用频率集中（例如每30分钟发起一个调用高峰），如果要充分利用缓存，那么可以A场景TTL=10min，B场景TTL=1min
+  string scene = 2;
+
+  // 缓存秒数
+  int64 seconds = 3;
+}
+
+// 通知方式
+enum NotifyMode {
+  NOTIFY_MODE_NONE = 0;       // 未指定，则按默认方式
+  NOTIFY_MODE_UNICAST = 1;    // 单播
+  NOTIFY_MODE_BROADCAST = 2;  // 广播
+}

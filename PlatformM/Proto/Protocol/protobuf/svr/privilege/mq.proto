@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package svr.privilege;
+
+import "protobuf/api/privilege/v2/privilege.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsprivilege";
+
+// 背包变化类型
+enum BagChangeType {
+  BAG_CHANGE_TYPE_NONE = 0;           // 无意义
+  BAG_CHANGE_TYPE_ADD = 10;           // 获得背包资源或者已经获得过, 此次延长时间或增加数量.
+  BAG_CHANGE_TYPE_USE = 20;           // 使用或穿戴背包资源.
+  BAG_CHANGE_TYPE_DISUSE = 30;        // 解除穿戴背包资源.
+  BAG_CHANGE_TYPE_USING_EXPIRE = 40;  // 穿戴中的背包资源由于过期而被解除穿戴.
+  BAG_CHANGE_TYPE_EXPIRE = 50;        // 背包资源过期, 无论是否佩戴.
+}
+
+// 背包变化细项, 主要是为了支持批量操作发生的变化.
+message BagChangeItem {
+  api.privilege.v2.TargetType target_type = 10;       // 归属类型
+  int64 target_id = 11;                               // 归属ID
+
+  api.privilege.v2.CategoryID category_id = 20;       // 特权分类
+  api.privilege.v2.CategoryID sub_category_id = 21;   // 特权子类
+  int64 resource_id = 22;                             // 特权资源ID
+  string show_id = 23;                                // 对于靓号这种资源类型的变化还会额外赋值此靓号号码字段.
+
+  int64 num = 30;                                     // 对于数量类型的特权分类才有意义, 例如: 获得的个数, 使用的个数
+  int64 pos = 31;                                     // 对于可以指定使用坑位的才有意义, 例如: 将勋章佩戴在第几个位置
+}
+
+// 背包变化消息
+// topic: social-privilege-bag-change-message-${anm}
+message BagChangeMessage {
+  int64 ts_ms = 1;                                    // 时间戳(毫秒)
+  string seq_id = 2;                                  // 幂等ID
+  string anm = 3;                                     // 业务名
+
+  BagChangeType change_type = 10;                     // 变化类型
+  repeated BagChangeItem change_items = 11;           // 变化细项
+}

@@ -1,0 +1,35 @@
+syntax="proto3";
+
+package app.config.gene.network;
+
+// options.proto 定义了一些options，options用于描述schema。必须import
+import "protobuf/api/sconfig/options.proto";
+
+// model.proto 会定义一些公共的配置。按需import
+// 比如 sconfig.model.Time 会生成一个时间选择框
+// sconfig.model.File 会生成一个文件上传按钮
+// import "common/sconfig/model.proto";
+
+option (sconfig.schema.biz_name)="网络配置";
+
+message Timeout {
+    option (sconfig.schema.cfg_name) = "超时配置";
+
+    string dial = 1 [(sconfig.schema.input) = {
+        name:"建连超时"
+    }];
+    int64 keepalive = 2 [(sconfig.schema.input) = {
+        name:"keepalive"
+    }];
+}
+
+message Version {
+    option (sconfig.schema.cfg_name) = "版本配置";
+
+    string okhttp = 1 [(sconfig.schema.input) = {
+        name:"okhttp版本"
+    }];
+    string http = 2 [(sconfig.schema.input) = {
+        name:"http版本"
+    }];
+}

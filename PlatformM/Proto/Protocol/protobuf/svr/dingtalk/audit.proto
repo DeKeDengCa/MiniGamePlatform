@@ -1,0 +1,123 @@
+syntax = "proto3";
+
+package pbsdingtalk;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsdingtalk";
+
+// 钉钉审批服务
+service Audit {
+  // 提交审批实例
+  rpc SubmitInstance(SubmitAuditInstanceReq) returns (SubmitAuditInstanceRsp) {}
+  // 更新审批实例
+  rpc UpdateInstance(UpdateAuditInstanceReq) returns (UpdateAuditInstanceRsp) {}
+  // 结束审批实例
+  rpc FinishInstance(FinishAuditInstanceReq) returns (FinishAuditInstanceRsp) {}
+}
+
+/*
+  卡片投放场域类型
+
+  场域类型      SpaceType         SpaceId               SpaceId含义
+  IM群聊        IM_GROUP          openConversationId    会话id
+  IM单聊酷应用   IM_SINGLE         openConversationId    会话id
+  IM机器人单聊   IM_ROBOT          userId/unionId        员工id
+  吊顶          ONE_BOX           openConversationId    会话id
+  协作          COOPERATON_FEED   userId/unionId        员工id
+  文档          DOC               docKey                文档key
+ */
+enum SpaceType {
+  SPACE_TYPE_NONE = 0;              // 无意义
+  SPACE_TYPE_IM_GROUP = 10;         // IM群聊
+  SPACE_TYPE_IM_SINGLE = 20;        // IM单聊酷应用
+  SPACE_TYPE_IM_ROBOT = 30;         // IM机器人单聊
+  SPACE_TYPE_ONE_BOX = 40;          // 吊顶
+  SPACE_TYPE_COOPERATON_FEED = 50; // 协作
+  SPACE_TYPE_DOC = 60;              // 文档
+}
+
+// 投放场域
+message Space {
+  SpaceType space_type = 1;       // 投放场域类型
+  repeated string space_ids = 2;  // 投放场域ID, 不同类型对应不同的ID, 具体参考 SpaceType 的注释.
+}
+
+// 提交审批实例请求
+message SubmitAuditInstanceReq {
+  string flow_key = 1;        // 审批流程标识
+  string card_key = 2;        // 卡片标识, 简单:markdown 表格:table 列表:list
+  string data = 3;            // 审批实例数据, 数据结构根据审核卡片而定, 是一个 JSON 字符串.
+  string context = 4;         // 审批实例上下文, 审批中台并不关心此参数, 只是再回调时透传回业务后端.
+  string remark = 5;          // 审批实例备注, 审批中台并不关心此参数, 方便管理员查看数据.
+  string role_data = 6;       // 角色私有数据, 可选, 用于控制审批权限.
+  repeated Space spaces = 7;  // 投放场域, 如果不传或为空数组则按照 flow_key 的配置进行投放, 否则忽略 flow_key 投放到指定的场域.
+}
+// 提交审批实例响应
+message SubmitAuditInstanceRsp {
+  string track_id = 1; // 审批实例跟踪ID, 更新审批实例和回调审批结果时带上.
+}
+
+// 更新审批实例请求
+message UpdateAuditInstanceReq {
+  string track_id = 1;  // 审批实例跟踪ID
+  string data = 2;      // 审批实例数据, 数据结构根据审核卡片而定, 是一个 JSON 字符串.
+  bool incremental = 3; // 是否增量更新, 部分审批卡片支持增量更新.
+  bool archive = 4;     // 是否将审批实例归档, 归档后审批实例无法再更新, 相当于结束审批实例.
+  string context = 5;   // 审批实例上下文, 审批中台并不关心此参数, 只是再回调时透传回业务后端.
+  string remark = 6;    // 审批实例备注, 审批中台并不关心此参数, 方便管理员查看数据.
+  string role_data = 7; // 角色私有数据, 可选, 用于控制审批权限.
+}
+// 更新审批实例响应
+message UpdateAuditInstanceRsp {
+}
+
+// 结束审批实例请求
+message FinishAuditInstanceReq {
+  string track_id = 1;  // 审批实例跟踪ID
+  string data = 2;      // 审批实例数据, 数据结构根据审核卡片而定, 是一个 JSON 字符串.
+  bool incremental = 3; // 是否增量更新, 部分审批卡片支持增量更新.
+  string context = 4;   // 审批实例上下文, 审批中台并不关心此参数, 只是再回调时透传回业务后端.
+  string remark = 5;    // 审批实例备注, 审批中台并不关心此参数, 方便管理员查看数据.
+  string role_data = 6; // 角色私有数据, 可选, 用于控制审批权限.
+}
+// 结束审批实例响应
+message FinishAuditInstanceRsp {
+}
+
+
+
+
+// 钉钉审批回调服务
+service AuditCallback {
+  // 钉钉审批回调
+  rpc OnCallback(AuditCallbackReq) returns (AuditCallbackRsp) {}
+}
+
+// 钉钉审批回调请求
+message AuditCallbackReq {
+  string track_id = 1;            // 审批实例跟踪ID
+  string context = 2;             // 审批实例上下文, 提交审批实例/更新审批实例接口传给审批中台的参数, 中台在回调时透传回来.
+  map<string, string> params = 3; // 审批参数, 不同的审批卡片的审批参数略有差异, 基本都会包含一个 action 字段, 取值范围为 ["approve", "reject"] 用于表示通过/拒绝
+  string user_id = 4;             // 操作审批的钉钉用户ID
+  string user_name = 5;           // 操作审批的钉钉用户姓名
+  string union_id = 6;            // 操作审批的钉钉用户UnionID
+}
+// 钉钉审批回调响应
+message AuditCallbackRsp {
+  int32 status = 1; // status == 1 表示处理成功
+  string msg = 2;   // 错误信息
+}
+
+
+service FlowSvr {
+  // 发送钉钉消息
+  rpc SendMessage(SendMessageReq) returns (SendMessageRsp);
+}
+
+message SendMessageReq {
+  string flow_key = 1;  // 钉钉群 flow_key，新增群需要增加配置
+  string msg_key = 2;   // 消息ID
+  map<string, string> msg_param = 3;  // key: title, msg
+  bool at_all = 4;     // 是否 @所有人
+}
+
+message SendMessageRsp {}

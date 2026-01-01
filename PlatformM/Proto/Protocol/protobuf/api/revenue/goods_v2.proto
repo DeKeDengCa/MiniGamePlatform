@@ -1,0 +1,58 @@
+
+syntax = "proto3";
+
+package api.pbgoods;
+
+import "protobuf/api/revenue/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbrevenue";
+option java_package = "com.entertain.sns.api.pbgoods";
+
+// 另外起一个文件，按新的协议规范定义，新的接口在这里定义
+// 旧的 revenue_goods.proto 保持原样了
+
+service GoodsV2 {
+
+  // 根据id查询商品信息
+  rpc GetGoodsById(GetGoodsInfoReq) returns (GetGoodsInfoRsp);
+
+  // 批量查询商品信息
+  rpc BatchGetGoodsByIds(BatchGetGoodsByIdsReq) returns (BatchGetGoodsByIdsRsp);
+
+  // 根据类型查询商品列表
+  rpc ListGoodsByType(ListGoodsByTypeReq) returns (ListGoodsByTypeRsp);
+
+}
+
+message GetGoodsInfoReq {
+  int64 goods_id = 1;                // 商品id
+}
+
+message GetGoodsInfoRsp {
+  pbrevenue.GoodsInfo goods_info = 1;           // 商品（SKU）列表
+  pbrevenue.PackageItem package_items = 2;       // 礼包信息
+}
+
+
+
+message BatchGetGoodsByIdsReq {
+  repeated int64 goods_ids = 1;
+}
+
+message BatchGetGoodsByIdsRsp {
+  map<int64, GoodsDetail> goods_map = 1;
+}
+
+message GoodsDetail {
+  pbrevenue.GoodsInfo goods_info = 1;           // 商品信息
+  pbrevenue.PackageItem package_items = 2;      // 非必须，商品对应礼包信息，非礼包类型不返回
+}
+
+message ListGoodsByTypeReq {
+  pbrevenue.GoodsType goods_type = 1;
+}
+
+message ListGoodsByTypeRsp {
+  repeated GoodsDetail goods_list = 1;        // 商品信息列表
+}
+

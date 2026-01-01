@@ -1,0 +1,62 @@
+// smicro:spath=gitit.cc/social/components-service/social-offical/handler-mgr/accounttypemgr
+syntax = "proto3";
+
+package comm.mgr.offical;
+
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/offical/pbmaccounttype";
+option java_package = "com.offical.accounttyp.proto";
+
+message AccountType {
+  int64 id = 1;//id
+  string app_name = 2;//app名称
+  int64 uid = 3;//用户Id
+  string email = 4;//邮箱
+  int32 account_type = 5;//账号类型(0:无,1:测试,2:运营,3:体验)
+}
+
+// 错误码
+enum AccountTypeErrCode {
+  ACCOUNT_TYPE_ERR_CODE_NONE = 0;
+}
+
+
+// 账号类型
+enum AccountTypeCode {
+  ACCOUNT_TYPE_NONE = 0;    // 无
+  ACCOUNT_TYPE_TEST = 1;    // 测试账号
+  ACCOUNT_TYPE_OPERATE = 2; // 运营账号
+  ACCOUNT_TYPE_EXP = 3;     // 体验账号
+}
+
+// AccountType 绑定账号管理
+// serviceName: social.offical
+service AccountTypeMgr {
+  // 查询 绑定账号
+  rpc ListAccountType(ListAccountTypeReq) returns (ListAccountTypeRsp);
+  // 添加 绑定账号
+  rpc AddAccountType(AddAccountTypeReq) returns (AddAccountTypeRsp);
+}
+
+message ListAccountTypeReq {
+  scommon.Page page = 1;
+  int64 id = 2;//id
+  string app_name = 3;//app名称
+  int64 uid = 4;//用户Id
+  string email = 5;//邮箱
+}
+message ListAccountTypeRsp {
+  scommon.Page page = 1;
+  repeated AccountType items = 2;
+}
+
+message AddAccountTypeReq {
+  string app_name = 1;//app名称
+  int64 uid = 2;//用户Id
+  //  string email = 3;//邮箱
+  AccountTypeCode account_type = 4;//账号类型(0:无,1:测试,2:运营,3:体验)
+}
+message AddAccountTypeRsp {
+  int64 id = 1;
+}

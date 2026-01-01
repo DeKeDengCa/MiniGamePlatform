@@ -1,0 +1,69 @@
+// smicro:spath=gitit.cc/social/components-service/social-privilege/biz/privilege/handler
+syntax = "proto3";
+
+package api.privilege.v2;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/revenue/common.proto";
+import "protobuf/api/privilege/v2/privilege.proto";
+
+option java_package = "com.entertain.sns.api.privilege.v2";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbprivilege";
+
+// 特权资源接口
+// ServiceName: privilege-api
+service MallApiV2 {
+  // 商城商品列表
+  rpc ListMallGoods(ListMallGoodsReq) returns (ListMallGoodsRsp);
+
+  // 购买商品
+  rpc BuyGoods(BuyGoodsReq) returns (BuyGoodsRsp);
+}
+
+message MallGoodsPrice {
+  int64 period_secs = 10; //商品周期-秒
+  string period_text = 11;  //商品周期展示 例如： 30 days
+  pbrevenue.CurrencyType currency_type = 12; //货币类型
+  int64 price = 13;  //原价
+  int64 discount_price = 14; //折扣价
+}
+
+// 商城商品
+message MallGoods {
+  int64 id = 1; //商品ID
+  MallGoodsPrice prices = 2; //商品价格列表
+  Resource resource = 3;
+
+}
+
+// 商城商品列表请求
+message ListMallGoodsReq {
+  scommon.Page page = 1;
+  CategoryID category_id = 10;      // 分类标识
+  CategoryID sub_category_id = 11;  // 二级分类标识
+}
+
+// 商城商品列表响应
+message ListMallGoodsRsp {
+  scommon.Page page = 1;
+  repeated MallGoods goods = 10; //商品列表
+}
+
+// 购买请求
+message BuyGoodsReq {
+  int64 goods_id = 1; //商品ID
+  int64 num = 2;  //购买数量
+  map<string, string> extra_context = 10; // 用于业务透传
+}
+
+// 购买响应
+message BuyGoodsRsp {
+}
+
+// 商品状态
+enum GoodsStatus {
+  GOODS_STATUS_NONE = 0;
+  GOODS_STATUS_ONSALE = 1;    // 上架
+  GOODS_STATUS_OFFSALE = 2;   // 下架
+  GOODS_STATUS_DELETED = 3;   // 已删除
+}

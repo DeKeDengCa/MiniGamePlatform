@@ -1,0 +1,109 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/vip/handlermgr
+syntax = "proto3";
+
+package mgr.astrorise.voiceroom;
+
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbvipmgr";
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/adapter/model.proto";
+
+// serviceName: gene-api
+service VIPMgr {
+  // 保存VIP配置
+  rpc SaveVIP(SaveVIPReq) returns (SaveVIPRsp);
+  // 删除VIP配置
+  rpc DeleteVIP(DeleteVIPReq) returns (DeleteVIPRsp);
+  // 获取VIP配置
+  rpc ListVIP(ListVIPReq) returns (ListVIPRsp);
+  // 查询VIP开通记录
+  rpc QueryVIPRecord(QueryVIPRecordReq) returns (QueryVIPRecordRsp);
+  // 发放VIP
+  rpc GrantVIP(GrantVIPReq) returns (GrantVIPRsp);
+}
+
+
+
+// 一次性VIP配置
+message VIPConfig {
+  int32 level = 1;                    // 等级
+  string name = 2;                    // 名称
+  string icon = 3;                    // 名称
+  int64 duration_sec = 5;             // 有效期，单位秒
+  int64 cost_gold = 10;               // 所需金币数量
+  string benefit_package_id = 11;     // 获得权益资源包ID
+}
+
+message SaveVIPReq {
+  int32 vip_level = 1;                // 0表示新增，否则表示修改
+  VIPConfig vip = 10;
+}
+
+message SaveVIPRsp {
+  VIPConfig vip = 10;
+}
+
+
+
+message DeleteVIPReq {
+  repeated int32 vip_levels = 1;      // 要删除的等级
+}
+
+message DeleteVIPRsp {
+}
+
+
+
+message ListVIPReq {
+}
+
+message ListVIPRsp {
+  repeated VIPConfig vips = 10;
+}
+
+
+
+// VIP开通记录
+message VIPRecord {
+  int64 uid = 1;                      // 用户ID
+  int32 first_vip_level = 2;          // 首次开通的VIP等级
+  int32 last_vip_level = 3;           // 最近开通的VIP等级
+  int64 first_start = 5;              // 首次开通时间戳，单位秒
+  int64 last_end = 6;                 // 最近开通的到期时间戳，单位秒
+  bool active = 10;                   // 当前VIP是否生效中
+  int64 cost_gold = 11;               // 总消耗金币
+  comm.api.adapter.UserInfo user_info = 50;   // 用户信息
+}
+
+message QueryVIPRecordReq {
+  scommon.Page page = 1;              // 分页
+  Filter filter = 10;                 // 筛选项
+
+  message Filter {
+    repeated int64 uids = 1;
+    repeated int32 vip_levels = 2;
+  }
+}
+
+message QueryVIPRecordRsp {
+  scommon.Page page = 1;
+  repeated VIPRecord records = 10;
+}
+
+
+
+// 发放VIP
+message GrantVIPInput {
+  int64 uid = 1;                      // 发放目标
+  int32 vip_level = 2;                // 发放等级
+  int64 duration_sec = 3;             // 发放天数
+  bool only_privilege = 10;           // 仅发放虚拟特权，不发放金币
+  comm.api.adapter.UserInfo user_info = 50;   // 用户信息
+}
+
+message GrantVIPReq {
+  repeated GrantVIPInput inputs = 1;
+}
+
+message GrantVIPRsp {
+}

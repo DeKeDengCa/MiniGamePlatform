@@ -1,0 +1,318 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/luckybag/handler/
+syntax = "proto3";
+
+package api.astrorise.voiceroom.luckybag;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/adapter/model.proto";
+import "protobuf/api/revenue/common.proto";
+
+option java_package="com.entertain.sns.api.gene.luckybag";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbluckybag";
+
+// 红包
+// serviceName: astrorise-voiceroom
+service LuckyBagApi {
+
+    // 获取红包设置
+    rpc GetSettings(GetSettingsReq) returns (GetSettingsRsp);
+
+    // 发红包
+    rpc Send(SendReq) returns (SendRsp);
+
+    // 抢红包
+    rpc Grab(GrabReq) returns (GrabRsp);
+
+    // 查看红包详情
+    rpc View(ViewReq) returns (ViewRsp);
+
+    // 获取有效的红包列表
+    rpc GetValid(GetValidReq) returns (GetValidRsp);
+
+    // 发红包记录
+    rpc ListSendHistory(ListSendHistoryReq) returns (ListSendHistoryRsp);
+
+    // 抢红包记录
+    rpc ListGrabHistory(ListGrabHistoryReq) returns (ListGrabHistoryRsp);
+
+    // 获取礼物包列表
+    rpc ListGiftPack(ListGiftPackReq) returns (ListGiftPackRsp);
+}
+
+// 红包种类
+enum LuckyBagKind {
+    LUCKY_BAG_TYPE_NONE = 0;
+    LUCKY_BAG_TYPE_GOLD = 10;               // 金币红包, pack_id 保留为空.
+    LUCKY_BAG_TYPE_GIFT = 20;               // 礼物红包, pack_id 放礼物包ID.
+}
+
+// 红包场景
+enum LuckyBagScene {
+    LUCKY_BAG_SCENE_NONE = 0;
+    LUCKY_BAG_SCENE_ROOM = 10;              // 房间红包, scene_id 放房间ID.
+    LUCKY_BAG_SCENE_WORLD = 20;             // 世界红包, scene_id 放房间ID.
+}
+
+// 快捷选项
+message Option {
+    string icon = 1;                        // 选项图标
+    int64 value = 2;                        // 选项值
+}
+// 红包设置
+message Settings {
+    int64 min_amount = 1;                   // 最小金额
+    int64 max_amount = 2;                   // 最大金额
+    repeated Option quick_amounts = 3;      // 快捷金额
+ 
+    int64 min_quantity = 10;                // 最小数量
+    int64 max_quantity = 11;                // 最大数量
+    repeated Option quick_quantities = 12;  // 快捷数量
+
+    repeated int64 countdown_secs_list = 20;                    // 倒计时列表
+    repeated GrabRequirementType grab_requirement_types = 21;   // 领取限制类型列表
+}
+message GetSettingsReq {
+    LuckyBagKind kind = 10;                 // 红包种类
+    LuckyBagScene scene = 20;               // 红包场景
+    string scene_id = 21;                   // 场景ID, 如果是房间场景则填房间ID.
+}
+message GetSettingsRsp {
+    Settings settings  = 10;                // 红包设置
+}
+
+// 红包状态
+enum LuckyBagState {
+    LUCKY_BAG_STATE_NONE = 0;
+    LUCKY_BAG_STATE_VALID = 10;             // 有效的(还可以领)
+    LUCKY_BAG_STATE_FINISHED = 20;          // 已领完(没得领了)
+    LUCKY_BAG_STATE_EXPIRED = 30;           // 已过期(不能领了)
+}
+// 红包
+message LuckyBag {
+    string lucky_bag_id = 1;                        // 红包ID
+    comm.api.adapter.UserInfo sender = 2;           // 发送人信息
+    LuckyBagKind kind = 10;                         // 红包种类
+    GiftPack gift_pack = 11;                        // 礼物包
+    LuckyBagScene scene = 20;                       // 红包场景
+    string scene_id = 21;                           // 场景ID, 如果是房间场景则是房间ID.
+    int64 amount = 30;                              // 红包金额
+    int64 grabbed_amount = 31;                      // 已领取金额
+    int64 quantity = 40;                            // 红包数量
+    int64 grabbed_quantity = 41;                    // 已领取数量
+    string blessing = 50;                           // 祝福语
+    LuckyBagState state = 60;                       // 红包状态
+    int64 sent_at = 80;                             // 发送时间(秒)
+    int64 finished_at = 81;                         // 领完时间(秒)
+    int64 expired_at = 82;                          // 过期时间(秒)
+    int64 countdown_secs = 90;                      // 开奖倒计时, 0 表示即刻开奖, 单位为秒.
+    bool allow_grab_in_advance = 91;                // 可提前领取
+    bool already_grab_in_advance = 92;              // 当前用户是否已提前领取, 注意: 这个属于该红包相对该用户的临时状态, 不属于红包本身的状态.
+    GrabRequirement grab_requirement = 100;         // 领取条件
+}
+
+// 领取条件类型
+enum GrabRequirementType {
+    GRAB_REQUIREMENT_TYPE_NONE = 0;
+    GRAB_REQUIREMENT_TYPE_USER_FOLLOWER  = 10;
+    GRAB_REQUIREMENT_TYPE_ROOM_FOLLOWER  = 20;
+    GRAB_REQUIREMENT_TYPE_FAMILY_MEMBER  = 30;
+}
+
+// 领取条件
+message GrabRequirement {
+    // 领取条件
+    oneof requirement {
+        GrabRequirementUserFollower user_follower = 10;
+        GrabRequirementRoomFollower room_follower = 20;
+        GrabRequirementFamilyMember family_member = 30;
+    }
+}
+
+// 用户关注人可领, user_id 赋值自己用户ID
+message GrabRequirementUserFollower {
+    int64 user_id = 1;
+}
+// 房间关注人可领, room_id 赋值当前房间ID
+message GrabRequirementRoomFollower {
+    int64 room_id = 1;
+}
+// 家族成员可领, family_id 赋值自己的家族ID
+message GrabRequirementFamilyMember {
+    int64 family_id = 1;
+    bool sender_family = 2;                         // 发送人所在的家族
+}
+
+message SendReq {
+    LuckyBagKind kind = 10;                         // 红包种类
+    string pack_id = 11;                            // 包裹ID, 仅礼物红包需要传值.
+    LuckyBagScene scene = 20;                       // 红包场景
+    string scene_id = 21;                           // 场景ID, 如果是房间场景则填房间ID.
+    int64 amount = 30;                              // 红包金额, 仅金币红包需要传值.
+    int64 quantity = 40;                            // 红包数量
+    string blessing = 50;                           // 祝福语
+    int64 countdown_secs = 60;                      // 开奖倒计时, 0 表示即刻开奖, 单位为秒.
+    bool allow_grab_in_advance = 61;                // 可提前领取
+    GrabRequirement grab_requirement = 70;          // 领取条件, 不传表示无限制.
+}
+message SendRsp {
+    LuckyBag lucky_bag = 10;                // 红包
+    int64 server_ts = 20;                   // 系统时间(秒)
+}
+enum SendErrCode {
+    SEND_ERR_CODE_NONE = 0;
+    SEND_ERR_CODE_ILLEGAL_AMOUNT = 10;      // 非法金额
+    SEND_ERR_CODE_ILLEGAL_QUANTITY = 20;    // 非法个数
+    SEND_ERR_CODE_INSUFFICIENT_BALANCE = 30;// 余额不足
+    SEND_ERR_CODE_LIMITATION_EXCEEDED = 40; // 超出限制
+}
+
+// 领取结果
+enum GrabResult {
+    GRAB_RESULT_NONE = 0;
+    GRAB_RESULT_SUCCESS = 10;               // 领取成功
+    GRAB_RESULT_PARTICIPATED = 11;          // 倒计时红包未开奖但允许提前领取时, 参与成功.
+    GRAB_RESULT_UNOPENED = 12;              // 倒计时红包未开奖且不支持提前领取, 参与失败.
+    GRAB_RESULT_FINISHED = 20;              // 红包被领完了(手慢了)
+    GRAB_RESULT_EXPIRED = 30;               // 红包已过期了
+    GRAB_RESULT_GRABBED = 40;               // 之前已领过了(重复领取,也可以认为是领取成功)
+}
+// 领取记录
+message GrabRecord {
+    int64 grab_record_id = 1;                   // 领取记录ID
+    string lucky_bag_id = 2;                    // 红包ID
+    comm.api.adapter.UserInfo grabber = 3;      // 领取人
+    comm.api.adapter.UserInfo sender = 4;       // 发送人
+    LuckyBagKind kind = 5;                      // 红包种类
+    LuckyBagScene scene = 6;                    // 领取场景
+    string scene_id = 7;                        // 领取场景ID 
+    LuckyBagScene send_scene = 8;               // 发送场景
+    string send_scene_id = 9;                   // 发送场景ID
+    int64 grab_amount = 10;                     // 领取金额
+    repeated GiftPackItem gift_pack_items = 11; // 领取到的礼物项
+    int64 grabbed_at = 20;                      // 领取时间
+    bool lucky_king = 30;                       // 手气王
+}
+message GrabReq {
+    string lucky_bag_id = 10;               // 红包ID
+    LuckyBagScene scene = 20;               // 领取场景
+    string scene_id = 21;                   // 场景ID, 如果是房间场景则填房间ID.
+}
+message GrabRsp {
+    GrabResult grab_result = 10;            // 领取结果
+    GrabRecord grab_record = 20;            // 领取记录
+}
+enum GrabErrCode {
+    GRAB_ERR_CODE_NONE = 0;
+    GRAB_ERR_CODE_LIMITATION_EXCEEDED = 10; // 超出限制
+    GRAB_ERR_CODE_UNQUALIFIED = 20;         // 无领取资格, 例如: 非家族成员.
+}
+
+message ViewReq {
+    string lucky_bag_id = 10;               // 红包ID
+}
+message ViewRsp {
+    LuckyBag lucky_bag = 10;                // 红包
+    repeated GrabRecord grab_records = 20;  // 领取记录
+    GrabRecord my_grab_record = 21;         // 我的领取记录(可能为空)
+}
+
+message GetValidReq {
+    LuckyBagScene scene = 10;               // 红包场景
+    string scene_id = 11;                   // 场景ID, 如果是房间场景则填房间ID.
+}
+message GetValidRsp {
+    repeated LuckyBag lucky_bags = 10;      // 有效的红包
+    int64 server_ts = 20;                   // 系统时间(秒)
+}
+
+message ListSendHistoryReq {
+    scommon.Page page = 1;                  // 分页参数
+    LuckyBagKind kind = 10;                 // 红包种类(不传表示不限制)
+    LuckyBagScene scene = 20;               // 红包场景(不传表示不限制)
+}
+message ListSendHistoryRsp {
+    scommon.Page page = 1;                  // 分页参数
+    int64 total_amount = 10;                // 总发送金额
+    int64 total_count = 11;                 // 总发送个数
+    repeated LuckyBag lucky_bags = 20;      // 红包列表
+}
+
+message ListGrabHistoryReq {
+    scommon.Page page = 1;                  // 分页参数
+    LuckyBagKind kind = 10;                 // 红包种类(不传表示不限制)
+    LuckyBagScene scene = 20;               // 红包场景(不传表示不限制)
+}
+message ListGrabHistoryRsp {
+    scommon.Page page = 1;                  // 分页参数
+    int64 total_amount = 10;                // 总领取金额
+    int64 total_count = 11;                 // 总领取个数
+    int64 lucky_kings = 20;                 // 手气王次数
+    repeated GrabRecord grab_records = 30;  // 领取记录列表
+}
+
+
+// 礼物包
+message GiftPack {
+    int64 pack_id = 1;                  // 礼物包ID
+    string pack_name = 2;               // 礼物包名称
+    int64 version = 3;                  // 版本号
+    repeated GiftPackItem items = 10;   // 礼物包明细项目列表
+    repeated Option options = 20;       // 礼物包快捷份数列表
+    int64 total_amount = 30;            // 总金额
+    int64 created_at = 40;              // 创建时间
+    string created_by = 41;             // 创建人
+    int64 updated_at = 50;              // 更新时间
+    string updated_by = 51;             // 更新人
+}
+
+// 礼物包明细项目
+message GiftPackItem {
+    int64 gift_id = 1;                          // 礼物ID
+    pbrevenue.CurrencyType currency_type = 2;   // 礼物币种
+    int64 gift_price = 3;                       // 礼物价格
+    string gift_name = 10;                      // 礼物名称
+    string gift_icon = 20;                      // 礼物图标
+    int64 gift_count = 30;                      // 礼物个数
+}
+
+message ListGiftPackReq {
+    scommon.Page page = 1;                  // 分页参数
+    LuckyBagScene scene = 20;               // 红包场景
+    string scene_id = 21;                   // 场景ID, 如果是房间场景则填房间ID.
+}
+
+message ListGiftPackRsp {
+    scommon.Page page = 1;                  // 分页参数
+    repeated GiftPack gift_packs = 10;      // 礼物包列表
+}
+
+// 红包信令
+message Notify {
+    NotifySend send = 10;                   // 红包发出信令
+    NotifyGrab grab = 20;                   // 红包领取信令
+    NotifyStateChange state_change = 30;    // 红包状态变化
+    NotifyOpen open = 40;                   // 倒计时红包开启
+}
+
+// 红包发出
+message NotifySend {
+    LuckyBag lucky_bag = 10;                // 红包
+    int64 server_ts = 20;                   // 系统时间(秒)
+}
+
+// 红包领取
+message NotifyGrab {
+    GrabRecord grab_record = 10;            // 领取记录
+    LuckyBagState lucky_bag_state = 30;     // 本次领取后红包的状态
+}
+
+// 红包状态变化
+message NotifyStateChange {
+    LuckyBag lucky_bag = 10;                // 红包
+    LuckyBagState lucky_bag_state = 20;     // 最新红包的状态
+}
+
+// 倒计时红包开启, 对于倒计时红包到点开奖时触发, 这是一个单播发给领到的用户.
+message NotifyOpen {
+    GrabRecord grab_record = 10;            // 领取记录
+}

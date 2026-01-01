@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package api.astrorise.feature.rank;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/adapter/model.proto";
+
+// smicro:spath=gitit.cc/social/astrorise/arplatform/s_features/biz/rank/handler
+option go_package = "gitit.cc/social/astrorise/arprotobuf/gencode/api/feature/pbrank";
+
+service Rank {
+  // 获取段位榜
+  rpc GetRankTierRank(GetRankTierRankReq) returns (GetRankTierRankRsp);
+  // 获取城市段位榜
+  rpc GetCityRankTierRank(GetCityRankTierRankReq) returns (GetCityRankTierRankRsp);
+}
+
+message RankTierItem {
+  comm.api.adapter.UserInfo base_user_info = 1;
+  int64 score = 2;
+  int32 rank = 3; // 排名
+}
+
+message GetRankTierRankReq {
+  scommon.Page page = 1;
+  int32 game_id = 2;
+}
+
+message GetRankTierRankRsp {
+  scommon.Page page = 1;
+  repeated RankTierItem items = 2;
+
+  RankTierItem self_item = 3;  // 自己排名情况
+}
+
+message GetCityRankTierRankReq {
+  scommon.Page page = 1;
+  string city_id = 2;  // 城市id
+  int32 game_id = 3;  // 游戏id
+}
+
+message CityRankTierItem {
+  string city_id = 1;  // 城市id
+  int32 num = 2;  // 人数
+  int32 rank = 3; // 排名
+}
+
+message GetCityRankTierRankRsp {
+  scommon.Page page = 1;
+  repeated CityRankTierItem items = 2;
+}

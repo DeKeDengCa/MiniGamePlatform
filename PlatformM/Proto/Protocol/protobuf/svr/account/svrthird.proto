@@ -1,0 +1,68 @@
+// smicro:spath=gitit.cc/social/components-service/social-account/handler-svr/svrthird
+syntax = "proto3";
+
+package pbsaccount;
+
+import "protobuf/api/account/account.proto";
+
+option go_package="gitit.cc/social/protobuf/gencode/svr/pbsaccount";
+
+// 第三方账号
+service ThirdSvr {
+  // 获取uid绑定的第三方openid
+  rpc GetOpenIDByUids(GetOpenIDByUidsReq) returns (GetOpenIDByUidsRsp) {}
+  // 获取uid当前登录信息
+  rpc GetCurrentLoginInfo(GetCurrentLoginInfoReq) returns (GetCurrentLoginInfoRsp) {}
+  // 查询did/ip关联的账号uid
+  rpc GetBindInfoByDidIP(GetBindInfoByDidIPReq) returns (GetBindInfoByDidIPRsp) {}
+}
+
+message GetOpenIDByUidsReq {
+  repeated int64 uids = 1 ; // uid列表
+}
+
+message GetOpenIDByUidsRsp {
+  map<int64, ThirdInfos> third_infos = 1; // 第三方账号绑定信息
+}
+
+message ThirdInfos {
+  repeated ThirdInfo infos = 1 ; // info
+}
+
+message ThirdInfo {
+  int64 uid = 1 ; // uid
+  string third_type = 2 ; // 类型
+  string third_openid = 3 ; // openid
+}
+
+message GetCurrentLoginInfoReq {
+  repeated int64 uids = 1 ; // uid列表
+}
+
+message GetCurrentLoginInfoRsp {
+  map<int64, CurrentLoginInfo> login_infos = 1 ; // 当前登录信息
+}
+
+message CurrentLoginInfo {
+  int64 uid = 1 ; // uid
+  .pbaccount.LoginType login_type = 2; // 登录类型
+  string login_identifier = 6; // 登录标识
+  string current_did = 3 ; // 当前登录did
+  string current_ip = 4 ; // 当前登录IP
+  string verc = 5; // 版本号
+}
+
+
+message GetBindInfoByDidIPReq {
+  int32 query_type = 1 ; // 1-查注册did关联，2-查注册IP关联，3-查登录did关联，4-查登录IP关联
+  repeated string dids = 2 ; // did列表
+  repeated string ips = 3 ; // ip列表
+}
+
+message GetBindInfoByDidIPRsp {
+  map<string, RelateAccountInfo> relate_accounts = 1; // 关联账号信息
+}
+
+message RelateAccountInfo {
+  repeated int64 uids = 1 ; // 关联的uid列表
+}

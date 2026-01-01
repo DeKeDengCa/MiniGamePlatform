@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package api.astrorise.social.channel;
+
+import "api/platform/common.proto";
+import "protobuf/api/adapter/model.proto";
+
+// smicro:spath=gitit.cc/social/astrorise/arplatform/s_social/biz/channel/handler
+option go_package = "gitit.cc/social/astrorise/arprotobuf/gencode/api/social/pbchannel";
+option java_package="com.entertain.sns.astrorise.social.channel";
+
+service ChannelService {
+  // 刷新rtc token
+  rpc RefreshRtcToken(RefreshRtcTokenReq) returns (RefreshRtcTokenRsp);
+
+  // 刷新rtm token
+  rpc RefreshRtmToken(RefreshRtmTokenReq) returns (RefreshRtmTokenRsp);
+}
+
+
+message RefreshRtcTokenReq {
+  int64 room_id = 1;// 房间ID
+}
+
+message RefreshRtcTokenRsp {
+  api.astrorise.platform.RtcToken token = 1;
+}
+
+message RefreshRtmTokenReq {
+  int64 room_id = 1;// 房间ID
+}
+
+message RefreshRtmTokenRsp {
+  api.astrorise.platform.RtmToken token = 1;
+}

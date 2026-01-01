@@ -1,0 +1,192 @@
+//  smicro:spath=gitit.cc/social/components-service/social-config/biz/config/handlermgr/
+syntax = "proto3";
+
+// social-config
+package comm.mgr.config;
+
+import "protobuf/mgr/config/common.proto";
+import "protobuf/api/common/common.proto";
+
+// option go_package="gitit.cc/social/components-service/social-config/proto/pbmconfig";
+option go_package="gitit.cc/social/protobuf/gencode/mgr/pbmconfig";
+
+service Config {
+  // 获取配置业务列表
+  rpc ListConfigBiz(ListConfigBizReq) returns (ListConfigBizRsp) {}
+
+  // 获取配置Schema(根据配置业务标识)
+  rpc GetConfigSchema(GetConfigSchemaReq) returns (GetConfigSchemaRsp) {}
+
+  // 获取生效中的配置值(根据配置业务标识 + 配置项标识)
+  rpc GetEffectiveConfigValue(GetEffectiveConfigValueReq) returns (GetEffectiveConfigValueRsp) {}
+
+  // 分页获取历史配置值(根据配置业务标识 + 配置项标识)
+  rpc PageHistoricalConfigValue(PageHistoricalConfigValueReq) returns (PageHistoricalConfigValueRsp) {}
+
+  // 提交配置值(目前提交即发布, 后续可能会增加发布环节)
+  rpc SubmitConfigValue(SubmitConfigValueReq) returns (SubmitConfigValueRsp) {}
+
+  // 注册配置Schema
+  rpc RegConfigSchema(RegConfigSchemaReq) returns (RegConfigSchemaRsp) {}
+
+  // 获取配置值列表(对于表格类型的)
+  rpc ListConfigValue(ListConfigValueReq) returns (ListConfigValueRsp) {}
+
+  // 删除配置值(对于表格类型的)
+  rpc DeleteConfigValue(DeleteConfigValueReq) returns (DeleteConfigValueRsp) {}
+
+  // 获取下拉列表
+  rpc GetSelector(GetSelectorReq) returns (GetSelectorRsp) {}
+}
+
+message ListConfigBizReq {
+  ConfigType type = 10;       // 配置类型
+  string process = 11;        // 进程名
+}
+
+message ListConfigBizRsp {
+  repeated ConfigBiz biz_list = 10; // 配置业务列表
+}
+
+
+message GetConfigSchemaReq {
+  string biz_key = 10; // 配置业务标识
+}
+
+message GetConfigSchemaRsp {
+  ConfigSchema schema = 10; // 配置Schema
+}
+
+
+message GetEffectiveConfigValueReq {
+  ConfigKey key = 10; // 配置标识
+}
+
+message GetEffectiveConfigValueRsp {
+  ConfigValue value = 10; // 配置值
+}
+
+
+message PageHistoricalConfigValueReq {
+  scommon.Page page = 1;  // 分页参数
+  ConfigKey key = 10;     // 配置标识
+}
+
+message PageHistoricalConfigValueRsp {
+  scommon.Page page = 1;            // 分页参数
+  repeated ConfigValue values = 10; // 配置值
+}
+
+
+enum SubmitStrategy {
+  SUBMIT_STRATEGY_NONE = 0;     // 不传默认是 SUBMIT_STRATEGY_UPSERT
+  SUBMIT_STRATEGY_CREATE = 10;  // 不存在则创建, 存在则失败.
+  SUBMIT_STRATEGY_UPSERT = 20;  // 不存在则创建, 存在则更新.
+}
+
+message SubmitConfigValueReq {
+  ConfigKey key = 10; // 配置标识
+  string value = 11;  // 配置值，不同的端不一样，后端、业务端是值的json格式，客户端是APPConfigItem的json
+  string remark = 12; // 备注
+  int64 version = 13; // 版本号
+  string schema = 14; // 配置的Schema
+  SubmitStrategy strategy = 15; // 提交策略
+}
+
+message SubmitConfigValueRsp {
+  bool success = 10;          // 是否提交成功
+  string msg = 11;            // 如果success=false，则提示错误信息
+}
+
+
+message RegConfigSchemaReq {
+  ConfigType type = 10;       // 配置类型
+  string process = 11;        // 进程名
+  string biz_key = 12;        // 配置业务标识
+  string biz_name = 13;       // 配置业务名称
+  string schema = 14;         // 配置Schema
+}
+
+message RegConfigSchemaRsp {
+}
+
+
+message ListConfigValueReq {
+  scommon.Page page = 1;  // 分页参数
+  string biz_key = 10;    // 配置业务标识
+  string item_key = 11;   // 配置项标识(模糊搜索)
+}
+
+message ListConfigValueRsp {
+  scommon.Page page = 1;            // 分页参数
+  repeated ConfigValue values = 10; // 配置值
+}
+
+
+message DeleteConfigValueReq {
+  repeated ConfigKey keys = 10;
+}
+
+message DeleteConfigValueRsp {
+
+}
+
+// 客户端配置项约束条件
+message APPConfigLimits {
+  repeated int64 os_list = 1; // 平台列表
+  repeated Range version_range = 2; // 版本范围
+  repeated string country_list = 3; // 国家列表
+  repeated Range abslot_range = 4; // 灰度范围
+  repeated string white_group = 5; // 白名单组
+  repeated string lan_list = 6; // 语言列表
+  repeated string rels = 7;     // 发布方式
+  repeated string pkgs = 8;     // 包名过滤
+
+  // 定义 Range
+  message Range {
+    int64 start = 1;
+    int64 end = 2;
+  }
+}
+
+// 每个value的配置项
+message APPConfigSubItem {
+  APPConfigLimits limits = 1;  // 约束项，没有就是默认项
+  string data = 2;             // 配置的数据，json格式
+  bool   disabled = 3;         // 是否开启这一个配置项
+}
+
+message APPConfigData {
+  bool no_auth = 1;     // 无需鉴权
+  repeated APPConfigSubItem sub_items = 10;
+}
+
+// AB测试实验
+message ABTestExperiment {
+  string name = 1;                                      // 实验名称
+  repeated string pkgs = 2;                             // 参与实验的包名, 空表示全部的包.
+  int32 experimental_percent = 3;                       // 实验组百分比
+  string hash_salt = 4;                                 // 分桶 Key
+  string remark = 5;                                    // 实验备注
+  repeated string experimental_white_list = 6;          // 实验组白名单
+  repeated string contrasted_white_list = 7;            // 对照组白名单
+  repeated PkgABTestExperiment pkg_experiments = 8;     // 指定包的特殊实验配置
+}
+
+// 指定包的特殊实验配置
+message PkgABTestExperiment {
+  string pkg = 1;                                       // 包名
+  string hash_salt = 2;                                 // 分桶 Key
+}
+
+
+message GetSelectorReq {
+  ConfigKey key = 10;         // 配置标识
+  string selector_rpc = 11;   // schema里面的ext.selector_rpc的值
+}
+
+message GetSelectorRsp {
+  // json字符串，格式为 [{"name":"a", "value":"b"}] 或 [{"name":"a", "value":1}]
+  // 注意里面的value字段可能是字符串或数值
+  string selector_opts = 10;
+}

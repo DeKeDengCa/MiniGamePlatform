@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package comm.api.platform.activation;
+
+import "protobuf/api/common/common-net.proto";
+
+option java_package="com.entertain.sns.comm.api.platform.activation";
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/attribution/handler
+option go_package = "gitit.cc/social/protobuf/gencode/api/platform/pbactivation";
+
+// app特征
+// serviceName: platform-api
+service Features {
+  // 提交特征
+  rpc SubmitFeatures(SubmitFeaturesReq) returns (SubmitFeaturesRsp);
+}
+
+// FeatureValues 这个信息有点多余，当时为了写测试加的，用这个信息直接替换公参信息。仅测试可用
+message FeatureValues {
+  // c端
+  string ver = 1;  // starhalo；版本号，分三段，主版本 | 次版本(两位) | 灰度版本(三位)，如：2.06.008
+  int64  verc = 2; // 递增的编译版本号
+  string did = 3;  // 设备ID
+  scommon.OSType os_type = 4;     // 系统类型
+  string os_ver = 5;      // 系统版本
+  string os_api_ver = 6;  // 系统API版本
+  string lan = 7;  // 语言，优先APP设置的语言，如果APP没有语言设置，用系统语言
+  string pkg = 8;  // 包名
+  string cou = 9;  // 当前的国家码，优先取sim卡的，没有则取系统的
+  scommon.Gender gender = 10; // 性别信息
+
+  // ip
+  string ip = 20;
+
+  // uid
+  int64 uid = 30;
+}
+
+message ClientInfo {
+  string mod = 1;                 // 手机型号，比如iPhone 14
+  string slan = 2;                // 系统语言，比如 en_US
+  string cha = 3;                 // 归因渠道号
+  string sub = 4;                 // 归因子渠道号
+  string time_zone = 5;           // 时区，比如 Asia/Shanghai
+  int32 isp = 6;                  // 移动网络代码(mcc+mnc)，比如46001
+  string net = 7;                 // 网络类型，比如4G/5G/WIFI/nonet
+  string install_source = 8;     // 安装来源,最大64
+
+  bool is_vpn = 50;             // 是否开启vpn
+  bool is_jailbroken = 51;      // 是否越狱
+
+  int32 battery_state = 100;    // 电池状态，取值0:unknown; 1:unplugged; 2:charging; 3:full
+  int32 battery_level = 101;    // 电量，取值(0, 100]
+  int64 disk_space_total = 102; // 磁盘总空间(单位字节)，比如 255866785792
+  int64 disk_space_free = 103;  // 磁盘剩余空间(单位字节)，比如 3712196608
+  int64 memory_total = 104;     // 内存总大小(单位字节)，比如 5910118400
+  int64 memory_free = 105;      // 内存剩余大小(单位字节)，比如 130252800
+  int64 system_uptime = 106;    // 系统启动时间(单位秒)，比如 2510019
+  int32 ui_style = 107;         // 系统用户界面风格，取值 0:unspecified; 1:light; 2:dark
+}
+
+// 3类特征都来自于cproxy：ip特征，c端特征，uid
+// ClientInfo：来自于客户端
+message SubmitFeaturesReq {
+  FeatureValues featrues = 10;                  // 仅用于测试
+  ClientInfo  client_info = 11;                 // 客户端补充属性
+}
+message SubmitFeaturesRsp {
+  int64 id = 10;
+  bool audit_toggle = 11;                       // 是否具备审核特征
+  string name = 12;                             // 特征集名
+  repeated string labels = 13;                  // 特征标签列表
+  map<string,string> attrs = 14;                // 特征map
+  bool  is_first_pub = 15;                       // 是否第一次发布
+  bool  is_intranet = 16;                       // 表示访问是否来自公司内网
+}

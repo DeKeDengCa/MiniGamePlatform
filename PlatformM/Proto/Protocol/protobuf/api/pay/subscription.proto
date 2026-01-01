@@ -1,0 +1,168 @@
+syntax = "proto3";
+
+package pbsubscription;
+
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbsubscription";
+option java_package = "com.entertain.sns.pbsubscription";
+
+import "protobuf/api/pay/common.proto";
+
+// smicro:spath=gitit.cc/social/components-service/social-revenue/subscription/handler
+
+// 支付订阅相关API
+service SubscriptionAPI {
+  // 获取订阅项列表
+  rpc ListSubscription(ListSubscriptionReq) returns (ListSubscriptionRsp);
+
+  // 订阅
+  rpc Subscribe(SubscribeReq) returns (SubscribeRsp);
+
+  // 取消订阅
+  rpc Unsubscribe(UnsubscribeReq) returns (UnsubscribeRsp);
+
+  // 支付完成回调
+  rpc PayDone(PayDoneReq) returns (PayDoneRsp);
+
+  // 支付取消（APP端内关闭支付面板）
+  rpc PayCancel(PayCancelReq) returns (PayCancelRsp);
+
+  // 指定订阅组，获取用户的订阅计划
+  rpc GetSubscriptionPlan(GetSubscriptionPlanReq) returns (GetSubscriptionPlanRsp);
+
+  // 获取用户的订阅计划列表
+  rpc ListSubscriptionPlan(ListSubscriptionPlanReq) returns (ListSubscriptionPlanRsp);
+}
+
+
+message ListSubscriptionReq {
+  string group = 1;                                // 控制只返回该订阅组的列表
+  repeated pbspay.PaymentType payment_types = 10;  // 控制只返回包含指定支付方式的订阅项，空则返回所有
+  map<string, string> filter_params = 20;          // 过滤参数，例如scene=vip表示查询vip入口的订阅项列表
+  map<string, string> ext = 99;                    // 业务扩展数据
+}
+
+message ListSubscriptionRsp {
+  repeated Subscription subscriptions = 1;  // 订阅项列表
+  map<string, FreeTrialInfo> trial_map = 5; // 试用信息，key为subscription_id
+  string mid = 98;                          // 业务代号，支付sdk打点用
+  map<string, string> ext = 99;             // 业务扩展数据
+}
+
+// 免费试用信息（动态的，每个用户看到的可能不一样）
+message FreeTrialInfo {
+  bool eligible = 1;            // 是否允许试用
+  pbspay.Period period = 2;     // 试用时长
+}
+
+
+message SubscribeReq {
+  string subscription_id = 1;     // 订阅项ID
+  string payment_code = 2;        // 支付方式代码
+  string payment_sku = 3;         // 支付平台sku
+  map<string, string> ext = 99;   // 业务扩展数据
+}
+
+message SubscribeRsp {
+  SubscriptionOrder order = 1;    // 订阅订单
+  pbspay.Jump jump = 10;          // 跳转
+  bool resubscribe = 11;          // 是否是有效期内恢复订阅，true时不会创建订单
+  map<string, string> ext = 99;   // 业务扩展数据
+}
+
+
+message UnsubscribeReq {
+  string subscription_id = 1;     // 订阅项ID
+  map<string, string> ext = 99;   // 业务扩展数据
+}
+
+message UnsubscribeRsp {
+  map<string, string> ext = 99;   // 业务扩展数据
+}
+
+message PayDoneReq {
+  string order_id = 1;          // 订单ID
+
+  // 不同平台的支付凭证
+  oneof Receipt {
+    pbspay.ApplePayReceipt apple_receipt = 20;
+    pbspay.GooglePlayReceipt google_receipt = 21;
+  }
+  map<string, string> ext = 99;              // 业务扩展数据
+}
+
+message PayDoneRsp {
+  map<string, string> ext = 99;              // 业务扩展数据
+}
+
+
+message PayCancelReq {
+  string order_id = 1;          // 订单ID
+  map<string, string> ext = 99; // 业务扩展数据
+}
+
+message PayCancelRsp {
+  map<string, string> ext = 99;  // 业务扩展数据
+}
+
+
+message GetSubscriptionPlanReq {
+  string group = 1;                      // 订阅组
+  map<string, string> ext = 99;          // 业务扩展数据
+}
+
+message GetSubscriptionPlanRsp {
+  SubscriptionPlan plan = 1;             // 订阅计划
+  map<string, string> ext = 99;          // 业务扩展数据
+}
+
+
+message ListSubscriptionPlanReq {
+  map<string, string> ext = 99;          // 业务扩展数据
+}
+
+message ListSubscriptionPlanRsp {
+  repeated SubscriptionPlan plans = 1;   // 订阅列表
+  map<string, string> ext = 99;          // 业务扩展数据
+}
+
+
+// 订阅项
+message Subscription {
+  string subscription_id = 1;             // 订阅项ID
+  string group = 2;                       // 所在订阅组
+  pbspay.Period period = 5;               // 周期
+  pbspay.Price price = 6;                 // 价格
+  pbspay.I18NString image_i18n = 12;      // 图片
+  pbspay.I18NString name_i18n = 13;       // 名称
+  pbspay.I18NString desc_i18n = 14;       // 描述
+  repeated pbspay.Payment payments = 20;  // 支付方式
+  pbspay.BizData biz_extra = 50;          // 业务扩展信息
+}
+
+
+// 用户订阅情况
+message SubscriptionPlan {
+  string group = 1;                     // 订阅组
+  string subscription_id = 2;           // 当前订阅项ID
+  bool auto_renew = 3;                  // 是否开启了自动续订，如果关闭则下个周期不会扣费
+  bool free_trial = 4;                  // 是否处于免费试用期
+  SubscriptionPlanStatus status = 5;    // 当前状态
+  int64 current_period_start = 15;      // 当前周期开始时间，单位秒
+  int64 current_period_end = 16;        // 当前周期结束时间，单位秒，auto_renew=false时可以视为到期时间
+  SubscriptionOrder order = 20;         // 关联最近一笔订单
+}
+
+// 订阅订单
+message SubscriptionOrder {
+  pbspay.BaseOrder base_order = 1;  // 必定有的订单基础信息
+}
+
+
+// 订阅状态
+enum SubscriptionPlanStatus {
+  SUBSCRIPTION_PLAN_STATUS_NONE = 0;
+  SUBSCRIPTION_PLAN_STATUS_ACTIVE = 1;      // 生效中
+  SUBSCRIPTION_PLAN_STATUS_PAUSED = 2;      // 暂停（暂停使用，可随时恢复）
+  SUBSCRIPTION_PLAN_STATUS_CANCELED = 3;    // 停止（用户主动立即停止）
+  SUBSCRIPTION_PLAN_STATUS_EXPIRED = 4;     // 已过期（未续费等情况）
+}

@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package api.astrorise.platform;
+
+import "api/platform/common.proto";
+import "protobuf/api/adapter/model.proto";
+
+option go_package = "gitit.cc/social/astrorise/arprotobuf/gencode/api/pbcmsg";
+option java_package="com.entertain.sns.astrorise.platform";
+
+
+// ======================================================= 枚举 ============================================
+
+// 消息事件
+enum MsgEvent {
+  MSG_EVENT_NONE = 0;
+  MSG_EVENT_MEDAL_ACHIEVED = 10000;  // 勋章达事件
+}
+
+message CustomMessageContent {
+  oneof Content {
+    EventMessage event_msg = 3; // 事件消息
+    CommonTips tips = 4;  // 聊天通用tips
+  }
+}
+
+
+// 通用聊天框tips
+message CommonTips {
+  map<string, string>  content_map = 1; // 文案,预备多语言
+}
+
+// 事件消息
+message EventMessage {
+  MsgEvent event = 1; // 消息事件
+  comm.api.adapter.UserInfo event_user_info = 2; // 触发事件用户信息
+  oneof Message {
+    MedalAchieved medal_achieved = 10;  // 勋章解锁通知
+  }
+}
+
+// 勋章解锁
+message MedalAchieved {
+  int32 game_id = 1; // 游戏ID
+  int32 medal_id = 2; // 勋章ID
+  double achieve_rate = 3;  // 达成率
+
+}

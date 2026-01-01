@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package comm.svr.monitor;
+
+import "protobuf/api/common/common-net.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsmonitor";
+
+// 监控消息
+// Topic: social-monitor-message
+message MonitorMessage {
+    string anm = 1;                     // 业务名
+    string seq_id = 2;                  // 唯一序号
+
+    // Who
+    SubjectType subject_type = 10;      // 主体类型
+    repeated string subject_ids = 11;   // 主体ID
+
+    // What
+    TargetType target_type = 20;        // 目标类型
+    string target_subtype = 21;         // 目标子类型
+    string target_id = 22;              // 目标ID
+
+    // When
+    int64 timestamp = 30;               // 时间戳(秒)
+
+    // Where
+    SceneType scene_type = 40;          // 场景分类
+    string scene_id = 41;               // 场景ID, 例如活动ID.
+
+    // How
+    OperateAgent operate_agent = 50;
+
+    // 监控指标量没有的字段可以传默认值, 为了兼容更多指标这里采用 double.
+    ChangeType change_type = 100;       // 变化趋势
+    double increment_value = 101;       // 本次增量
+    double aggregate_value = 102;       // 总量
+    double immediate_value = 103;       // 当前量
+
+    // Why
+    map<string, string> extra = 110;    // 补充信息
+}
+
+// 主体类型
+enum SubjectType {
+    SUBJECT_TYPE_NONE = 0;
+
+    SUBJECT_TYPE_USER = 10; // 用户
+    SUBJECT_TYPE_ROOM = 20; // 房间
+    // ... 可能还会监控家族, 公会...
+}
+
+// 目标类型
+enum TargetType {
+    TARGET_TYPE_NONE = 0;
+
+    TARGET_TYPE_BALANCE_AMOUNT = 10;    // 账户余额
+    TARGET_TYPE_WEALTH_VALUE = 20;      // 财富值
+    TARGET_TYPE_CHARM_VALUE = 30;       // 魅力值
+    TARGET_TYPE_DRESS_UP = 40;          // 装扮
+    TARGET_TYPE_MONTH_CARD = 50;        // 月卡
+    TARGET_TYPE_PRIZE = 60;             // 奖励
+}
+
+// 场景类型
+enum SceneType {
+    SCENE_TYPE_NONE = 0;
+
+    SCENE_TYPE_ACTIVITY = 10; // 活动
+    SCENE_TYPE_GIFT = 20;     // 收送礼
+    SCENE_TYPE_RANK = 30;     // 榜单
+    SCENE_TYPE_TASK = 40;     // 任务
+}
+
+// 操作代理
+message OperateAgent {
+    scommon.PubPara client = 10;  // 客户端公参
+    // 服务端信息...
+}
+
+// 变化类型
+enum ChangeType {
+    CHANGE_TYPE_NONE = 0; 
+
+    CHANGE_TYPE_INCREASE = 10; // 递增
+    CHANGE_TYPE_DECREASE = 20; // 递减
+}

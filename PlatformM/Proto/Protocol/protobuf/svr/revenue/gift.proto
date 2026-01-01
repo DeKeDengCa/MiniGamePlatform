@@ -1,0 +1,134 @@
+syntax = "proto3";
+
+package pbsrevenue;
+
+import "protobuf/api/revenue/gift.proto";
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsrevenue";
+option java_package = "com.revenue.biz.proto";
+
+// 礼物服务
+// serviceName: api.micro.social.revenue
+// smicro:spath=gitit.cc/social/components-service/social-revenue/handler-svr/giftsvr
+service GiftSvr {
+  // 批量获取礼物信息
+  rpc GetGiftInfo(GetGiftInfoReq) returns (GetGiftInfoRsp) {}
+  // 赠送礼物
+  rpc SendGift(SendGiftSvrReq) returns (SendGiftSvrRsp) {}
+  // 查询礼物记录
+  rpc ListGiftRecord(ListGiftRecordReq) returns (ListGiftRecordRsp) {}
+  // 获取房间维度送礼统计
+  rpc ListRoomGiftStats(ListRoomGiftStatsReq) returns (ListRoomGiftStatsRsp);
+  // 领取礼物
+  rpc ClaimGift(ClaimGiftReq) returns (ClaimGiftRsp) {}
+  // 退回礼物
+  rpc RefundGift(RefundGiftReq) returns (RefundGiftRsp) {}
+}
+
+// 批量获取礼物信息
+message GetGiftInfoReq {
+  repeated int64 gift_ids = 1;
+}
+
+// 批量获取礼物信息
+message GetGiftInfoRsp {
+  map<int64, pbrevenue.GiftInfo> gift_infos = 1;
+}
+
+message SendGiftSvrReq {
+  // 送礼的基础参数
+  pbrevenue.SendGiftReq base = 1;
+}
+
+message SendGiftSvrRsp {
+  // 送礼结果（用于不成功返回一些提示，而不是返回err）
+  pbrevenue.SendGiftResult result = 1;
+  // 幂等
+  string seq_id = 2;
+  // 收礼人的收益
+  // deprecated 由于送礼可以送多人, 每个收礼人的收益可能不一样, 所以这个字段被废弃, 请使用下面的 receiver_profits.
+  pbrevenue.GiftProfit receiver_profit = 3 [deprecated = true];
+  
+  // 每个收礼人获得的收益, map 中包含不代表收礼人就实际获得了受益, 应该这样判断某个收礼人是否获得收益:
+  // if profit := receiver_profits[uid]; profit != nil && profit.Amount > 0 {
+  //    // 实际获得了受益...
+  // }
+  map<int64, pbrevenue.GiftProfit> receiver_profits = 4; // 收礼人收益
+
+  // 接收策略
+  pbrevenue.GiftReceiveStrategy receive_strategy = 11;
+  // 对应接收策略的数据
+  oneof receive_strategy_ret {
+    pbrevenue.GiftReceiveStrategyClaim receive_strategy_claim = 12;
+  }
+}
+
+message ListGiftRecordReq {
+  scommon.Page page = 1; // 分页参数
+  repeated string room_ids = 10; // 房间id
+  int64 min_time_sent = 11; // 送礼起始时间
+  int64 max_time_sent = 12; // 送礼结束时间
+  repeated pbrevenue.GiftType gift_types = 13; // 礼物类型
+}
+
+message ListGiftRecordRsp {
+  scommon.Page page = 1; // 分页参数
+  repeated GiftRecord gift_records = 10;
+}
+
+message GiftRecord {
+  int64 id = 1; // 记录 ID
+  pbrevenue.GiftInfo gift_info = 2; // 礼物信息
+  int32 quantity = 3; // 礼物数量
+  int64 sender_uid = 4; // 送礼人UID
+  int64 receiver_uid = 5; // 收礼人UID
+  string room_id = 6; // 房间id
+  int64 time_sent = 7; // 送礼时间
+}
+
+message ListRoomGiftStatsReq {
+  string room_id = 1; // 房间id
+  string start_date = 2; // 自定义时间的起始日期;格式:yyyy-MM-dd
+  string end_date = 3; // 自定义时间的结束日期;格式:yyyy-MM-dd
+  repeated pbrevenue.GiftType gift_types = 4; // 礼物类型
+}
+
+message ListRoomGiftStatsRsp {
+  repeated RoomGiftStatsRecord items = 1;
+}
+
+message RoomGiftStatsRecord {
+  string room_id = 1; // 房间id
+  string date = 2; // 日期;格式:yyyy-MM-dd
+  pbrevenue.GiftType gift_type = 3; // 礼物类型
+  int64 send_count = 4; // 送礼数量
+  int64 amount = 5; // 送礼消耗总金额
+}
+
+
+message ClaimGiftReq {
+  // 幂等id
+  string seq_id = 1;
+  int64 uid = 10; // 领取礼物的uid
+}
+
+message ClaimGiftRsp {
+}
+
+// 退回礼物策略
+enum RefundGiftStrategy {
+  REFUND_GIFT_STRATEGY_NONE = 0;
+  REFUND_GIFT_STRATEGY_BALANCE = 1; // 退回到账号余额
+  REFUND_GIFT_STRATEGY_BAG = 2; // 退回到背包
+}
+
+message RefundGiftReq {
+  // 幂等id
+  string seq_id = 1;
+  RefundGiftStrategy strategy = 10;
+  int64 uid = 11; // 拒绝礼物的UID
+}
+
+message RefundGiftRsp {
+}

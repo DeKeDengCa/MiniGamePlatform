@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package pbsadapter;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsadapter";
+
+import "protobuf/api/adapter/model.proto";
+
+// smicro:spath=gitit.cc/social/inplay/inplay-api/biz/serverdivision/handlesvr
+// 分服接口
+service CommonServerDivision {
+  // 获取某个实体（例如用户/房间）归属的服ID
+  rpc BatchGetServerID(BatchGetServerIDReq) returns (BatchGetServerIDRsp);
+  // 获取所有服ID
+  rpc ListServerID(ListServerIDReq) returns (ListServerIDRsp);
+}
+
+message BatchGetServerIDReq {
+  comm.api.adapter.IDType id_type = 10;   // ID类型
+  repeated int64 ids = 11;                // ID列表
+}
+
+message BatchGetServerIDRsp {
+  map<int64, string> id_to_sid = 10;      // 实体ID -> 服ID
+}
+
+
+
+message ListServerIDReq {
+}
+
+message ListServerIDRsp {
+  repeated string sids = 1;               // 服ID列表
+}

@@ -1,0 +1,98 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/luckybag/handlermgr
+syntax = "proto3";
+
+package mgr.astrorise.voiceroom.luckybag;
+
+import "api/platform/voiceroom/lucky_bag.proto";
+import "protobuf/api/common/common.proto";
+import "protobuf/api/adapter/model.proto";
+
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbmluckybag";
+
+service LuckyBagMgr {
+
+    // 红包记录
+    rpc SearchLuckyBag(SearchLuckyBagReq) returns (SearchLuckyBagRsp);
+
+    // 领取记录
+    rpc SearchGrabRecord(SearchGrabRecordReq) returns (SearchGrabRecordRsp);
+
+    // 红包详情
+    rpc GetLuckyBagDetail(GetLuckyBagDetailReq) returns (GetLuckyBagDetailRsp);
+}
+
+// 红包
+message LuckyBag {
+    string lucky_bag_id = 1;                    // 红包ID
+    comm.api.adapter.UserInfo sender = 2;       // 发送人
+    string send_did = 3;                        // 发送人DID
+    api.astrorise.voiceroom.luckybag.LuckyBagKind kind = 10;   // 红包种类
+    api.astrorise.voiceroom.luckybag.GiftPack gift_pack = 11;  // 礼物包
+    api.astrorise.voiceroom.luckybag.LuckyBagScene scene = 20; // 红包场景
+    string scene_id = 21;                       // 场景ID, 如果是房间场景则是房间ID.
+    int64 amount = 30;                          // 红包金额
+    int64 grabbed_amount = 31;                  // 已领取金额
+    int64 quantity = 40;                        // 红包数量
+    int64 grabbed_quantity = 41;                // 已领取数量
+    string blessing = 50;                       // 祝福语
+    api.astrorise.voiceroom.luckybag.LuckyBagState state = 60; // 红包状态
+    int64 sent_at = 80;                         // 发送时间(秒)
+    int64 finished_at = 81;                     // 领完时间(秒)
+    int64 expired_at = 82;                      // 过期时间(秒)
+    int64 countdown_secs = 90;                                  // 开奖倒计时, 0 表示即刻开奖, 单位为秒.
+    bool allow_grab_in_advance = 91;                            // 可提前领取
+    api.astrorise.voiceroom.luckybag.GrabRequirement grab_requirement = 100;   // 领取条件, 空表示无限制.
+}
+message SearchLuckyBagReq {
+    scommon.Page page = 1;
+    string lucky_bag_id = 10;                   // 红包ID, 用于查询单个红包
+    int64 send_uid = 20;                        // 发送人
+    string send_did = 21;                       // 发送设备
+    api.astrorise.voiceroom.luckybag.LuckyBagScene scene = 30; // 发送场景
+    string scene_id = 31;                       // 场景ID, 如果是房间场景则是房间ID.
+    api.astrorise.voiceroom.luckybag.LuckyBagKind kind = 40;   // 红包种类
+}
+message SearchLuckyBagRsp {
+    scommon.Page page = 1;
+    repeated LuckyBag lucky_bags = 10;          // 红包列表
+}
+
+// 领取记录
+message GrabRecord {
+    int64 grab_record_id = 1;                                       // 领取记录ID
+    string lucky_bag_id = 2;                                        // 红包ID
+    comm.api.adapter.UserInfo grabber = 3;                          // 领取人
+    string grab_did = 4;                                            // 领取设备
+    comm.api.adapter.UserInfo sender = 5;                           // 发送人
+    string send_did = 6;                                            // 领取设备
+    api.astrorise.voiceroom.luckybag.LuckyBagKind send_kind = 7;                   // 红包种类
+    api.astrorise.voiceroom.luckybag.LuckyBagScene send_scene = 8;                 // 红包发放场景
+    int64 grab_amount = 10;                                         // 领取金额
+    int64 grabbed_at = 20;                                          // 领取时间
+    bool lucky_king = 30;                                           // 手气王
+    api.astrorise.voiceroom.luckybag.LuckyBagScene scene = 40;                     // 领取场景
+    string scene_id = 41;                                           // 场景ID, 如果是房间场景则是房间ID.
+    repeated api.astrorise.voiceroom.luckybag.GiftPackItem gift_pack_items = 50;   // 领取到的礼物项
+}
+message SearchGrabRecordReq {
+    scommon.Page page = 1;
+    string lucky_bag_id = 10;                   // 红包ID, 用于查询单个红包的领取记录
+    int64 grab_uid = 20;                        // 领取人
+    string grab_did = 21;                       // 领取设备
+    api.astrorise.voiceroom.luckybag.LuckyBagScene scene = 30; // 领取场景
+    string scene_id = 31;                       // 场景ID, 如果是房间场景则是房间ID.
+    api.astrorise.voiceroom.luckybag.LuckyBagKind send_kind = 40;   // 红包种类
+    api.astrorise.voiceroom.luckybag.LuckyBagScene send_scene = 50; // 红包发放场景
+}
+message SearchGrabRecordRsp {
+    scommon.Page page = 1;
+    repeated GrabRecord grab_records = 10;      // 领取记录列表
+}
+
+message GetLuckyBagDetailReq {
+    string lucky_bag_id = 10;                   // 红包ID
+}
+message GetLuckyBagDetailRsp {
+    LuckyBag lucky_bag = 10;                    // 红包
+    repeated GrabRecord grab_records = 20;      // 领取记录
+}

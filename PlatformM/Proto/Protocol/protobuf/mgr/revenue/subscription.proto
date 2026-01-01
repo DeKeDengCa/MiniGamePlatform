@@ -1,0 +1,148 @@
+syntax = "proto3";
+
+package mgr.subscription;
+
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbmsubscription";
+
+import "protobuf/api/pay/subscription.proto";
+import "protobuf/api/pay/common.proto";
+import "protobuf/api/common/common.proto";
+import "protobuf/api/common/common-net.proto";
+import "protobuf/mgr/revenue/common.proto";
+
+// smicro:spath=gitit.cc/social/components-service/social-revenue/subscription/handlermgr
+
+// 支付订阅管理
+service SubscriptionMgr {
+  // 保存订阅项
+  rpc SaveSubscription(SaveSubscriptionReq) returns (SaveSubscriptionRsp);
+  // 修改状态
+  rpc UpdateSubscriptionStatus(UpdateSubscriptionStatusReq) returns (UpdateSubscriptionStatusRsp);
+  // 获取订阅项列表
+  rpc ListSubscription(ListSubscriptionReq) returns (ListSubscriptionRsp);
+  // 获取订阅订单列表
+  rpc ListSubscriptionOrder(ListSubscriptionOrderReq) returns (ListSubscriptionOrderRsp);
+}
+
+
+message SaveSubscriptionReq {
+  string subscription_id = 1;     // 订阅项ID，空标识新增，非空标识修改
+  Subscription subscription = 2;  // 订阅项内容
+}
+
+message SaveSubscriptionRsp {
+  Subscription subscription = 1;
+}
+
+
+// 订阅项配置
+message Subscription {
+  pbsubscription.Subscription base_info = 1;          // 核心配置
+  FreeTrial free_trial = 2;                           // 免费试用配置
+  map<string, pbspay.StringList> param_filter = 10;   // 过滤参数配置，多个参数是与的关系
+  string pkg = 7;                                     // 过滤包名，空表示都可见
+  string remark = 20;                                 // 备注
+  bool published = 21;                                // 是否上架
+}
+
+// 免费试用配置
+message FreeTrial {
+  bool enabled = 1;             // 是否允许试用
+  pbspay.Period period = 2;     // 试用周期
+}
+
+
+message UpdateSubscriptionStatusReq {
+  repeated string subscription_ids = 1;       // 要修改的订阅项ID列表
+  bool published = 10;                        // 是否上架
+  bool deleted = 11;                          // 是否删除
+}
+
+message UpdateSubscriptionStatusRsp {
+  repeated string success_ids = 1;            // 修改成功的ID列表，批量修改不用事务，所以可能只是部分成功
+}
+
+
+message ListSubscriptionReq {
+  scommon.Page page = 1;                      // 分页
+  Filter filter = 2;                          // 筛选项
+
+  // 筛选项
+  message Filter {
+    repeated string subscription_ids = 1;           // 订阅项ID
+    repeated string subscription_groups = 2;        // 订阅组
+    repeated string payment_codes = 3;              // 支付方式code
+    repeated string payment_skus = 4;               // 支付平台sku
+    repeated string pkgs = 5;                       // 包名
+  }
+}
+
+message ListSubscriptionRsp {
+  scommon.Page page = 1;                    // 分页
+  repeated Subscription subscriptions = 2;  // 订阅项列表
+}
+
+message ListSubscriptionOrderReq {
+  scommon.Page page = 1;                      // 分页
+  Filter filter = 2;                          // 筛选项
+
+  // 筛选项
+  message Filter {
+    repeated string order_ids = 2;                  // 订单号
+    repeated string uids = 1;                       // 下单用户ID
+    repeated pbspay.OrderStatus statuses = 3;       // 订单状态
+    repeated string subscription_ids = 6;           // 订阅项ID
+    repeated string channel_order_ids = 10;         // 支付渠道订单号（支付中台）
+    repeated bool sandboxes = 12;                   // 是否是沙盒订单
+    repeated string payment_codes = 15;             // 支付方式code
+    repeated string payment_skus = 16;              // 支付平台sku
+    repeated string payment_currencies = 17;        // 实际支付货币代码，例如 CNY、USD
+    repeated string pkgs = 18;                      // 包名
+    mgr.pbrevenue.TimeRange created_at = 20;        // 创建时间，单位秒
+    mgr.pbrevenue.TimeRange refunded_at = 23;       // 退款时间，单位秒
+  }
+}
+
+message ListSubscriptionOrderRsp {
+  scommon.Page page = 1;                    // 分页
+  repeated SubscriptionOrder orders = 2;    // 订阅订单列表
+}
+
+
+// 用户订阅订单
+message SubscriptionOrder {
+  string order_id = 1;                    // 订单号
+  int64 uid = 2;                          // 下单用户ID
+  pbspay.OrderStatus status = 3;          // 订单状态
+  string subscription_id = 5;             // 订阅项ID
+  string channel_order_id = 10;           // 支付渠道订单号（支付中台）
+  string platform_order_id = 11;          // 支付平台订单号（Apple/GP）
+  bool sandbox = 12;                      // 是否是沙盒订单
+  string payment_code = 15;               // 支付方式code
+  string payment_sku = 16;                // 支付平台sku
+  string payment_currency = 17;           // 实际支付货币代码，例如 CNY、USD
+  int64 payment_amount = 18;              // 实际支付价格，单位分
+  int64 created_at = 20;                  // 创建时间，单位秒
+  int64 paid_at = 21;                     // 支付时间，单位秒
+  int64 canceled_at = 22;                 // 取消时间，单位秒
+  int64 refunded_at = 23;                 // 退款时间，单位秒
+  string shipped_result = 25;             // 发货结果描述
+  scommon.PubPara env = 50;               // 下单环境
+}
+
+
+// 用户订阅情况
+message SubscriptionPlan {
+  int64 uid = 1;                                      // 用户ID
+  string group = 2;                                   // 订阅组
+  string original_subscription_id = 3;                // 首次订阅的订阅项ID
+  string current_subscription_id = 4;                 // 当前周期的订阅项ID
+  string next_subscription_id = 5;                    // 下个周期的订阅项ID
+  bool auto_renew = 6;                                // 是否开启了自动续订，如果关闭则下个周期不会扣费
+  bool free_trial = 7;                                // 是否处于免费试用期
+  pbsubscription.SubscriptionPlanStatus status = 8;   // 当前状态
+  int64 expired_at = 13;                              // 到期时间。注意这个是在权益失效的那个时刻才会赋值
+  string expired_reason = 14;                         // 到期原因
+  int64 current_period_start = 15;                    // 当前周期开始时间，单位秒
+  int64 current_period_end = 16;                      // 当前周期结束时间，单位秒，auto_renew=false时可以视为到期时间
+}

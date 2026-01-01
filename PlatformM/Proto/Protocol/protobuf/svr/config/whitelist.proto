@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package comm.svr.config;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsconfig";
+
+// smicro:spath=gitit.cc/social/components-service/social-config/biz/whitelist/handlersvr
+
+// 白名单管理
+// ServiceName: social-config
+service WhitelistSvr {
+  // 批量查询用户是否在分组内
+  rpc BatchGroupMemberCheck(BatchGroupMemberCheckReq) returns (BatchGroupMemberCheckResp);
+}
+
+message BatchGroupMemberCheckReq {
+  string group_name = 1;  // 待检查的分组名称
+  repeated string member_ids = 2;  // 待检查的成员ID列表
+}
+
+message BatchGroupMemberCheckResp {
+  repeated string matched_member_ids = 1; // 匹配到分组的成员ID列表
+  repeated string unmatched_member_ids = 2; // 未匹配到分组的成员ID列表
+}
+
+

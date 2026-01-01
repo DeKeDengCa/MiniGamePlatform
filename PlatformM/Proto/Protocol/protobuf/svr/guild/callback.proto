@@ -1,0 +1,124 @@
+syntax = "proto3";
+
+package comm.svr.guild;
+
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsguild";
+option java_package = "com.guild.biz.callback";
+
+// 公会/主播系统回调业务的接口
+service SocialGuildCallback {
+  // 通用的操作预检查
+  rpc PreCheck(PreCheckReq) returns (PreCheckRsp) {}
+
+  // 是否可申请成为主播
+  rpc CanApply(CanApplyReq) returns (CanApplyRsp) {}
+
+  // 是否可申请转公会
+  rpc CanApplyTransfer(CanApplyTransferReq) returns (CanApplyTransferRsp) {}
+
+  // 转公会
+  rpc Transfer(TransferReq) returns (TransferRsp) {}
+
+  // 获取能够邀请加入工会的成员列表
+  rpc ListInvitableMembers(ListInvitableMembersReq) returns (ListInvitableMembersRsp) {}
+
+  // 批量获取主播业务信息
+  // 由于不同业务主播额外信息字段差异过大, 且后端并不关心这些字段, 只是在 oms 端显示而已.
+  // 所以拓展信息定义为一个 JSON 字符串, 业务应当返回一个对象结构的 JSON 字符串.
+  rpc BatchGetAnchorBizInfo(BatchGetAnchorBizInfoReq) returns (BatchGetAnchorBizInfoRsp) {}
+}
+
+// 预检查类型
+enum PreCheckType {
+  PRE_CHECK_TYPE_NONE = 0;          // 无意义
+  PRE_CHECK_TYPE_BECOME_OWNER = 1;  // 成为公会长
+  PRE_CHECK_TYPE_BECOME_ANCHOR = 2; // 能否成为主播
+  PRE_CHECK_TYPE_BECOME_BROKER = 3; // 成为经纪人
+}
+
+// 预检查请求
+message PreCheckReq {
+  PreCheckType type = 1;    // 预检查类型
+  repeated int64 uids = 2;  // 用户UID
+  int64 guild_id = 3;       // 公会ID
+  int64 owner_uid = 4;      // 公会长UID
+  string lan = 5;           // 语言: zh / en / ar ...
+}
+
+// 预检查结果
+message PreCheckResult {
+  int64 uid = 1;      // 用户UID
+  bool pass = 2;      // 是否检查通过
+  string reason = 3;  // 不通过的理由, 需要根据请求的语言字段进行选择对应文案.
+}
+
+// 预检查响应
+message PreCheckRsp {
+  repeated PreCheckResult results = 1; // 检查结果
+}
+
+// 可申请成为主播请求
+message CanApplyReq {
+  int64 uid = 1;  // 用户UID
+  string lan = 2; // 语言: zh / en / ar ...
+}
+
+// 可申请成为主播响应
+message CanApplyRsp {
+  bool can = 1;                   // 是否可以
+  repeated int64 owner_uids = 2;  // 可申请进入的公会的会长UID列表
+  string reason = 3;              // 不可以的理由, 需要根据请求的语言字段进行选择对应文案.
+}
+
+
+// 获取成员信息
+message ListInvitableMembersReq {
+  scommon.Page page = 1;           // 分页参数
+  int64 owner_uid = 10;             // 会长用户id
+  string keyword = 11;              // 目前是昵称 or 用户showUid
+}
+
+// 获取成员信息
+message ListInvitableMembersRsp {
+  scommon.Page page = 1;           // 分页参数
+  repeated int64 uids = 10;
+}
+
+// 是否可申请转公会请求
+message CanApplyTransferReq {
+  int64 uid = 1;  // 用户UID
+  int64 owner_id = 2;  // 申请转入公会会长Id
+  string lan = 3; // 语言: zh / en / ar ...
+}
+
+// 是否可申请转公会响应
+message CanApplyTransferRsp {
+  bool can = 1;                   // 是否可以
+  string reason = 2;              // 不可以的理由, 需要根据请求的语言字段进行选择对应文案.
+}
+
+// 转公会请求
+message TransferReq {
+  int64 uid = 1;  // 用户UID
+  int64 owner_id_old = 2;  // 旧公会会长Id
+  int64 owner_id_new = 3;  // 新公会会长Id
+  string lan = 4; // 语言: zh / en / ar ...
+}
+
+// 转公会响应
+message TransferRsp {
+  bool success = 1;               // 是否成功
+  string reason = 2;              // 不可以的理由, 需要根据请求的语言字段进行选择对应文案.
+}
+
+// 批量获取主播业务信息
+message BatchGetAnchorBizInfoReq {
+  repeated int64 uids = 10; // 批量 uid
+}
+
+// 批量获取主播业务信息
+message BatchGetAnchorBizInfoRsp {
+  map<int64, string> biz_infos = 10; // map<uid, 主播业务信息JSON字符串>
+}

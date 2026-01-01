@@ -1,0 +1,99 @@
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/audit/handlermgr
+syntax = "proto3";
+
+package comm.mgr.platform.audit;
+
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/platform/pbmaudit";
+
+service AuditMgr {
+
+  rpc Search(SearchRep) returns (SearchRsp) {}
+
+  rpc Audit(AuditReq) returns (AuditRsp) {}
+}
+
+enum AuditStatus {
+  AUDIT_STATUS_NONE = 0;
+  AUDIT_STATUS_AUDITING = 10;        // 待审批
+  AUDIT_STATUS_APPROVED = 20;        // 已通过
+  AUDIT_STATUS_REJECTED = 30;        // 已拒绝
+  AUDIT_STATUS_REVOKED = 40;         // 已撤回
+  AUDIT_STATUS_FAILED = 50;          // 失败
+}
+
+message Auditor {
+  string user_id = 1;
+  string union_id = 2;
+  string name = 3;
+  string nick_name = 4;
+  string email = 5;
+}
+
+message AuditLevel {
+  int32 level = 1;                      // 审批层级, 从 1 开始.
+  repeated Auditor auditors = 2;        // 审批人员
+  Auditor auditor = 3;                  // 实际操作审批的审批人员
+  AuditStatus audit_status = 4;         // 审批状态
+  string audit_reason = 5;              // 审批理由
+  int64 audit_at = 6;                   // 审批时间
+  string audit_picture = 7;             // 有图有真相 url
+}
+
+message AuditOrder {
+  int64 id = 1;
+  string category = 2;                        // 审批工单分类, 业务自行将审批工单分门别类.
+  string data = 3;                            // 审批工单透传数据, 中台不关心此数据, 只是简单透传给前端显示.
+  string reason = 4;                          // 申请原因
+
+  string submit_by = 10;                      // 提交人
+  int64 submit_at = 11;                       // 提交时间
+  string submit_id = 12;                      // 提交人 union_id
+
+  repeated AuditLevel audit_levels = 20;      // 审批层级, 用于实现多级审批.
+  int64 current_level = 21;                   // 当前流转到哪个层级
+
+  AuditStatus audit_status = 30;              // 审批工单整体审批状态
+  string audit_reason = 31;                   // 审批工单最终审批理由
+  int64 audit_at = 32;                        // 审批工单最终审批时间
+
+  string remark = 40;                         // 备注
+
+  string operate_by = 100;                    // 操作人
+  int64 operate_at = 101;                     // 操作时间
+}
+
+message SearchRep{
+  scommon.Page page = 1;
+
+  string category = 10;
+
+  string submit_by = 11;                      // 提交人
+  int64 submit_at_start = 12;                 // 提交时间
+  int64 submit_at_end = 13;                   // 提交时间
+  repeated string submit_ids = 17;           //  提交人id列表
+
+  string operate_by = 21;                     // 操作人
+  int64 operate_at_start = 22;                // 操作时间
+  int64 operate_at_end = 23;                  // 操作时间
+  repeated string operate_ids = 24;           // 操作者id列表
+
+  repeated AuditStatus audit_statuss = 30;    // 审批状态列表
+}
+
+message SearchRsp{
+  scommon.Page page = 1;
+
+  repeated AuditOrder data = 10;
+}
+
+message AuditReq{
+  int64 id = 10;                              // 审批工单 id
+  AuditStatus audit_status = 11;              // 审批状态
+  string remark  = 12;                        // 备注，200个字节
+  string truth_picture = 13;                   // 有图有真相 url
+}
+
+message AuditRsp{
+}

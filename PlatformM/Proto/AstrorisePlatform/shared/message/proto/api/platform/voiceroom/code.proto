@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+package api.astrorise.voiceroom;
+
+option java_package = "com.entertain.sns.api.gene";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbcode";
+
+// 错误码
+enum ErrCode {
+  ERR_CODE_OK = 0;
+
+  // 房间直播号段 21000 - 22000
+  LIVE_ROOM_NOT_CREATE = 21000;                           // 房间未创建
+  LIVE_ROOM_PERMISSION_PASSWORD = 21001;                  // 没有权限，需要密码
+  LOVE_ROOM_PERMISSION_PRIVATE = 21002;                   // 没有权限，私密房间不允许进入
+  LIVE_ROOM_PERMISSION_WRONG_PASSWORD = 21003;            // 密码错误
+  LIVE_ROOM_PERMISSION_FORBIDDEN = 21004;                 // 没有权限访问，其他通用没有权限判断，例如：测试房间不允许非测试账号进入，且无需告知具体原因
+  LIVE_ROOM_DISCONNECTED = 21006;                         // 连接已断开，需要重新进房
+  LIVE_ROOM_LIVE_OFF = 21007;                             // 房间未开播
+  LIVE_ROOM_OWNER_ADMIN_CANNOT_KICK_OFF = 21008;          // 房主和管理员不能被踢
+  LIVE_ROOM_KICK_OFF_NO_PERMISSION = 21009;               // 踢人权限不够
+  LIVE_ROOM_REENTER_FAIL = 21010;                         // 重连失败，长时间掉线或者其他原因，这情况需要用户退出房间，重新走 Enter 进房
+  LIVE_ROOM_PUBLISH_CONFIG_ID_INVALID = 21011;            // 房间创建、房间模式切换时，传入的参数无效或者当前场景不能使用
+  LIVE_ROOM_CAPACITY_FULL = 21012;                        // 房间人数已达到设定的最大容量
+
+  ROOM_NOT_EXIST = 22000;            // 房间不存在
+  ROOM_EXISTED = 22001;              // 房间已存在
+  ROOM_LAYOUT_NOT_SUPPORT = 22002;   // 布局类型不存在或不支持
+  ROOM_NAME_BLANK = 22003;           // 房间名是空白
+  ROOM_ADMIN_EXCEED = 22004;         // 房间管理员数量超出限制
+  ROOM_ILLEGAL_NAME = 22005;         // 房间名非法
+  ROOM_ILLEGAL_INTRODUCTION = 22006; // 房间介绍非法
+
+  USER_NOT_IN_ROOM = 23000;          // 用户不在房间内
+  SEAT_NOT_EXIST = 23001;            // 麦位不存在
+  SEAT_NOT_EXIST_USER = 23002;       // 麦位上不存在用户
+  USER_NOT_ON_SEAT = 23003;          // 用户不在麦位上
+  USER_ALREADY_ON_SEAT = 23004;      // 用户已在麦位上
+  SEAT_OCCUPIED = 23005;             // 麦位已经有用户
+  SEAT_LOCKED = 23006;               // 麦位已锁定
+  SEAT_VERSION_CONFLICT = 23007;     // 麦位变更版本冲突
+  SEAT_NO_NEED_APPLY = 23008;        // 麦位不需要申请上麦
+  SEAT_APPLY_EXIST = 23009;          // 麦位申请已存在
+  SEAT_KICK_NOT_ALLOW = 23010;       // 踢下麦操作不允许
+  SEAT_NO_PERMISSION = 23011;        // 没有权限
+  SEAT_APPLY_HAS_PROCESSED = 23012;  // 麦位申请已处理
+  SEAT_ALL_OCCUPIED = 23013;         // 麦位都被占用
+
+  // 用户资料相关错误码
+  USER_ILLEGAL_NICKNAME = 24001;      // 非法昵称
+  USER_ILLEGAL_INTRODUCTION = 24002;  // 非法个人介绍
+  USER_ILLEGAL_GENDER = 24003;        // 非法性别
+  USER_ILLEGAL_AVATAR = 24004;        // 非法头像
+  USER_ILLEGAL_COUNTRY = 24005;       // 非法国家
+  USER_ILLEGAL_BIRTHDAY = 24006;      // 非法生日
+
+  // VIP相关错误码
+  VIP_PURCHASE_BALANCE_NOT_ENOUGH = 25001;          // 购买时余额不足
+
+  // 钱包相关错误码
+  WALLET_BALANCE_NOT_ENOUGH = 26001;  // 购买时余额不足
+
+  // 速配玩法相关错误码
+
+  // 送礼相关错误码
+  GIFT_NOT_MATCH_WEALTH_LEVEL = 28001; // 用户未达到财富等级
+  GIFT_NOT_MATCH_FAN_LEVEL = 28002; // 粉丝团等级未达到
+  GIFT_NOT_ALLOW_SEND_FEN_GIFT = 28003; // 非房间不允许送粉丝团礼物
+  GIFT_NOT_ALLOW_SEND_CP_GIFT = 28004;  // 非cp不能送礼
+  GIFT_NOT_MATCH_CP_LEVEL = 28005;  // cp等级未达到
+  GIFT_CP_TARGET_COUNT_LIMIT = 28006;  // cp礼物多人限制
+  GIFT_NOT_ALL_SEND_FRIEND_GIFT = 28007;  // 不能送非好友礼物
+
+}

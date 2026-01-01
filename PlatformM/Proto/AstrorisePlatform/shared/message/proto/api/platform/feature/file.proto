@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package api.astrorise.feature.file;
+
+import "protobuf/api/common/common-net.proto";
+
+// smicro:spath=gitit.cc/social/astrorise/arplatform/s_features/biz/file/handler
+option go_package = "gitit.cc/social/astrorise/arprotobuf/gencode/api/feature/pbfile";
+option java_package="com.entertain.sns.api.astrorise.file";
+
+// serviceName: astrorise.platform.features
+// ********************************接口******************************
+service File {
+  rpc GetUploadInfo(GetUploadInfoReq) returns (GetUploadInfoRsp);
+  rpc ConfirmUpload(ConfirmUploadReq) returns (ConfirmUploadRsp);
+}
+
+
+// ============================================================
+enum UploadScene {
+  UPLOAD_SCENE_NONE = 0;
+  UPLOAD_SCENE_AVATAR = 1;    // 头像上传
+  UPLOAD_SCENE_IM_CHAT = 2;   // 私聊图片
+  UPLOAD_SCENE_IM_PUSH = 3;   // im推送
+  UPLOAD_SCENE_ROOM_MESSAGE = 4;  // 房间公屏
+  UPLOAD_SCENE_ROOM_COVER = 5;    // 房间封面
+  UPLOAD_SCENE_GIFT = 6;  // 礼物资源
+  UPLOAD_SCENE_ALBUM = 7; // 用户相册
+  UPLOAD_SCENE_PRIVILEGE = 8; // 权益
+  UPLOAD_SCENE_FAMILY_BG = 9; // 家族背景
+
+  // ... 一些额外的web场景
+  UPLOAD_SCENE_WEB = 100;
+}
+
+
+message GetUploadInfoReq {
+  UploadScene scene = 1;  // 场景
+  string file_type = 2;   // 文件类型, 图片: IMAGE, 音频: AUDIO, 视频: VIDEO. ...
+  string mime_type = 3;   // 文件 MIME-Type, 图片: image/jpeg, image/png, image/webp, 音频: audio/mpeg, audio/ogg, ...
+}
+
+message GetUploadInfoRsp {
+  string put_url = 1; // 带签名的上传路径
+  string get_url = 2;
+  string file_path = 3;
+}
+
+message ConfirmUploadReq {
+  string get_url = 1;
+  string file_path = 2;
+  UploadScene scene = 3;  // 场景
+}
+
+message ConfirmUploadRsp {
+  bool passed = 1;    // 是否通过
+  string message = 2;
+  string file_url = 3;
+}

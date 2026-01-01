@@ -1,0 +1,94 @@
+// smicro:spath=gitit.cc/social/echo/handle/svr
+syntax = "proto3";
+
+package pbsadapter;
+
+import "protobuf/api/adapter/model.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsadapter";
+option java_package = "com.common.biz.relation";
+
+service CommonRelation {
+  rpc GetUserRelation(GetUserRelationReq) returns (GetUserRelationRsp) {}
+  // 只查询关注状态, 性能更好点
+  rpc BatchGetUserFollowStatus(BatchGetUserFollowStatusReq) returns (BatchGetUserFollowStatusRsp) {}
+  // 关注用户
+  rpc FollowUser(FollowUserReq) returns (FollowUserRsp) {}
+  // 关注房间
+  rpc FollowRoom(FollowRoomReq) returns (FollowRoomRsp) {}
+  // 查询成为某个状态的开始时间
+  rpc GetRelationStatusTime(GetRelationStatusReq) returns (GetRelationStatusRsp){}
+}
+
+// 关系枚举
+enum Relation {
+  RELATION_NONE = 0;          // 无意义
+  RELATION_BLOCKED = 1;       // 我拉黑TA
+  RELATION_BE_BLOCKED = 2;    // 被TA拉黑
+  RELATION_BOTH_BLOCKED = 3;  // 互相拉黑
+  RELATION_STRANGER = 4;      // 陌生人, 既没拉黑也没关注
+  RELATION_FOLLOWED = 5;      // 我关注TA
+  RELATION_BE_FOLLOWED = 6;   // 被TA关注
+  RELATION_BOTH_FOLLOWED = 7; // 互相关注
+}
+
+message GetUserRelationReq {
+  int64 uid = 1;
+  repeated int64 target_uids = 2;
+}
+
+message GetUserRelationRsp {
+  map<int64, Relation> relations = 1;
+}
+
+message BatchGetUserFollowStatusReq {
+  int64 uid = 10;
+  repeated int64 target_ids = 11; // 用户id or 房间id，看FollowTargetType的值
+  FollowTargetType target_type = 12;
+}
+
+message BatchGetUserFollowStatusRsp {
+  map<int64, bool> relations = 10;
+}
+
+message FollowUserReq {
+  int64 uid = 10;
+  int64 target_uid = 11;
+}
+
+message FollowUserRsp {
+  comm.api.adapter.FollowErrCode error_code = 10; // 0: 表示成功
+  string error_msg = 11;
+}
+
+message FollowRoomReq {
+  int64 uid = 10;
+  int64 target_room_id = 11;
+}
+
+message FollowRoomRsp {
+  comm.api.adapter.FollowErrCode error_code = 10; // 0: 表示成功
+  string error_msg = 11;
+}
+
+enum FollowTargetType {
+  FOLLOW_TARGET_TYPE_UNKNOWN = 0;
+  FOLLOW_TARGET_TYPE_USER = 1;
+  FOLLOW_TARGET_TYPE_ROOM = 2;
+}
+
+message  GetRelationStatusReq{
+  int64 uid = 1;
+  int64 follow_uid = 2;
+  int64 status = 3;
+}
+message  GetRelationStatusRsp{
+  int64 status_time = 1;
+}
+
+enum FollowStatusType{
+  FOLLOW_STATUS_TYPE_NONE = 0;
+  FOLLOW_STATUS_TYPE_FOLLOW = 1;
+  FOLLOW_STATUS_TYPE_UNFOLLOW = 2;
+  FOLLOW_STATUS_TYPE_FRIEND = 3;
+}

@@ -1,0 +1,228 @@
+syntax = "proto3";
+
+package mgr.pbrevenue;
+
+import "protobuf/api/revenue/common.proto";
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmrevenue";
+option java_package = "com.revenue.biz.proto";
+
+// 兑换服务
+// smicro:spath=gitit.cc/social/components-service/social-revenue/exchangemgr/exchange.go
+service ExchangeMgr {
+  // 获取兑换配置
+  rpc ListExchangeRate(ListExchangeRateReq) returns (ListExchangeRateRsp) {}
+  // 获取兑换配置
+  rpc GetExchangeRate(GetExchangeRateReq) returns (GetExchangeRateRsp) {}
+  // 新增兑换配置
+  rpc CreateExchangeRate(CreateExchangeRateReq) returns (CreateExchangeRateRsp) {}
+  // 更新兑换配置
+  rpc UpdateExchangeRate(UpdateExchangeRateReq) returns (UpdateExchangeRateRsp) {}
+  // 删除兑换配置
+  rpc DeleteExchangeRate(DeleteExchangeRateReq) returns (DeleteExchangeRateRsp) {}
+  // 更新配置状态
+  rpc UpdateStatusRate(UpdateStatusRateReq) returns (UpdateStatusRateRsp) {}
+
+  // 获取兑换选项
+  rpc ListExchangeOption(ListExchangeOptionReq) returns (ListExchangeOptionRsp) {}
+  // 获取兑换配置
+  rpc GetExchangeOption(GetExchangeOptionReq) returns (GetExchangeOptionRsp) {}
+  // 新增兑换配置
+  rpc CreateExchangeOption(CreateExchangeOptionReq) returns (CreateExchangeOptionRsp) {}
+  // 更新兑换配置
+  rpc UpdateExchangeOption(UpdateExchangeOptionReq) returns (UpdateExchangeOptionRsp) {}
+  // 删除兑换配置
+  rpc DeleteExchangeOption(DeleteExchangeOptionReq) returns (DeleteExchangeOptionRsp) {}
+  // 更新配置状态
+  rpc UpdateStatusOption(UpdateStatusOptionReq) returns (UpdateStatusOptionRsp) {}
+
+  // 查询兑换记录
+  rpc ListExchangeRecord(ListExchangeRecordReq) returns (ListExchangeRecordRsp) {}
+  // 查询兑换合计
+  rpc GetExchangeRecordSum(GetExchangeRecordSumReq) returns (GetExchangeRecordSumRsp) {}
+}
+
+message ListExchangeRateReq {
+  scommon.Page page = 1;
+
+  repeated .pbrevenue.CurrencyType source_currency_types = 10;
+  repeated .pbrevenue.CurrencyType target_currency_types = 11;
+}
+
+message ListExchangeRateRsp {
+  scommon.Page page = 1;
+
+  repeated ExchangeRate exchange_rates = 10;
+}
+
+message GetExchangeRateReq {
+  int64 id = 10;
+}
+
+message GetExchangeRateRsp {
+  ExchangeRate exchange_rate = 10;
+}
+
+message CreateExchangeRateReq {
+  ExchangeRate exchange_rate = 10;
+}
+
+message CreateExchangeRateRsp {
+}
+
+message UpdateExchangeRateReq {
+  ExchangeRate exchange_rate = 10;
+}
+
+message UpdateExchangeRateRsp {
+}
+
+message DeleteExchangeRateReq {
+  int64 id = 10;
+}
+
+message DeleteExchangeRateRsp {
+}
+
+
+message UpdateStatusRateReq {
+  repeated int64 ids = 1;
+  ExchangeConfigStatus status = 2;
+}
+
+message UpdateStatusRateRsp{}
+
+
+message ListExchangeOptionReq {
+  scommon.Page page = 1;
+
+  repeated .pbrevenue.CurrencyType source_currency_types = 10;
+  repeated .pbrevenue.CurrencyType target_currency_types = 11;
+}
+
+message ListExchangeOptionRsp {
+  scommon.Page page = 1;
+
+  repeated ExchangeOption exchange_option = 10;
+}
+
+message GetExchangeOptionReq {
+  int64 id = 10;
+}
+
+message GetExchangeOptionRsp {
+  ExchangeOption exchange_option = 10;
+}
+
+message CreateExchangeOptionReq {
+  ExchangeOption exchange_option = 10;
+}
+
+message CreateExchangeOptionRsp {
+}
+
+message UpdateExchangeOptionReq {
+  ExchangeOption exchange_option = 10;
+}
+
+message UpdateExchangeOptionRsp {
+}
+
+message DeleteExchangeOptionReq {
+  int64 id = 10;
+}
+
+message DeleteExchangeOptionRsp {
+}
+
+// 兑换选项
+message ExchangeOption {
+  int64 exchange_option_id = 1;           // 兑换汇率ID
+  .pbrevenue.CurrencyType source_currency_type = 2;  // 消耗币种
+  int64 source_quantity = 3;              // 消耗多少数量货币
+  .pbrevenue.CurrencyType target_currency_type = 4;  // 获得币种
+  int64 target_quantity = 5;              // 可以获得多少数量货币
+  int32 sequence = 6;                     // 序号
+  int64 utime = 7;                       // 更新时间
+  int64 ctime = 8;                       // 创建时间
+  string remark = 11;                     // 备注
+  ExchangeConfigStatus status = 12;       // 状态
+}
+
+// 兑换汇率
+message ExchangeRate {
+  int64 exchange_rate_id = 1;             // 兑换汇率ID
+  .pbrevenue.CurrencyType source_currency_type = 2;  // 消耗币种
+  int64 source_quantity = 3;              // 消耗多少数量货币
+  .pbrevenue.CurrencyType target_currency_type = 4;  // 获得币种
+  int64 target_quantity = 5;              // 可以获得多少数量货币
+  string rate_key = 6;              // 可以获得多少数量货币
+  int32 sequence = 7;                     // 序号
+  int64 utime = 8;                       // 更新时间
+  int64 ctime = 9;                       // 创建时间
+  string remark = 11;                     // 备注
+  ExchangeConfigStatus status = 12;       // 状态
+}
+
+enum ExchangeConfigStatus {
+    EXCHANGE_CONFIG_STATUS_NORMAL = 0;  // 正常
+    EXCHANGE_CONFIG_STATUS_OFFLINE = 1; // 下线
+    EXCHANGE_CONFIG_STATUS_DELETED = 2; // 删除（删除后记录作废不可再修改）
+}
+
+message UpdateStatusOptionReq {
+  repeated int64 exchange_option_ids = 1;
+  ExchangeConfigStatus status = 2;
+}
+
+message UpdateStatusOptionRsp{}
+
+
+// 查询记录列表请求
+message ListExchangeRecordReq {
+  scommon.Page page = 1;
+  QueryExchangeRecordArgs query_args = 10;
+}
+
+// 查询筛选条件
+message QueryExchangeRecordArgs {
+  string uid = 1;                                 // 兑换发起者
+  string target_uid = 2;                          // 兑换交易对象
+  .pbrevenue.CurrencyType source_currency = 3;    // 消耗币种
+  .pbrevenue.CurrencyType target_currency = 4;    // 获得币种
+  int64 start_time = 5;                           // 开始时间
+  int64 end_time = 6;                             // 结束时间
+}
+
+// 查询记录列表响应
+message ListExchangeRecordRsp {
+  scommon.Page page = 1;
+  repeated ExchangeRecord records = 10;
+}
+
+// 兑换记录
+message ExchangeRecord {
+  int64 id = 1;                                     // 兑换记录ID
+  int64 uid = 2;                                    // 兑换发起者
+  int64 target_uid = 3;                             // 兑换交易对象
+  .pbrevenue.CurrencyType source_currency = 4;      // 消耗币种
+  int64 source_quantity = 5;                        // 消耗多少数量货币
+  .pbrevenue.CurrencyType target_currency = 6;      // 获得币种
+  int64 target_quantity = 7;                        // 获得多少数量货币
+  int64 create_at = 8;                              // 秒级时间戳
+  .pbrevenue.UserInfo user = 9;                     // 兑换发起者信息
+  .pbrevenue.UserInfo target_user = 10;             // 兑换交易对象信息
+}
+
+
+// 查询合计请求
+message GetExchangeRecordSumReq {
+  QueryExchangeRecordArgs query_args = 10;
+}
+
+// 查询合计响应
+message GetExchangeRecordSumRsp {
+  int64 source_quantity = 1;                  // 消耗数量汇总
+  int64 target_quantity = 2;                  // 获得数量汇总
+}

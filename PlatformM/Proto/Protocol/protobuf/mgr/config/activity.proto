@@ -1,0 +1,118 @@
+//  smicro:spath=gitit.cc/social/components-service/social-config/biz/activity/handlermgr/
+syntax = "proto3";
+
+// social-config
+package comm.mgr.config;
+
+import "protobuf/api/common/common.proto";
+
+option go_package="gitit.cc/social/protobuf/gencode/mgr/pbmconfig";
+
+// serviceName: social-config
+// 活动模板管理
+service ActivityTemplateMgr {
+
+    // 查询活动模板列表
+    rpc ListTemplate(ListTemplateReq) returns (ListTemplateRsp);
+
+    // 查询活动模板详情
+    rpc GetTemplate(GetTemplateReq) returns (GetTemplateRsp);
+
+
+    // 分页查询活动实例列表
+    rpc ListInstance(ListInstanceReq) returns (ListInstanceRsp);
+
+    // 插入或更新活动实例
+    rpc SaveInstance(SaveInstanceReq) returns (SaveInstanceRsp);
+
+    // 删除活动实例
+    rpc DeleteInstance(DeleteInstanceReq) returns (DeleteInstanceRsp);
+
+    // 查询活动实例详情
+    rpc GetInstance(GetInstanceReq) returns (GetInstanceRsp);
+}
+
+// 活动模板(以template_code作为唯一标识)
+message ActivityTemplate {
+    string template_code = 2;           // 模板code
+    string template_name = 3;           // 模板名称
+    
+    string basic_biz_key = 10;          // 基础配置biz_key
+    string basic_item_key = 11;         // 基础配置item_key
+    string abase_biz_key = 20;          // abase配置biz_key
+    
+    int64 created_at = 100;             // 创建时间
+    int64 updated_at = 101;             // 更新时间
+}
+
+message ListTemplateReq {
+
+}
+
+message ListTemplateRsp {
+    repeated ActivityTemplate activity_templates = 10;
+}
+
+message GetTemplateReq {
+    string template_code = 10;
+}
+
+message GetTemplateRsp {
+    ActivityTemplate activity_template = 10;
+}
+
+// 活动实例(以template_code+instance_code作为唯一标识)
+message ActivityInstance {
+    string template_code = 1;       // 活动模板code
+    string instance_code = 2;       // 活动实例code
+    string instance_name = 3;       // 活动实例名称
+    int64 start_at = 10;            // 活动开始时间
+    int64 end_at = 11;              // 活动结束时间
+    int64 created_at = 100;         // 创建时间
+    string created_by  = 101;       // 创建人
+    int64 updated_at  = 102;        // 更新时间
+    string updated_by  = 103;       // 更新人
+    int64 deleted_at  = 104;        // 删除时间
+    string deleted_by  = 105;       // 删除人
+}
+
+message ListInstanceReq {
+    scommon.Page page = 1;
+    string template_code = 10;      // 活动模板code(选填)
+    string instance_code = 11;      // 活动实例code(选填)
+    string instance_name = 12;      // 活动实例名称(选填, 模糊搜索)
+    bool active_only = 20;          // 仅查询活跃的, 也就是已开始未结束的
+}
+
+message ListInstanceRsp {
+    scommon.Page page = 1;
+    repeated ActivityInstance activity_instances = 10;
+}
+
+message SaveInstanceReq {
+    string template_code = 10;      // 活动模板code
+    string instance_code = 11;      // 活动实例code
+    string instance_name = 12;      // 活动实例名称
+    int64 start_at = 20;            // 活动开始时间
+    int64 end_at = 21;              // 活动结束时间
+}
+
+message SaveInstanceRsp {
+}
+
+message DeleteInstanceReq {
+    string template_code = 10;      // 活动模板code
+    string instance_code = 11;      // 活动实例code
+}
+
+message DeleteInstanceRsp {
+}
+
+message GetInstanceReq {
+    string template_code = 10;
+    string instance_code = 11;
+}
+
+message GetInstanceRsp {
+    ActivityInstance activity_instance = 10;
+}

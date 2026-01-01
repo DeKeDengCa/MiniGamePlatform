@@ -1,0 +1,194 @@
+syntax = "proto3";
+
+package mgr.lottery;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/revenue/lottery.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmrevenue";
+
+// 抽奖配置
+// smicro:spath=gitit.cc/social/components-service/social-revenue/lottery/handlermgr
+service LotteryMgr {
+
+    // 创建抽奖配置
+    rpc CreateLottery(CreateLotteryReq) returns (CreateLotteryRsp);
+
+    // 更新抽奖配置
+    rpc UpdateLottery(UpdateLotteryReq) returns (UpdateLotteryRsp);
+
+    // 删除抽奖配置
+    rpc DeleteLottery(DeleteLotteryReq) returns (DeleteLotteryRsp);
+
+    // 搜索抽奖配置
+    rpc SearchLottery(SearchLotteryReq) returns (SearchLotteryRsp);
+
+    // 复制抽奖配置
+    rpc CopyLottery(CopyLotteryReq) returns (CopyLotteryRsp);
+
+    // 查询未绑定抽奖配置
+    rpc ListUnboundLottery(ListUnboundLotteryReq) returns (ListUnboundLotteryRsp);
+
+    // 获取奖励列表
+    rpc ListPrize(ListPrizeReq) returns (ListPrizeRsp);
+
+    // 保存奖励列表
+    rpc SavePrize(SavePrizeReq) returns (SavePrizeRsp);
+
+    // 添加黑名单
+    rpc AddBlacklist(AddBlacklistReq) returns (AddBlacklistRsp);
+
+    // 删除黑名单
+    rpc DeleteBlacklist(DeleteBlacklistReq) returns (DeleteBlacklistRsp);
+
+    // 搜索黑名单
+    rpc SearchBlacklist(SearchBlacklistReq) returns (SearchBlacklistRsp);
+}
+
+message CreateLotteryReq {
+    LotteryConfig lottery_config = 10;
+}
+message CreateLotteryRsp {
+    LotteryConfig lottery_config = 10;
+}
+
+message UpdateLotteryReq {
+    LotteryConfig lottery_config = 10;
+}
+message UpdateLotteryRsp {
+    LotteryConfig lottery_config = 10;
+}
+
+message DeleteLotteryReq {
+    repeated int64 lottery_ids = 10;
+}
+message DeleteLotteryRsp {
+}
+
+message SearchLotteryReq {
+    scommon.Page page = 1;
+    repeated pbrevenue.LotteryType lottery_types = 10;
+    repeated int64 lottery_ids = 11;
+}
+message SearchLotteryRsp {
+    scommon.Page page = 1;
+    repeated LotteryConfig lottery_configs = 10;
+}
+
+message CopyLotteryReq {
+    int64 lottery_id = 10;
+    string name = 11;
+}
+message CopyLotteryRsp {
+    int64 new_lottery_id = 10;
+}
+
+message ListUnboundLotteryReq{
+
+}
+message ListUnboundLotteryRsp{
+    repeated LotteryConfig lottery_configs = 10;
+}
+
+
+message ListPrizeReq {
+    int64 lottery_id = 10;
+}
+message ListPrizeRsp {
+    int64 lottery_id = 10;
+    int64 lottery_version = 11;
+    repeated PrizeConfig prize_configs = 12;
+}
+
+message SavePrizeReq {
+    int64 lottery_id = 10;
+    int64 lottery_version = 11;
+    repeated PrizeConfig prize_configs = 12;
+}
+message SavePrizeRsp {
+
+}
+
+
+// 添加黑名单
+message AddBlacklistReq{
+    int64 lottery_id = 1; 
+    string pool = 2;
+    repeated int64 uids = 3;
+}
+message AddBlacklistRsp{
+}
+
+// 删除黑名单
+message DeleteBlacklistReq{
+    int64 lottery_id = 1; 
+    string pool = 2;
+    repeated int64 uids = 3;
+}
+message DeleteBlacklistRsp{
+}
+
+// 搜索黑名单
+message SearchBlacklistReq{
+    scommon.Page page = 1;
+    int64 lottery_id = 10;
+    repeated string pools = 11;
+    repeated int64 uids = 12;
+}
+message SearchBlacklistRsp{
+    scommon.Page page = 1;
+    repeated PoolBlacklist blacklists = 10; 
+}
+
+
+// 抽奖配置
+message LotteryConfig {
+    int64 lottery_id = 1;
+    pbrevenue.LotteryType lottery_type = 2; 
+    string name = 10;
+    string remark = 20;
+    int64 version = 30;
+    map<string, PoolConfig> pool_configs = 40;
+    int64 created_at = 100;
+    string created_by = 101;
+    int64 updated_at = 102;
+    string updated_by = 103;
+}
+
+// 奖池配置
+message PoolConfig {
+    int64 min_investment = 1;       // 最小投入
+    int64 max_investment = 2;       // 最大投入
+    float min_roi = 3;              // 最小投入产出比
+    float max_roi = 4;              // 最大投入产出比
+}
+
+// 奖品配置
+message PrizeConfig {
+    int64 prize_id = 1;
+    string icon = 10;
+    map<string, string> i18n_name = 20;
+    pbrevenue.PrizeType prize_type = 30;
+    string prize_value = 31;
+    map<string, int64> probability = 40; // map<概率池, 概率>
+    int64 sequence = 50;
+}
+
+// 概率池
+enum ProbabilityPool {
+    PROBABILITY_POOL_NONE = 0;
+
+    PROBABILITY_POOL_NEWER = 10;        // 新手池
+    PROBABILITY_POOL_NORMAL = 20;       // 普通池
+    PROBABILITY_POOL_RECOVERY = 30;     // 回血池
+}
+
+// 奖池黑名单
+message PoolBlacklist {
+    int64 blacklist_id = 1;
+    int64 lottery_id = 2; 
+    string pool = 3;
+    int64 uid = 4;
+    int64 created_at = 10;
+    string created_by = 11;
+}

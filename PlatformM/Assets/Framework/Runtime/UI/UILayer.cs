@@ -1,0 +1,4 @@
+namespace Astorise.Framework.UI
+{
+}
+

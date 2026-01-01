@@ -1,0 +1,228 @@
+syntax = "proto3";
+
+package pbsocialgoldagency;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsocialgoldagency";
+// smicro:spath=gitit.cc/social/components-service/social-goldagency/handler-svr/socialgoldagency
+
+// 社交中台币商服务
+service SocialGoldAgency {
+
+  // 根据uid查询币商信息
+  rpc ListGoldAgencyByUids(ListGoldAgencyByUidsReq) returns (ListGoldAgencyByUidsRsp) {}
+
+  // 根据币商分级查询币商列表
+  rpc ListGoldAgencyByLevel(ListGoldAgencyByLevelReq) returns (ListGoldAgencyByLevelRsp) {}
+
+  // 根据上级币商uid查询币商列表
+  rpc ListGoldAgencyBySuperiorUid(ListGoldAgencyBySuperiorUidReq) returns (ListGoldAgencyBySuperiorUidRsp) {}
+
+  // 币商收款方式列表
+  rpc ListAgencyPaymentMethod(ListAgencyPaymentMethodReq) returns (ListAgencyPaymentMethodRsp) {}
+
+  // 币商国家列表
+  rpc ListGoldAgencyCountry(ListGoldAgencyCountryReq) returns (ListGoldAgencyCountryRsp) {}
+
+  // 根据币商可售卖国家码查询币商
+  rpc ListGoldAgencyBySellableCou(ListGoldAgencyBySellableCouReq) returns (ListGoldAgencyBySellableCouRsp) {}
+
+  // 根据收款方式查询币商信息
+  rpc ListAgencyByPaymentID(ListAgencyByPaymentIDReq) returns (ListAgencyByPaymentIDRsp) {}
+
+  // 根据UID查询交易流水汇总
+  rpc ListTransSummary(ListTransSummaryReq) returns (ListTransSummaryRsp) {}
+
+  // 查询可回收虚拟美金的币商列表
+  rpc ListCanExchangeGoldAgency(ListCanExchangeGoldAgencyReq) returns (ListCanExchangeGoldAgencyRsp) {}
+}
+
+// 币商分级
+enum GoldAgencyLevel {
+  GOLD_AGENCY_LEVEL_NONE = 0;        // 非币商
+  GOLD_AGENCY_LEVEL_PRIMARY = 1;     // 一级币商
+  GOLD_AGENCY_LEVEL_SECONDARY = 2;   // 二级币商
+  // ... 更多等级币商, 但目前只有两级
+  GOLD_AGENCY_LEVEL_NORMAL = 99;     // 普通币商
+}
+
+// 币商信息
+message GoldAgency {
+  int64 id = 1;                           // 币商ID
+  int32 level = 2;                        // 币商分级
+  int64 uid = 3;                          // 业务UID
+  int64 superior_uid = 4;                 // 上级币商UID，如果是一级币商或普通币商则为 0
+  double recharge_amount = 5;             // 累计充值金额
+  int64 transaction_count = 6;            // 累计交易次数
+  int64 initial_transaction_count = 7;    // 初始化交易次数
+  int64 last_recharge_at = 8;             // 最新充值时间
+  repeated string sellable_countries = 9; // 可售卖国家列表
+  string remark = 10;                     // 备注(对用户不可见)
+  bool hidden = 11;                       // 是否已对用户隐藏
+  int64 create_at = 12;                   // 创建时间
+  int64 update_at = 13;                   // 更新时间
+  map<string, string> payment_info = 14;   // 收款信息详情，返回多语言。(仅根据收款方式查询币商信息返回)
+  int64  amount = 15;                     // 金票余额 (仅根据收款方式查询币商信息返回)
+  int64  volume_in_last_7_days = 16;       // 最近N天成交量 (仅根据收款方式查询币商信息返回)
+}
+
+
+// 根据uid查询币商信息
+message ListGoldAgencyByUidsReq {
+  repeated int64 uids = 10; // uid 列表
+  bool no_cache = 11;       // 不读取缓存, 强制读数据库最新数据.
+}
+
+// 根据uid查询币商信息
+message ListGoldAgencyByUidsRsp {
+  repeated GoldAgency gold_agencies = 10; // 币商信息
+}
+
+
+// 根据币商分级查询币商列表
+message ListGoldAgencyByLevelReq {
+  int32 level = 10;   // 币商分级
+  bool no_cache = 11; // 不读取缓存, 强制读数据库最新数据.
+}
+
+// 根据币商分级查询币商列表
+message ListGoldAgencyByLevelRsp {
+  repeated GoldAgency gold_agencies = 10; // 币商信息
+}
+
+
+// 根据上级币商uid查询币商列表
+message ListGoldAgencyBySuperiorUidReq {
+  int64 superior_uid = 10; // 上级币商UID
+  bool no_cache = 11;      // 不读取缓存, 强制读数据库最新数据.
+}
+
+// 根据上级币商uid查询币商列表
+message ListGoldAgencyBySuperiorUidRsp {
+  repeated GoldAgency gold_agencies = 10; // 币商信息
+}
+
+// 有些交易是直接在业务侧产生的, 但是中台需要记录和显示这些交易记录.
+// topic: social-goldagency-transaction
+message TransactionMessage {
+  string anm = 1;                 // 业务名
+  string sub_anm = 99;            // 业务子代号
+  string seq_id = 2;               // 幂等 id
+  string type = 3;                // 交易类型
+  int64 quantity = 4;             // 增加金票数量
+  int64 agency_uid = 5;            // 币商uid
+  int64 agency_past_balance = 6;    // 币商交易前余额
+  int64 agency_post_balance = 7;    // 币商交易后余额
+  int64 transact_at = 8;           // 交易发生的时间
+  double currency_amount = 9;      // 金额
+  string currency_type = 10;       // 币种
+  int64 opposite_uid = 11 ;        // 对方 uid
+  int64 opposite_past_balance = 12; // 对方交易前余额
+  int64 opposite_post_balance = 13; // 对方交易后余额
+  string pay_type = 14;            // 业务支付方式
+  int64 agency_after_charge_balance = 15; // 充值后付费余额
+  int64 agency_after_free_balance = 16;   // 充值后免费余额
+  int64 free_quantity = 17;        // 免费金票数量
+  int64 charge_quantity = 18;      // 付费金票数量
+}
+
+// 币商变更事件
+// topic: social-goldagency-event-${anm}
+message GoldAgencyEventMessage {
+  GoldAgencyEventType event_type = 1;     // 事件类型
+  int64 event_time = 2;                   // 事件时间
+  string anm = 3;                         // 业务名
+  string sub_anm = 99;                    // 业务子代号
+  int64 id = 4;                           // 币商ID
+  int32 level = 5;                        // 币商分级
+  int64 uid = 6;                          // 业务UID
+  int64 superior_uid = 7;                 // 上级币商UID，如果是一级币商或普通币商则为 0
+  bool hidden = 8;                        // 是否已对用户隐藏
+}
+
+enum GoldAgencyEventType {
+  Gold_Agency_Event_Type_NONE = 0;        // 未知事件类型
+  Gold_Agency_Event_Type_CREATE = 1;      // 创建事件
+  Gold_Agency_Event_Type_UPDATE = 2;      // 更新事件
+  Gold_Agency_Event_Type_DELETE = 3;      // 删除事件
+}
+
+message ListAgencyPaymentMethodReq {
+  string cou = 1; // 地区码，可以使用smicro，InPara传递 (可选)
+  int64 uid = 2; // 币商uid (可选)
+  bool recommend_agency = 3; // 是否推荐一个币商的收款方式，否：全部币商的收款方式，是：单个币商的收款方式
+}
+
+message PaymentMethodDetail {
+  int64 id = 1; // 收款方式ID
+  map<string, string> name = 2; //收款方式名称，多语言
+}
+
+message ListAgencyPaymentMethodRsp {
+  repeated PaymentMethodDetail list = 1; // 收款方式列表
+  int64 agency_uid = 2; // 币商uid，当使用推荐币商收款方式会返回币商uid
+}
+
+message ListGoldAgencyCountryReq {
+}
+
+message ListGoldAgencyCountryRsp {
+  repeated string countries = 1; // 支持国家列表
+}
+
+// 根据uid查询币商信息
+message ListAgencyByPaymentIDReq {
+  int64 payment_method_id = 1; // 收款方式ID
+  repeated int64 uids = 2; // uid 列表
+}
+
+// 根据uid查询币商信息
+message ListAgencyByPaymentIDRsp {
+  repeated GoldAgency gold_agencies = 10; // 币商信息
+}
+
+message ListGoldAgencyBySellableCouReq {
+  string sellable_cou = 10;                 // 可售卖国家码
+  bool no_cache = 11;                       // 不读取缓存, 强制读数据库最新数据.
+}
+
+message ListGoldAgencyBySellableCouRsp {
+  repeated GoldAgency gold_agencies = 10;   // 币商信息
+}
+
+enum TransType {
+  TRANS_TYPE_NONE = 0;
+  TRANS_TYPE_RETAIL = 1; // 币商转账给普通用户，对于普通用户而言就是充值
+}
+
+message TransSummaryUID {
+  // 例子，查询1，2，3的用户uid，收到币商为5的转账。major_uid=[]int64{1,2,3},secondary_uid=5
+  // 例子，查询5，6，7的币商uid，转账给用户为1。major_uid=[]int64{5,6,7},secondary_uid=1
+  repeated int64 major_uid = 1; // 批量需要查的主要uid
+  int64 secondary_uid = 2; // 次关联uid，可不填
+}
+
+message ListTransSummaryReq {
+  oneof Major {
+    TransSummaryUID  user = 1; // 查询用户为主的
+    TransSummaryUID  agency = 2; // 查询币商为主的
+  }
+  TransType trans_type = 3; // 交易流水类型
+}
+
+message TransSummaryDetail {
+  int64 major_uid = 1; // 主要uid 
+  int64 Last_trans_time = 2; // 上一次交易时间
+  int64 quantity_sum = 3; // 交易数量汇总
+}
+
+message ListTransSummaryRsp{
+  repeated TransSummaryDetail details = 1;
+}
+
+message ListCanExchangeGoldAgencyReq {
+  int64 uid = 10;
+}
+
+message ListCanExchangeGoldAgencyRsp {
+  repeated GoldAgency gold_agencies = 10; // 币商信息
+}

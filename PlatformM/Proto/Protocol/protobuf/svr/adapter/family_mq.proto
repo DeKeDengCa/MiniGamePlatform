@@ -1,0 +1,35 @@
+// smicro:spath=gitit.cc/social/echo/handle/svr
+syntax = "proto3";
+
+package pbsadapter;
+
+import "protobuf/svr/adapter/family.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsadapter";
+
+
+// 家族变动类型
+enum FamilyChangeType {
+  FAMILY_CHANGE_TYPE_NONE = 0;         // 无意义
+  FAMILY_CHANGE_TYPE_REMOVE = 1;       // 解散家族
+  FAMILY_CHANGE_TYPE_REMOVE_MEMBER = 2;   // 移除成员(被动踢出)
+  FAMILY_CHANGE_TYPE_MEMBER_EXIT = 3;     // 成员退出家族（主动退出）
+}
+
+// 家族变动消息 topic: social-family-change-message
+message FamilyChangeMessage {
+  int64 timestamp = 1;               // 消息时间戳
+  string anm = 2;                    // 业务名: PlayMate: pm, Echo: echo, HalaMe: o2, Lucky: cu
+  string sub_anm = 99;               // 业务子代号
+  FamilyChangeType change_type = 3;  // 变动类型
+  int64 family_id = 4;             // 家族ID
+  FamilyInfo family_info = 5;       // 家族信息, 对于创建/修改变动类型则传完整 家族信息, 其他变动类型可不传.
+  string reason = 6;                // 解散家族、移除成员原因
+  int64 member_uid = 7;             // 移除 成员 以及 转家族的时候传
+  string target_family_id = 8;      // 转会后的家族id
+  FamilyInfo target_family_info = 9;       // 转会后的家族信息,成员转家族类型传，其他不传
+
+  string sid = 100;            // 分服，服ID
+}
+
+

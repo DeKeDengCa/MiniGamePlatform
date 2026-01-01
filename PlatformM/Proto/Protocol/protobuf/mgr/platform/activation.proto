@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package comm.mgr.platform.activation;
+
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/attribution/handlermgr
+option go_package = "gitit.cc/social/components-service/social-platform/proto/pbmactivation";
+
+// 归因MGR
+service ActivationMgr {
+  rpc DelResultForDid(DelResultForDidReq) returns (DelResultForDidRsp);
+}
+
+message DelResultForDidReq {
+  repeated  string dids = 10;                    // 多个版本号
+}
+message DelResultForDidRsp {
+
+}
+

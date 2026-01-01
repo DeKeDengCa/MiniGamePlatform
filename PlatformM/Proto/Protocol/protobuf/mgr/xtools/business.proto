@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package mgr.pbxtools;
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmgrxtools";
+
+// 业务服务
+// smicro:spath=gitit.cc/social/components-service/xtools/handler/business
+service Business {
+  // 创建业务
+  rpc CreateBusiness(CreateBusinessReq) returns (CreateBusinessRsp);
+  // 编辑业务
+  rpc EditBusiness(EditBusinessReq) returns (EditBusinessRsp);
+  // 查询业务
+  rpc ListBusiness(ListBusinessReq) returns (ListBusinessRsp);
+  // 查询业务(拥有权限的业务)
+  rpc ListBusinessByOwn(ListBusinessByOwnReq) returns (ListBusinessByOwnRsp);
+  // 通过服务名获取业务告警webhook
+  rpc GetWebhookByService(GetWebhookByServiceReq) returns (GetWebhookByServiceRsp);
+}
+
+message BusinessInfo {
+  int64 id = 1;// 业务Id
+  string name = 2;// 业务名称，创建后不可更改，比如halame/ahchat/lucky等
+  string desc = 3;// 描述
+  string owner_email = 4;// 负责人-邮箱
+  repeated string maintainers_email = 5;// 维护人-邮箱
+  string creator = 6;// 创建人
+  int64 created_at = 7;// 创建时间，unix timestamp, seconds
+  string updater = 8; // 更新人
+  int64 updated_at = 9;// 更新时间
+  repeated string maintainers_unionid = 10;// 负责人-unionid
+  string alarm_webhook = 11;  // 业务的告警webhook
+}
+
+message CreateBusinessReq {
+  string name = 1;// 业务名称
+  string desc = 2;// 描述
+  string owner_email = 3;// 负责人邮箱
+  repeated string maintainers_email = 4;// 维护人-邮箱
+  repeated string maintainers_unionid = 5;// 负责人-unionid
+  string alarm_webhook = 6;  // 业务的告警webhook
+}
+message CreateBusinessRsp {
+  int64 id = 1;// 业务Id
+}
+
+message EditBusinessReq {
+  int64 id = 1;// 业务Id
+  string desc = 2;// 描述(可修改)
+  string owner_email = 3;// 负责人邮箱(可修改)
+  repeated string maintainers_email = 4;// 维护人-邮箱(可修改)
+  repeated string maintainers_unionid = 5;// 负责人-unionid
+  string alarm_webhook = 6;  // 业务的告警webhook
+}
+message EditBusinessRsp {
+}
+
+message ListBusinessReq {
+}
+message ListBusinessRsp {
+  repeated BusinessInfo items = 1;// 业务列表
+}
+
+message ListBusinessByOwnReq {
+}
+message ListBusinessByOwnRsp {
+  repeated BusinessInfo items = 1;// 业务列表
+}
+
+message GetWebhookByServiceReq {
+  string service_name = 1; // 比如hala-api
+  string user_email = 2; //
+}
+
+message GetWebhookByServiceRsp {
+  string webhook = 1;  // 业务配置的告警webhook，可能为空
+  string webhook_secret = 2; // 告警webhook公签，可能为空
+  string user_phone = 3; // user_email的手机号
+}

@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package pbsrevenue;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsrevenue";
+option java_package = "com.revenue.biz.proto";
+
+import "protobuf/api/revenue/orders.proto";
+
+service OrdersSvr {
+  // 批量查询用户支付时间和是否充值过
+  rpc GetUsersPayInfo(GetUsersPayInfoReq) returns (GetUsersPayInfoRsp);
+  // 批量查询用户的充值统计
+  rpc BatchGetRechargeStat(BatchGetRechargeStatReq) returns (BatchGetRechargeStatRsp);
+}
+
+message GetUsersPayInfoReq {
+  repeated int64 uids = 1; //uid
+  string anm = 2; //app anm
+}
+
+message GetUsersPayInfoRsp {
+  repeated UsersPayInfo pay_infos = 1;//用户支付信息
+}
+
+message UsersPayInfo {
+  int64 uid = 1; //uid
+  int64 last_pay_time = 2;//最后支付时间
+  bool is_recharge = 3;//是否充值
+}
+
+
+message BatchGetRechargeStatReq {
+  pbrevenue.RechargeType type = 1;   // 充值类型
+  repeated int64 uids = 2;           // uid列表，一次最多一百个
+}
+
+message BatchGetRechargeStatRsp {
+  map<int64, pbrevenue.RechargeStat> uid_to_stat = 1;   // uid -> 充值统计
+}

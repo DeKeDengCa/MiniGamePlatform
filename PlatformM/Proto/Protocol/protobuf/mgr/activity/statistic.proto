@@ -1,0 +1,211 @@
+syntax = "proto3";
+
+package comm.mgr.activity;
+
+import "protobuf/api/adapter/model.proto";
+import "protobuf/mgr/activity/common.proto";
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmactivity";
+
+// smicro:spath=gitit.cc/social/components-service/social-activity/biz/activity/handleactivitystaticmgr
+service ActivityStatisticMgr {
+
+  // 批量获取数据中心活动列表
+  rpc ListActivityStat(ListActivityStatReq) returns (ListActivityStatRsp);
+
+  // 批量获取数据中心活动榜单列表
+  rpc ListActivityStatRank(ListActivityStatRankReq) returns (ListActivityStatRankRsp);
+
+  // 根据id获取pk统计信息
+  rpc GetActivityStatPK(GetActivityStatPKReq) returns (GetActivityStatPKRsp);
+
+  // 根据id获取任务统计信息
+  rpc GetActivityStatTask(GetActivityStatTaskReq) returns (GetActivityStatTaskRsp);
+
+  // 根据id获取抽奖统计信息
+  rpc GetActivityStatLottery(GetActivityStatLotteryReq) returns (GetActivityStatLotteryRsp);
+}
+
+message GetActivityStatLotteryRsp {
+  repeated ActivityStatLotteryItem list = 10;
+}
+
+message ActivityStatLotteryItem {
+  int64 lottery_id = 10;
+  int64 completed_uv = 11;         // 抽奖次数用户数
+  int64 completed_sum = 12;        // 抽奖次数总数
+  int64 lottery_uv = 13;           // 抽奖用户数
+  int64 lottery_sum = 14;          // 抽奖总数
+  repeated ActivityStatLotteryItemPaidStat paid_stats = 15;  // 付费抽奖信息
+}
+
+message ActivityStatLotteryItemPaidStat {
+  comm.api.adapter.Currency currency = 10;
+  int64 total = 11;
+}
+
+message GetActivityStatLotteryReq {
+  string sid = 1; // 服id
+
+  int64 activity_id = 10;
+  int64 lottery_id = 11;
+}
+
+message GetActivityStatTaskReq {
+  string sid = 1; // 服id
+
+  int64 activity_id = 10;
+  int64 task_id = 11;
+}
+
+message GetActivityStatTaskRsp {
+  repeated ActivityStatTaskItem list = 10;
+}
+
+message ActivityStatTaskItem {
+  int64 task_id = 10;
+  int64 completed_uv = 11;        // 完成任务用户数
+  int64 reward_uv = 12;           // 领取任务奖励用户数
+  int64 reward_sum = 13;          // 领取任务奖励总数
+  int64 completed_sum = 14;       // 完成任务总数
+
+  int64 extra_reward_uv = 20;           // 领取额外奖励用户数
+  int64 extra_reward_sum = 21;          // 领取额外奖励总数
+  int64 all_extra_reward_uv = 22;           // 领取所有额外奖励用户数
+  int64 all_extra_reward_sum = 23;          // 领取所有额外奖励总数
+
+  int64 all_grid_completed_uv = 30;           // 完成所有格子任务奖励用户数
+  int64 all_grid_completed_sum = 31;          // 完成所有格子任务奖励总次数
+  int64 all_grid_reward_uv = 32;           // 领取所有格子任务奖励用户数
+  int64 all_grid_reward_sum = 33;          // 领取所有格子任务奖励总次数
+
+  TaskConfig task_config = 100; // 任务配置
+}
+
+message GetActivityStatPKReq {
+  scommon.Sorts sorts = 1;          // 排序参数
+  string sid = 2; // 服id
+
+  int64 pk_id = 10;
+
+  // 下面是过滤条件
+  string member_id = 20; // 公会 or 家族id， 根据 pk_type 决定
+  int64 special_room_id = 21; // 房间id
+}
+
+enum StataPKSort {
+  STAT_PK_SORT_NONE = 0;
+  STAT_PK_SORT_SCORE_TOTAL = 1;
+  STAT_PK_SORT_WINNER_SCORE_TOTAL = 2;
+}
+
+message GetActivityStatPKRsp {
+  repeated ActivityStatPKItem list = 10;
+}
+
+message ActivityStatPKItem {
+  int64 pk_id = 10; // pk_id
+  int64 round = 11; // 轮次, 从 1 开始
+  repeated ActivityStatPKPlayerItem players = 12;
+  int64 start_time = 13;// pk 开始时间
+  int64 end_time = 14;// pk 结束时间
+  int64 detail_id = 15;// pk detail id
+
+  // 下面的信息是同按group分组，同一个group 都是一样的值
+  string gid = 100;             // 分组id
+  int64 gscore_total = 101;     // 分组总分
+  string gwinner = 102;         // 赢家
+  int64 gwinner_score = 103;    // 赢家总分
+  int64 grank = 104;            // 分组排名，从1开始
+}
+
+message ActivityStatPKPlayerItem {
+  string member_id = 12; // 公会 or 家族id， 根据 pk_type 决定
+  int64 special_room_id = 13; // 房间id
+  int64 score = 14;// 分数
+}
+
+message ListActivityStatReq {
+  scommon.Page page = 1;
+  string sid = 2; // 服id
+  string name = 10;        // 活动名称
+  int64 start_time = 11;   // 活动开始时间,时间戳 秒
+  int64 end_time = 12;     // 活动结束时间,时间戳 秒
+  ActivityStatus status = 13;   // 活动状态
+  string create_by = 14;        // 创建人
+  int64 activity_id = 15;       // 活动id
+  string activity_code = 16;    // 活动code
+}
+
+message ListActivityStatRsp {
+  scommon.Page page = 1;
+  repeated ActivityStatItem list = 10;
+}
+
+
+message ActivityStatItem {
+  string activity_code = 10;                       // 活动唯一code, 用于运营和开发沟通.
+  Activity activity = 11;                          // 活动配置
+  repeated ActivityStatRankInfo rank_list = 12;    // 榜单配置
+  int64 uv = 13;                                   // 参与用户总数
+  ActivityStatus status = 14;                      // 活动状态
+  repeated ActivityStatPkInfo pk_list = 15;        // pk配置
+  repeated ActivityStatTaskInfo task_list = 16;             // 任务配置
+  repeated ActivityStatLotteryInfo lottery_list = 17;       // 抽奖配置
+}
+
+message ActivityStatTaskInfo {
+  TaskConfig task_config = 10;
+}
+
+message ActivityStatLotteryInfo {
+  LotteryConfig lottery_config = 10;
+}
+
+message ActivityStatPkInfo {
+  PKConfig pk_config = 10;
+}
+
+message ActivityStatRankInfo {
+    RankConfig rank_config = 10;
+    repeated int64 cycle_list = 11;                       // 周期秒级时间戳，如果总榜，则返回空
+    int64 prize_pool_id = 12;                             // 榜单关联的奖池榜单id
+    string reward_category_key = 13;                      // 奖励配置项key, 对应 common reward, 只支持发放个数类型的奖励
+    string reward_item_id = 14;                           // 奖励配置项ID, 对应 common reward, 只支持发放个数类型的奖励
+}
+
+message ListActivityStatRankReq {
+  scommon.Page page = 1;
+  string sid = 2; // 服id
+
+  string member = 10; // 榜单成员，string 通用点，可以为uid, room_id, guild_id, family_id
+  SortType sort_type = 11;
+  int64 rank_id = 12;
+  int64 cycle_ts = 13; // 周期秒级时间戳, ActivityStatRankInfo 返回的值
+  string rank_member = 14; // 子榜用
+}
+
+message ListActivityStatRankRsp {
+  scommon.Page page = 1;
+  string sid = 2; // 服id
+
+  repeated ActivityStatRankItem list = 10;
+}
+
+message ActivityStatRankItem {
+  int64 score = 10;
+  int32 rank = 11;
+  repeated ActivityStatRankItemEntity entities = 12;
+  string sub_rank_member = 13; // 子榜
+
+  string expand = 14; // 额外信息，json
+}
+
+message ActivityStatRankItemEntity {
+  string id = 10; //uid or room_id or guild_id or family_id
+  string show_id = 11;
+  string extend = 12;   // json 用户则用户信息，房间则房间信息，家族则家族信息
+  int64 reward_num =13; // 瓜分得到的奖励数量
+  string owner_uid_showid = 14; // room_id/guild_id ownerid 的showid
+}

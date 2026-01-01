@@ -1,0 +1,144 @@
+syntax = "proto3";
+
+package api.astrorise.voiceroom;
+
+import "protobuf/api/account/account.proto";
+import "protobuf/api/common/common-net.proto";
+import "protobuf/api/adapter/model.proto";
+import "api/platform/voiceroom/comm.proto";
+
+option java_package = "com.entertain.sns.api.gene.user";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbuser";
+
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/user/handler
+
+// serviceName: astrorise-voiceroom
+service User {
+  // 获取用户信息, 通过参数 target_uid 与当前用户 uid 是否一致来区分主客态.
+  rpc GetUserInfo(GetUserInfoReq) returns (GetUserInfoRsp);
+
+  // 更新用户信息, 注册时首次填写用户资料也是这个接口.
+  rpc UpdateUserInfo(UpdateUserInfoReq) returns (UpdateUserInfoRsp);
+
+  // 获取注册页面的信息, 客户端应当在获取失败时也不影响注册流程.
+  rpc GetInitInfo(GetInitInfoReq) returns (GetInitInfoRsp);
+
+  // 获取一批随机昵称
+  rpc GetRandomNickname(GetRandomNicknameReq) returns (GetRandomNicknameRsp);
+
+  // 批量获取用户信息
+  rpc BatchGetUser(BatchGetUserReq) returns (BatchGetUserRsp);
+
+  // 更新用户个人介绍
+  rpc UpdateIntroduction(UpdateIntroductionReq) returns (UpdateIntroductionRsp);
+
+  // 更新用户昵称
+  rpc UpdateNickname(UpdateNicknameReq) returns (UpdateNicknameRsp);
+
+  // 更新用户性别
+  rpc UpdateGender(UpdateGenderReq) returns (UpdateGenderRsp);
+
+  // 更新用户头像
+  rpc UpdateAvatar(UpdateAvatarReq) returns (UpdateAvatarRsp);
+
+  // 更新用户国家
+  rpc UpdateCountry(UpdateCountryReq) returns (UpdateCountryRsp);
+
+  // 更新用户生日
+  rpc UpdateBirthday(UpdateBirthdayReq) returns (UpdateBirthdayRsp);
+}
+
+message GetUserInfoReq {
+  int64 target_uid = 10; // 查看的目标用户UID, 如果和请求者UID一致则为查看主态信息, 否则为查看客态信息.
+  repeated UserInfoExtField user_info_ext_fields = 30; // 业务拓展信息(UserInfo.biz_ext)需要的字段
+}
+
+message GetUserInfoRsp {
+  comm.api.adapter.UserInfo user_info = 10;
+}
+
+message UpdateUserInfoReq {
+  comm.api.adapter.UserInfo user_info = 10;
+  comm.api.adapter.UserInfo user_info_selector = 20;
+}
+
+message UpdateUserInfoRsp {
+  comm.api.adapter.UserInfo user_info = 10;
+}
+
+message UpdateIntroductionReq {
+  string introduction = 1;     // 自我介绍
+}
+
+message UpdateIntroductionRsp {
+  string introduction = 1;     // 自我介绍
+}
+
+message UpdateNicknameReq {
+  string nickname = 1;     // 昵称
+}
+
+message UpdateNicknameRsp {
+  string nickname = 1;     // 昵称
+}
+
+message UpdateGenderReq {
+  scommon.Gender gender = 1;     // 性别
+}
+
+message UpdateGenderRsp {
+  scommon.Gender gender = 1;     // 性别
+}
+
+message UpdateAvatarReq {
+  string avatar = 1;     // 头像
+}
+
+message UpdateAvatarRsp {
+  string avatar = 1;     // 头像
+}
+
+message UpdateCountryReq {
+  string country = 1;     // 国家
+}
+
+message UpdateCountryRsp {
+  string country = 1;     // 国家
+}
+
+message UpdateBirthdayReq {
+  string birthday = 1;     // 生日
+}
+
+message UpdateBirthdayRsp {
+  string birthday = 1;     // 生日
+}
+
+message GetInitInfoReq {
+}
+
+message GetInitInfoRsp {
+  repeated string default_avatars = 10;  // 默认头像列表, 用于拓展可以选择更多随机头像, 客户端显示第一个即可.
+  repeated string male_avatars = 11;     // 男性头像列表, 用于拓展可以选择更多随机头像, 客户端显示第一个即可.
+  repeated string female_avatars = 12;   // 女性头像列表, 用于拓展可以选择更多随机头像, 客户端显示第一个即可.
+  repeated string random_nicknames = 13; // 随机昵称列表
+  pbaccount.CountryInfo default_country = 14;      // 默认国家, 是否需要返回所有可选国家列表?
+}
+
+message GetRandomNicknameReq {
+  scommon.Gender gender = 10; // 性别
+}
+
+message GetRandomNicknameRsp {
+  repeated string random_nicknames = 10; // 随机昵称列表
+}
+
+message BatchGetUserReq {
+  repeated int64 uids = 10; // 查看的目标用户UID
+  repeated string user_identifiers = 11; // 用户标识符，可为uid或show_id;uids字段有值则忽略此参数
+  repeated UserInfoExtField user_info_ext_fields = 30; // 业务拓展信息(UserInfo.biz_ext)需要的字段
+}
+
+message BatchGetUserRsp {
+  map<int64, comm.api.adapter.UserInfo> user_infos = 10;
+}

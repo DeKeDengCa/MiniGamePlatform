@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package comm.svr.moment;
+
+option java_package = "com.entertain.sns.comm.svr.moment";
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsmoment";
+
+import "protobuf/api/moment/moment-comm.proto";
+import "protobuf/api/common/common-net.proto";
+
+// 中台回调业务
+service MomentCb {
+  // 预发布动态
+  rpc CbPrePublishMoment(CbPrePublishMomentReq) returns (CbPrePublishMomentRsp);
+  // 组装动态信息
+  rpc CbAssembleMoment(CbAssembleMomentReq) returns (CbAssembleMomentRsp);
+  // 查询用户动态列表
+  rpc CbListMoment(CbListMomentReq) returns (CbListMomentRsp);
+
+  // 预发布评论
+  rpc CbPrePublishComment(CbPrePublishCommentReq) returns (CbPrePublishCommentRsp);
+  // 组装评论信息
+  rpc CbAssembleComment(CbAssembleCommentReq) returns (CbAssembleCommentRsp);
+}
+
+
+message CbPrePublishMomentReq {
+  comm.api.moment.Moment moment = 10;
+}
+
+message CbPrePublishMomentRsp {
+  scommon.Result result = 1;
+  comm.api.moment.Moment moment = 10;
+}
+
+
+message CbAssembleMomentReq {
+  map<int64, comm.api.moment.Moment> moment_map = 1;  // 待组装的动态 <动态ID, 动态信息>
+  int64 viewer_uid = 10;  // 查看者
+}
+
+message CbAssembleMomentRsp {
+  map<int64, comm.api.moment.Moment> moment_map = 1; // 组装后返回的动态 <动态ID, 动态信息>
+}
+
+
+message CbPrePublishCommentReq {
+  comm.api.moment.Comment comment = 10;
+}
+
+message CbPrePublishCommentRsp {
+  scommon.Result result = 1;
+  comm.api.moment.Comment comment = 10;
+}
+
+
+message CbAssembleCommentReq {
+  map<int64, comm.api.moment.Comment> comment_map = 1;  // 待组装的评论 <评论ID, 评论信息>
+  int64 viewer_uid = 10;  // 查看者
+}
+
+message CbAssembleCommentRsp {
+  map<int64, comm.api.moment.Comment> comment_map = 1;  // 组装后返回的评论 <评论ID, 评论信息>
+}
+
+
+message CbListMomentReq {
+  repeated comm.api.moment.Moment moments = 1; // 中台基础查询后的列表
+  int64 viewer_uid = 10;  // 查看者
+  int64 target_uid = 11;  // 被查看者
+}
+
+message CbListMomentRsp {
+  repeated comm.api.moment.Moment moments = 1; // 业务过滤后的列表
+}

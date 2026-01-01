@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package comm.svr.activity;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsactivity";
+
+// 类似于google.protobuf.Any，不同的是这里明确只支持基本类型
+message Any {
+  oneof kind {
+    string string_val = 1;
+    int64 int_val = 5;
+    bool bool_val = 10;
+    double double_val = 15;
+    bytes bytes_val = 20;
+  }
+}

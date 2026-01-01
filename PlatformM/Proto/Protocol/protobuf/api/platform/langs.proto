@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+import "protobuf/api/common/common.proto";
+
+package comm.api.platform.langs;
+
+option java_package = "com.entertain.sns.comm.api.platform.langs";
+option go_package = "gitit.cc/social/components-service/social-platform/proto/pblangs";
+
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/langs/handlerapi/langs.go
+
+service LangsApi {
+    // 拉取多语言信息
+    rpc Get(GetReq) returns (GetRsp);
+}
+
+// 哪个端的
+enum Site {
+    SITE_NONE = 0;
+    SITE_SERVER = 1;
+    SITE_APP = 2;
+    SITE_WEB = 3;
+}
+
+message GetReq {
+    Site site = 1;
+    string lang = 2; // 根据当前用户的语言拉取对应的多语言，zh/en等，如果不存在，则返回en
+
+    map<string, int64> versions = 10; // key是多语言的code
+}
+message GetRsp {
+    map<string, Lang> langs = 1; // code->Lang
+}
+
+message Lang {
+    int64 version = 1;
+    string lang = 2; // lang code，比如en、zh 等
+
+    DataType type = 10;
+    string data = 11;    // 内容取决于type
+}
+enum DataType {
+    DATA_TYPE_NONE = 0;
+    DATA_TYPE_CONTENT = 1; // 多语言的内容，map<string, string>格式，客户端自行unmarshal
+    DATA_TYPE_PATCH = 2;   // json pathch 文件
+}

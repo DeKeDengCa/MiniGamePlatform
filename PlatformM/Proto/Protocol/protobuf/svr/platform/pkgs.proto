@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package comm.svr.platform.pkgs;
+
+import "protobuf/api/common/common-net.proto";
+import "protobuf/mgr/platform/feature.proto";
+
+option java_package = "com.pkgs.proto";
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/appfeature/handlersvr
+option go_package = "gitit.cc/social/protobuf/gencode/svr/platform/pbspkgs";
+
+// 获取包名列表,业务后端实现，由中台调用
+service PackagesSvr {
+  // 根据in.app 来获取包名列表
+  rpc GetPackages(GetPackagesReq) returns (GetPackagesRsp);
+}
+
+message GetPackagesReq{
+  string sockpuppet = 10 ;                  // 马甲名，如果没有，则不填
+  string anm = 11;                          // 业务名
+  string sub_anm = 12;                      // 业务子代号
+}
+message GetPackagesRsp{
+  repeated comm.mgr.platform.feature.PkgOstype pkgs = 10;              // 所有包名，包括ios和android
+}

@@ -1,0 +1,47 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/feedback/handler
+syntax = "proto3";
+
+package api.astrorise.voiceroom;
+
+option java_package="com.entertain.sns.api.gene";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbfeedback";
+
+// 举报协议
+// serviceName: astrorise-voiceroom
+service Feedback {
+  // 举报分类-列表
+  rpc ListFeedbackCategory(ListFeedbackCategoryReq) returns (ListFeedbackCategoryRsp);
+
+  // 举报-新增
+  rpc CreateFeedback(CreateFeedbackReq) returns (CreateFeedbackRsp);
+}
+
+// 被举报对象类型
+enum FeedbackTargetType {
+  FEEDBACK_TARGET_TYPE_NONE = 0;
+  FEEDBACK_TARGET_TYPE_USER = 1;//用户
+  FEEDBACK_TARGET_TYPE_ROOM = 2;//房间
+}
+
+message FeedbackCategory{
+  int64 id = 1;
+  string name = 2;//举报分类名称
+}
+
+message ListFeedbackCategoryReq {
+  FeedbackTargetType target_type = 1;//被举报对象类型(1:用户,2:房间)
+}
+message ListFeedbackCategoryRsp {
+  repeated FeedbackCategory feedback_categories = 1;//举报分类列表
+}
+
+message CreateFeedbackReq {
+  FeedbackTargetType target_type = 1;//被举报对象类型(1:用户,2:房间)
+  string target_id = 2;//被举报对象Id
+  repeated int64 feedback_category_ids = 3;//举报类型Ids
+  repeated string report_img_urls = 4;//举报图片
+  string report_description = 5;//举报描述
+}
+message CreateFeedbackRsp {
+  int64 id = 1;
+}

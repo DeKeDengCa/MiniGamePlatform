@@ -1,0 +1,203 @@
+// smicro:spath=gitit.cc/social/components-service/social-privilege/biz/respkg/handlermgr
+
+syntax = "proto3";
+
+package comm.mgr.privilege;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/privilege/v2/privilege.proto";
+import "protobuf/api/privilege/v2/resource_package.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmprivilege";
+
+service ResourcePackageDistribute {
+  // 资源包发放记录列表
+  rpc ListResourcePackageDistributeLog(ListResourcePackageDistributeLogReq) returns (ListResourcePackageDistributeLogRsp);
+
+  // 新建资源包发放申请
+  rpc CreateResourcePackageDistributeApply(CreateResourcePackageDistributeApplyReq) returns (CreateResourcePackageDistributeApplyRsp);
+  // 取消资源包发放
+  rpc CancelResourcePackageDistribute(CancelResourcePackageDistributeReq) returns (CancelResourcePackageDistributeRsp);
+
+  // 资源包发放详情列表
+  rpc ListResourcePackageDistributeDetail(ListResourcePackageDistributeDetailReq) returns (ListResourcePackageDistributeDetailRsp);
+
+  // 扣除已发放的资源包
+  rpc DeductDistributedResourcePackage(DeductDistributedResourcePackageReq) returns (DeductDistributedResourcePackageRsp);
+}
+
+enum ResourcePackageDistributeStatus {
+  RESOURCE_PACKAGE_DISTRIBUTE_STATUS_NONE = 0;
+  RESOURCE_PACKAGE_DISTRIBUTE_STATUS_PENDING_REVIEW = 1;//待审核
+  RESOURCE_PACKAGE_DISTRIBUTE_STATUS_PENDING_DISTRIBUTION = 2;//待发放
+  RESOURCE_PACKAGE_DISTRIBUTE_STATUS_ING = 3;//发放中
+  RESOURCE_PACKAGE_DISTRIBUTE_STATUS_SUCCESS = 4;//成功
+  RESOURCE_PACKAGE_DISTRIBUTE_STATUS_FAILURE = 5;//失败
+  RESOURCE_PACKAGE_DISTRIBUTE_STATUS_CANCEL = 6;//撤回
+  RESOURCE_PACKAGE_DISTRIBUTE_STATUS_REVIEW_REJECTED = 7;//审核拒绝
+  RESOURCE_PACKAGE_DISTRIBUTE_STATUS_REVIEW_REVOKED = 8;//审核撤回
+}
+
+enum ResourcePackageDistributeDetailStatus {
+  RESOURCE_PACKAGE_DISTRIBUTE_DETAIL_STATUS_NONE = 0;
+  RESOURCE_PACKAGE_DISTRIBUTE_DETAIL_STATUS_ING = 1;//发放中
+  RESOURCE_PACKAGE_DISTRIBUTE_DETAIL_STATUS_SUCCESS = 2;//成功
+  RESOURCE_PACKAGE_DISTRIBUTE_DETAIL_STATUS_FAILURE = 3;//失败
+}
+
+enum ResourcePackageDeductStatus {
+  RESOURCE_PACKAGE_DEDUCT_STATUS_NONE = 0;//未扣除
+  RESOURCE_PACKAGE_DEDUCT_STATUS_ING = 1;//扣除中
+  RESOURCE_PACKAGE_DEDUCT_STATUS_SUCCESS = 2;//已扣除
+  RESOURCE_PACKAGE_DEDUCT_STATUS_FAILURE = 3;//失败
+  RESOURCE_PACKAGE_DEDUCT_STATUS_PARTIAL_FAILURE = 4;//部分失败
+}
+
+enum ResourcePackageDetailDeductStatus {
+  RESOURCE_PACKAGE_DETAIL_DEDUCT_STATUS_NONE = 0;//未扣除
+  RESOURCE_PACKAGE_DETAIL_DEDUCT_STATUS_PENDING = 1;//扣除中
+  RESOURCE_PACKAGE_DETAIL_DEDUCT_STATUS_SUCCESS = 2;//已扣除
+  RESOURCE_PACKAGE_DETAIL_DEDUCT_STATUS_FAILURE = 3;//失败
+}
+
+// 用户信息
+message UserInfo {
+  int64 uid = 1;
+  string show_uid = 2;
+  string nickname = 3;
+  string avatar = 4;
+}
+
+message ResourcePackageDistributeLogInfo {
+  int64 id = 1; // id
+  int64 package_id = 2; // 资源包id
+  string package_detail_snapshots = 3; // 资源包详情快照(JSON格式)
+  UserInfo user_info = 4; // 接收资源包用户
+  string reason = 5; // 发放原因
+  int64 plan_distribute_time = 6; // 计划发放时间
+  map<string, SystemMessage> system_messages = 7; // 多语言系统消息;key为:语言码,eg:en,ar,zh
+  int64 apply_id = 8; // 申请Id
+  ResourcePackageDistributeStatus distribute_status = 9; // 发放状态(1:待审核,2:待发放,3:成功,4:失败,5:撤回,6:审核拒绝)
+  int64 actual_distribute_time = 11; // 实际发放时间
+  string failure_reason = 12; // 发放失败原因
+  int64 created_at = 13; // 创建时间
+  string creator = 14; // 创建人
+  int64 updated_at = 15; // 修改时间
+  string updater = 16; // 修改人
+
+  ResourcePackageDeductStatus deduct_status = 20; // 扣除状态(1:未扣除,2:扣除中,3:已扣除,4:失败,5:部分失败)
+  string deduct_remark = 21; // 扣除备注
+  int64 deduct_time = 22; // 扣除操作时间
+}
+
+message SystemMessage {
+  string title = 1;// 标题
+  string content = 2;// 内容
+}
+
+// ResourcePackageDetailSnapshot 资源包详情快照
+message ResourcePackageDetailSnapshot {
+  int64 id = 1;               // 资源包详情ID
+  string resource_type = 2;   // 资源类型
+  int64 resource_id = 3;      // 资源ID
+  string icon_url = 4;        // 资源图片URL
+  string extend_json = 5;     // 扩展JSON
+  int64 amount = 6;           // 数量
+  int64 effective_time = 7;   // 有效时间(单位:秒,值<=0:永久)
+
+  api.privilege.v2.ResourceType resource_type_v2 = 20;
+  api.privilege.v2.ResourceType sub_resource_type_v2 = 21;
+}
+
+message ResourcePackageDistributeDetailInfo {
+  int64 id = 1; // id
+  int64 distribute_id = 2; // 资源包发放id
+  int64 package_id = 3; // 资源包id
+  int64 uid = 4; // 接收资源包uid
+  ResourcePackageDetailSnapshot package_detail_snapshot = 5;//单个资源快照
+  string resource_type = 6;//资源类型
+  int64 resource_id = 7;//资源id
+  ResourcePackageDistributeDetailStatus status = 9;// 发放状态
+  int64 distribute_time = 10; // 发放时间
+  string result_message = 11; // 发放结果信息
+
+  api.privilege.v2.EffectType effect_type = 21; // 生效类型
+
+  ResourcePackageDetailDeductStatus deduct_status = 30; // 扣除状态(1:未扣除,2:扣除中,3:已扣除,4:失败)
+  string deduct_status_description = 31; // 扣除状态描述
+  int64 deduct_quantity = 32; // 扣除数量
+  int64 deduct_effective_time = 33; // 扣除有效时间(单位:秒,值<=0:永久)
+  int64 deduct_time = 34; // 扣除操作时间
+}
+
+message ListResourcePackageDistributeLogReq {
+  scommon.Page page = 1;
+
+  int64 id = 11; // id
+  int64 package_id = 12; // 资源包id
+  int64 uid = 13; // 接收资源包uid
+  ResourcePackageDistributeStatus distribute_status = 14; // 发放状态(1:待审核,2:待发放,3:成功,4:失败,5:撤回,6:审核拒绝)
+  int64 actual_distribute_time_from = 15; // 实际发放开始时间（时间戳）
+  int64 actual_distribute_time_to = 16;  // 实际发放结束时间（时间戳）
+}
+
+message ListResourcePackageDistributeLogRsp {
+  scommon.Page page = 1;
+  repeated ResourcePackageDistributeLogInfo resource_package_distribute_log_infos = 10; //资源包发放记录列表
+}
+
+message CreateResourcePackageDistributeApplyReq {
+  int64 package_id = 2; // 资源包Id
+  string reason = 3; // 申请原因
+  int64 plan_distribute_time = 4; // 计划发放时间
+  repeated int64 uids = 5; // 申请下发用户id
+  map<string, SystemMessage> system_messages = 7; // 多语言系统消息;key为:语言码,eg:en,ar,zh
+}
+message CreateResourcePackageDistributeApplyRsp{
+  int64 id = 1; // id
+}
+
+message CancelResourcePackageDistributeReq {
+  int64 distribute_log_id = 1; // id
+}
+message CancelResourcePackageDistributeRsp{
+}
+
+message ListResourcePackageDistributeDetailReq {
+  int64 distribute_id = 1; // 资源包发放id
+}
+
+message ListResourcePackageDistributeDetailRsp {
+  repeated ResourcePackageDistributeDetailInfo detail_infos = 1; //资源包发放详情列表
+}
+
+message DeductDistributedResourcePackageReq {
+  int64 distribute_id = 1; // 资源包发放id
+  string remark = 2; // 备注
+}
+message DeductDistributedResourcePackageRsp{
+  repeated string error_messages = 1;//错误信息
+}
+
+// 资源包下发消息
+// Kafka-Topic: social-privilege-pkg-distribute-${anm}
+message ResourcePackageDistributeMessage {
+  message PackageDetailInfo {
+    int64 id = 1; // id
+    string resource_type = 2; // 资源类型
+    int64 resource_id = 3; // 资源id
+    string icon_url = 4; // 资源图片url
+    int64 amount = 5; // 数量
+    int64 effective_time = 6; // 有效时间(单位:秒,值<=0:永久)
+
+    int64 bag_id = 11; // 背包ID
+    api.privilege.v2.CategoryID category_id = 12; // 一级分类标识
+    api.privilege.v2.CategoryID sub_category_id = 13; // 二级类标识
+  }
+
+  int64 uid = 1; // 下发用户id
+  int64 package_id = 2; // 资源包id
+  repeated PackageDetailInfo package_detail_infos = 3;//下发的资源信息
+  map<string, SystemMessage> system_messages = 4; // 多语言系统消息;key为:语言码,eg:en,ar,zh
+}
+

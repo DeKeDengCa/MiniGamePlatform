@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+package comm.mgr.platform.feature;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/common/common-net.proto";
+
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/appfeature/handlermgr
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/platform/pbmfeature";
+
+// app特征白名单服务
+// serviceName: platform-api
+service AppFeatureWhitelistMgr {
+  // 创建白名单记录（批量）
+  rpc CreateFeatureWhitelistBatch (CreateFeatureWhitelistBatchReq) returns (CreateFeatureWhitelistBatchResp);
+  // 删除白名单记录（批量）
+  rpc DeleteAppFeatureWhitelistBatch (DeleteAppFeatureWhitelistBatchReq) returns (DeleteAppFeatureWhitelistBatchRsp);
+  // 更新白名单记录
+  rpc UpdateAppFeatureWhitelist (UpdateAppFeatureWhitelistReq) returns (UpdateAppFeatureWhitelistRsp);
+  // 获取白名单列表
+  rpc ListAppFeatureWhitelist (ListAppFeatureWhitelistReq) returns (ListAppFeatureWhitelistRsp);
+}
+
+// AppFeature 白名单实体
+message AppFeatureWhitelist {
+  int64 id = 1;
+  scommon.OSType os_type = 2;
+  string name = 3; // 属性名: uid,did,ip,aid,gaid...
+  string value = 4; // 对应属性名的值
+  int64 create_at = 5; // 创建时间
+  string creator = 6; // 创建人
+  string updater = 7; // 修改人
+  int64 updated_at = 8; // 创建时间
+}
+
+message CreateFeatureWhitelistBatchReq {
+  repeated FeatureWhitelistItem items = 1;
+}
+message FeatureWhitelistItem{
+  scommon.OSType os_type = 1; // 系统类型
+  string name = 2; // 属性名;支持的名称:uid,did
+  string value = 3; // 对应属性名的值
+}
+message CreateFeatureWhitelistBatchResp {
+  repeated int64 ids = 1;
+}
+
+message DeleteAppFeatureWhitelistBatchReq {
+  repeated int64 ids = 1; // 根据ID删除
+}
+message DeleteAppFeatureWhitelistBatchRsp {
+  repeated int64 success_ids = 1; // 删除成功的ID
+  repeated int64 fail_ids = 2; // 删除失败的ID
+}
+
+message UpdateAppFeatureWhitelistReq {
+  int64 id = 1;
+  scommon.OSType os_type = 2; // 系统类型
+  string name = 3; // 属性名;支持的名称:uid,did
+  string value = 4; // 对应属性名的值
+}
+message UpdateAppFeatureWhitelistRsp {
+}
+
+message ListAppFeatureWhitelistReq {
+  scommon.Page page = 1;
+
+  scommon.OSType os_type = 11; // 可选，按OS类型过滤
+  string name = 12; // 可选，按属性名过滤
+  string value = 13; // 可选，按属性值过滤
+}
+message ListAppFeatureWhitelistRsp {
+  scommon.Page page = 1;
+
+  repeated AppFeatureWhitelist items = 11;
+}
+

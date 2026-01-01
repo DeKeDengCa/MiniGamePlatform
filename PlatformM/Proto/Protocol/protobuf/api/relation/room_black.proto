@@ -1,0 +1,61 @@
+// smicro:spath=gitit.cc/social/components-service/social-relation/biz/relation/handler/roomblack
+syntax = "proto3";
+
+package comm.api.relation;
+
+import "protobuf/api/common/common.proto";
+
+option java_package = "com.entertain.sns.comm.api.relation";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbrelation";
+
+// 房间黑名单
+service RoomBlack {
+  // 添加用户到黑名单
+  rpc AddRoomBlackUser (AddRoomBlackUserReq) returns (AddRoomBlackUserResp);
+  // 移除用户黑名单
+  rpc RemoveRoomBlackUser (RemoveRoomBlackUserReq) returns (RemoveRoomBlackUserResp);
+  // 获取黑名单列表
+  rpc GetRoomBlackList (GetRoomBlackListReq) returns (GetRoomBlackListResp);
+  // 批量检查用户是否在黑名单中
+  rpc CheckInRoomBlack (CheckInRoomBlackReq) returns (CheckInRoomBlackResp);
+}
+
+// 添加黑名单
+message AddRoomBlackUserReq {
+  int64 black_uid = 1;
+  int64 room_id = 2;
+}
+
+message AddRoomBlackUserResp {}
+
+// 移除黑名单
+message RemoveRoomBlackUserReq {
+  repeated int64 remove_uid = 1;
+  int64 room_id = 2;
+}
+
+message RemoveRoomBlackUserResp {}
+
+
+// 获取黑名单列表
+message GetRoomBlackListReq {
+  scommon.Page page = 1;
+  int64 room_id = 2;
+}
+
+message GetRoomBlackListResp {
+  scommon.Page page = 1;
+  repeated int64 uids = 2;
+}
+
+// 批量检查用户是否在黑名单中
+message CheckInRoomBlackReq {
+  repeated int64 uids = 1;
+  int64 room_id = 2;
+}
+
+message CheckInRoomBlackResp {
+  map<int64, bool> black_map = 1;
+}
+
+

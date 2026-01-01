@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package comm.api.relation;
+
+option java_package = "com.entertain.sns.comm.api.relation";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbrelation";
+
+// 错误码
+enum ErrCode {
+  CODE_OK = 0;    // 成功
+
+  // 63000 - 63999 社交关系相关
+  CODE_OPERATE_FREQUENTLY = 63000; // 操作太频繁
+  CODE_UNFOLLOW = 63001; // 未关注
+  CODE_REPEATED_FOLLOW = 63002; // 已关注
+  CODE_USER_NOT_FOUND = 63003; // 用户不存在
+  CODE_ROOM_NOT_FOUND = 63004; // 房间不存在
+  CODE_REPEATED_OPERATE = 63005; // 重复操作
+  CODE_RECORDE_NOT_FOUND = 63006; // 记录不存在
+  CODE_IS_IN_USER_BLACK = 63007; // 已被用户拉黑
+  CODE_IS_IN_ROOM_BLACK = 63008; // 已被房间拉黑
+  CODE_NOT_IN_USER_BLACK = 63009; // 未被用户拉黑
+  CODE_NOT_IN_ROOM_BLACK = 63010; // 未被房间拉黑
+  CODE_USER_FOLLOW_ROOM_EXCEED = 63011; // 用户关注的房间数量超出限制
+}

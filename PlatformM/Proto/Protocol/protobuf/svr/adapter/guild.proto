@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package pbsadapter;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsadapter";
+
+service GuildSvr {
+  // 批量查询公会信息
+  rpc BatchGetGuildInfo(BatchGetGuildInfoReq) returns (BatchGetGuildInfoRsp);
+
+  // 批量获取用户角色
+  rpc BatchGetUserRole(BatchGetUserRoleReq) returns (BatchGetUserRoleRsp);
+}
+
+message BatchGetGuildInfoReq {
+  repeated int64 guild_ids = 1;
+}
+
+message BatchGetGuildInfoRsp {
+  repeated GuildInfo list = 1;
+}
+
+message GuildInfo {
+  int64 id = 1;
+  string name = 2;
+  string logo = 3;
+  string profile = 4;
+  int64 manager_id = 5;
+  int64 owner_uid = 8;
+  string owner_name = 9;
+  bool official = 10;
+  bool frozen = 11;
+  int64 frozen_at = 12;
+}
+
+// 公会角色
+enum GuildRole {
+  GUILD_ROLE_NONE = 0;   // 非公会成员
+  GUILD_ROLE_ANCHOR = 1; // 普通主播
+  GUILD_ROLE_BROKER = 2; // 经纪人
+  GUILD_ROLE_OWNER = 3;  // 公会长
+}
+
+message BatchGetUserRoleReq {
+  repeated int64 uids = 10;
+}
+
+message BatchGetUserRoleRsp {
+  map<int64, GuildRole> user_role = 10;
+}

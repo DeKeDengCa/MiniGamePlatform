@@ -1,0 +1,43 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/follow/handler/
+syntax = "proto3";
+
+package api.astrorise.voiceroom;
+
+import "api/platform/voiceroom/comm.proto";
+import "protobuf/api/common/common.proto";
+
+option java_package="com.entertain.sns.api.gene";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbfollow";
+
+// serviceName: astrorise-voiceroom
+service Follow {
+  // GetFollowRoomList 获取我关注的房间列表
+  rpc GetFollowRoomList(GetFollowRoomListReq) returns (GetFollowRoomListResp);
+
+  // GetBrowseRoomList 获取我浏览过的房间列表
+  rpc GetBrowseRoomList(GetBrowseRoomListReq) returns (GetBrowseRoomListResp);
+}
+
+// 我关注的房间列表
+message GetFollowRoomListReq {
+  scommon.Page page = 1;
+  api.astrorise.voiceroom.RoomInfo room_selector = 10;
+}
+
+// 关注房间列表
+message GetFollowRoomListResp {
+  scommon.Page page = 1;
+  repeated api.astrorise.voiceroom.RoomInfo room_infos = 10;
+}
+
+// 我浏览的房间列表
+message GetBrowseRoomListReq {
+  scommon.Page page = 1;
+  api.astrorise.voiceroom.RoomInfo room_selector = 10;
+}
+
+// 浏览房间列表
+message GetBrowseRoomListResp {
+  scommon.Page page = 1;
+  repeated api.astrorise.voiceroom.RoomInfo room_infos = 10;
+}

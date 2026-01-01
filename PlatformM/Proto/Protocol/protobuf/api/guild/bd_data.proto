@@ -1,0 +1,236 @@
+syntax = "proto3";
+
+package comm.api.guild;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/guild/bd.proto";
+
+option java_package = "com.entertain.sns.comm.api.guild";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbguild";
+
+// ServiceName: rpc.micro.social.guild
+// smicro:spath=gitit.cc/social/components-service/social-guild/handler-api/bddata
+service BdDataApi {
+  // BD查看旗下公会概览信息
+  rpc GetBdGuildOverview(GetBdGuildOverviewReq) returns (GetBdGuildOverviewRsp);
+
+  // BD查看旗下公会的相关汇总数据 (所有公会合计)
+  rpc GetBdGuildSummary(GetBdGuildSummaryReq) returns (GetBdGuildSummaryRsp);
+
+  // BD查看旗下每个公会的汇总数据 (公会列表)
+  rpc GetBdGuildListSummary(GetBdGuildListSummaryReq) returns (GetBdGuildListSummaryRsp);
+
+  // BD查看下单个公会的汇总数据
+  rpc GetSingleGuildSummary(GetSingleGuildSummaryReq) returns (GetSingleGuildSummaryRsp);
+
+  // BD查看成员的汇总数据
+  rpc GetBdMemberSummary(GetBdMemberSummaryReq) returns (GetBdMemberSummaryRsp);
+
+  // BD查看成员的明细数据
+  rpc GetBdMemberDetails(GetBdMemberDetailsReq) returns (GetBdMemberDetailsRsp);
+}
+
+// -------------------------------------------------------------------------
+// 接口: BD查看旗下公会概览信息
+// -------------------------------------------------------------------------
+
+// 请求：获取BD旗下公会概览数据
+message GetBdGuildOverviewReq {
+  int64 start_date = 1; // 查询开始日期，格式：yyyyMMdd
+  int64 end_date = 2; // 查询结束日期，格式：yyyyMMdd (对于日维度，start_date和end_date通常相同；对于周维度，表示周的结束日期)
+}
+
+// 响应：BD旗下公会概览数据
+message GetBdGuildOverviewRsp {
+  // 使用 oneof 结构，为未来不同业务的"详细数据"差异做准备
+  oneof data {
+    BdGuildOverviewDarling darling_data = 1; // Darling 业务的详细指标
+  }
+}
+
+// Darling 业务的详细指标
+message BdGuildOverviewDarling {
+  int64 total_guild_update_time = 1; // 旗下总公会数最近更新时间戳
+  int64 total_guild_count = 2; // 旗下总公会数
+  int64 total_anchor_count = 3; // 旗下公会总主播数
+  int64 total_active_anchor_count = 4; // 旗下公会总活跃主播数
+}
+
+// -------------------------------------------------------------------------
+// 接口: BD查看旗下公会的相关汇总数据
+// -------------------------------------------------------------------------
+
+// 请求：获取BD旗下公会汇总数据
+message GetBdGuildSummaryReq {
+  int64 start_date = 1; // 查询开始日期，格式：yyyyMMdd
+  int64 end_date = 2; // 查询结束日期，格式：yyyyMMdd (对于日维度，start_date和end_date通常相同；对于周维度，表示周的结束日期)
+}
+
+// 响应：BD旗下公会汇总数据
+message GetBdGuildSummaryRsp {
+  // 使用 oneof 结构，为未来不同业务的"详细数据"差异做准备
+  oneof data {
+    BdGuildSummaryDarling darling_data = 1; // Darling 业务的详细指标
+  }
+}
+
+// Darling 业务的详细指标
+message BdGuildSummaryDarling {
+  int64 update_time = 1; // 最近更新时间戳
+  int64 new_anchor_cnt = 2; // 旗下公会的新增主播数
+  int64 new_active_anchor_cnt = 3; // 旗下公会的新增活跃主播数
+  int64 gift_income = 4; // 旗下公会的语音房礼物总收入 (钻石数)
+  int64 message_income = 5; // 旗下公会的聊天总收入 (钻石数)
+  int64 video_income = 6; // 旗下公会的视频总收入 (钻石数)
+}
+
+// -------------------------------------------------------------------------
+// 接口: BD查看旗下每个公会的汇总数据
+// -------------------------------------------------------------------------
+
+// 请求：获取BD旗下每个公会的汇总数据
+message GetBdGuildListSummaryReq {
+  scommon.Page page = 1; // 分页参数
+
+  int64 start_date = 10; // 查询开始日期，格式：yyyyMMdd
+  int64 end_date = 11; // 查询结束日期，格式：yyyyMMdd (对于日维度，start_date和end_date通常相同；对于周维度，表示周的结束日期)
+  repeated int64 guild_ids = 12; // 公会ID列表
+}
+
+// 响应：BD旗下每个公会的汇总数据
+message GetBdGuildListSummaryRsp {
+  scommon.Page page = 1; // 分页参数
+
+  // 使用 oneof 结构，为未来不同业务的"详细数据"差异做准备
+  oneof data {
+    BdGuildListSummaryDarlingList darling_data_list = 10; // Darling 业务的详细指标列表封装
+  }
+}
+
+// Darling业务公会汇总数据列表的封装
+message BdGuildListSummaryDarlingList {
+  repeated BdGuildListSummaryDarling list = 1; // Darling 业务的详细指标列表
+}
+
+// darling单个公会汇总数据结构
+message BdGuildListSummaryDarling  {
+  int64 guild_id = 1; // 公会ID
+  string guild_name = 2; // 公会名称
+  string guild_logo = 3; // 公会LOGO
+  int64 new_anchor_cnt = 4; // 新增主播数
+  int64 new_active_anchor_cnt = 5; // 新增活跃主播数
+  int64 gift_income = 6; // 语音房礼物收入（钻石数）
+  int64 message_income = 7; // 聊天总收入（钻石数）
+  int64 video_income = 8; // 视频总收入（钻石数）
+}
+
+// -------------------------------------------------------------------------
+// 接口: BD查看下单个公会的汇总数据
+// -------------------------------------------------------------------------
+
+// 请求：获取单个公会汇总数据
+message GetSingleGuildSummaryReq {
+  int64 guild_id = 1; // 公会ID
+  int64 start_date = 2; // 查询开始日期，格式：yyyyMMdd
+  int64 end_date = 3; // 查询结束日期，格式：yyyyMMdd (对于日维度，start_date和end_date通常相同；对于周维度，表示周的结束日期)
+}
+
+// 响应：单个公会汇总数据
+message GetSingleGuildSummaryRsp {
+  // 使用 oneof 结构，为未来不同业务的"详细数据"差异做准备
+  oneof data {
+    SingleGuildSummaryDarling darling_data = 1; // Darling 业务的详细指标
+  }
+}
+
+// darling单个公会汇总数据结构
+message SingleGuildSummaryDarling  {
+  int64 anchor_cnt = 1; // 主播数
+  int64 active_anchor_cnt = 2; // 活跃主播数
+  int64 gift_income = 3; // 语音房礼物收入（钻石数）
+  int64 message_income = 4; // 聊天总收入（钻石数）
+  int64 video_income = 5; // 视频总收入（钻石数）
+}
+
+message GetBdMemberSummaryReq {
+  BDMemberType member_type = 10;    // 成员类型
+}
+message GetBdMemberSummaryRsp {
+  string summary = 10;              // 对应 BDMemberSummaryXXX 结构
+  int64 updated_at = 11;            // 最新更新时间
+}
+
+message GetBdMemberDetailsReq {
+  scommon.Page page = 1;            // 分页参数
+  BDMemberType member_type = 10;    // 成员类型
+  int64 start_time = 11;            // 起始时间
+  int64 end_time = 12;              // 结束时间
+} 
+message GetBdMemberDetailsRsp {
+  scommon.Page page = 1;            // 分页参数
+  repeated string details = 10;     // 对应 BDMemberDetailXXX 结构
+}
+
+// BD旗下成员汇总数据
+message BDMemberSummaryEchoSG {
+  double this_week_total_top_up = 20;                   // 本周总充值
+  double this_week_official_top_up = 21;                // 本周官方充值
+  double this_week_agency_top_up = 22;                  // 本周币商充值
+
+  double last_week_total_top_up = 30;                   // 上周总充值
+  double last_week_official_top_up = 31;                // 上周官方充值
+  double last_week_agency_top_up = 32;                  // 上周币商充值
+
+  double this_month_total_top_up = 40;                  // 本月总充值
+  double this_month_official_top_up = 41;               // 本月官方充值
+  double this_month_agency_top_up = 42;                 // 本月币商充值
+
+  double last_month_total_top_up = 50;                  // 上月总充值
+  double last_month_official_top_up = 51;               // 上月官方充值
+  double last_month_agency_top_up = 52;                 // 上月币商充值
+}
+
+// BD旗下成员明细数据
+message BDMemberDetailEchoSG {
+  int64 uid = 1;                    // 成员uid
+  string show_uid = 2;              // show_uid
+  string nickname = 3;              // 昵称
+  string avatar = 4;                // 头像
+  string pay_type = 5;              // 充值类型
+  double pay_amount = 6;            // 充值金额
+  int64 pay_time = 7;               // 充值时间
+}
+
+// BD旗下成员汇总数据(echo AR)
+message BDMemberSummaryEchoAR {
+  double this_week_total_top_up = 20;                   // 本周总充值
+  double this_week_official_top_up = 21;                // 本周官方充值
+  double this_week_agency_top_up = 22;                  // 本周币商充值
+  double this_week_virtual_top_up = 23;                 // 本周虚拟美金充值
+
+  double last_week_total_top_up = 30;                   // 上周总充值
+  double last_week_official_top_up = 31;                // 上周官方充值
+  double last_week_agency_top_up = 32;                  // 上周币商充值
+  double last_week_virtual_top_up = 33;                 // 上周虚拟美金充值
+
+  double this_month_total_top_up = 40;                  // 本月总充值
+  double this_month_official_top_up = 41;               // 本月官方充值
+  double this_month_agency_top_up = 42;                 // 本月币商充值
+  double this_month_virtual_top_up = 43;                // 本月虚拟美金充值
+
+  double last_month_total_top_up = 50;                  // 上月总充值
+  double last_month_official_top_up = 51;               // 上月官方充值
+  double last_month_agency_top_up = 52;                 // 上月币商充值
+  double last_month_virtual_top_up = 53;                // 上月虚拟美金充值
+}
+
+// BD旗下成员明细数据(echo AR)
+message BDMemberDetailEchoAR {
+  int64 uid = 1;                    // 成员uid
+  string show_uid = 2;              // show_uid
+  string nickname = 3;              // 昵称
+  string avatar = 4;                // 头像
+  string pay_type = 5;              // 充值类型
+  double pay_amount = 6;            // 充值金额
+  int64 pay_time = 7;               // 充值时间
+}

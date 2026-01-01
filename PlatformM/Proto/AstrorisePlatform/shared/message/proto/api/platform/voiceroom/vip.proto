@@ -1,0 +1,92 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/vip/handler
+syntax = "proto3";
+
+package api.astrorise.voiceroom.vip;
+
+option java_package="com.entertain.sns.api.gene.vip";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbvip";
+
+import "protobuf/api/privilege/v2/resource_package.proto";
+
+// serviceName: astrorise-voiceroom
+service VIP {
+  // 查询VIP中心
+  rpc GetVIPCenter(GetVIPCenterReq) returns (GetVIPCenterRsp);
+  // 购买VIP
+  rpc BuyVIP(BuyVIPReq) returns (BuyVIPRsp);
+  // 查询用户VIP信息
+  rpc GetUserVIPInfo(GetUserVIPInfoReq) returns (GetUserVIPInfoRsp);
+}
+
+
+// VIP配置
+message VIPConfig {
+  int32 level = 1;                    // 等级
+  string name = 2;                    // 名称
+  string icon = 3;                    // 图标
+  int64 duration_sec = 5;             // 有效期，单位秒
+  VIPCost cost = 10;                  // 购买花费
+}
+
+// 购买VIP的消耗项
+message VIPCost {
+  int64 gold = 1;                     // 金币数
+}
+
+// 购买VIP获得的权益
+message VIPBenefit {
+  repeated api.privilege.v2.ResourceType resource_types = 1;  // 当前只展示分类层级的权益
+}
+
+// 用户VIP信息
+message UserVIPInfo {
+  bool active = 1;                    // 是否处于有效期内
+  int32 level = 2;                    // 有效期内=当前等级，已过期=过期前的等级
+  int64 valid_from = 3;               // 有效期开始时间戳，单位秒
+  int64 valid_until = 4;              // 有效期截止时间戳，单位秒
+  int64 remaining_sec = 5;            // 正数表示剩余有效期，负数表示已过期时间，单位秒
+}
+
+
+
+message GetVIPCenterReq {
+}
+
+message GetVIPCenterRsp {
+  repeated VIPConfig configs = 10;         // 配置列表
+  map<int32, VIPCost> upgrade_cost = 11;   // 用户从当前等级升级到目标等级所需花费，key=目标等级。展示购买花费时优先取该值，其次才取正价值
+  map<int32, VIPBenefit> benefit_map = 12; // 对应等级的权益，key=等级
+  UserVIPInfo vip_info = 13;               // 用户当前VIP状态，可能为null，表示从未购买过
+}
+
+
+
+message BuyVIPReq {
+  int32 level = 10;                    // 购买的VIP等级
+}
+
+message BuyVIPRsp {
+  VIPCost shortage = 11;               // 余额不足时的差值
+}
+
+
+
+message GetUserVIPInfoReq {
+}
+
+message GetUserVIPInfoRsp {
+  UserVIPInfo vip_info = 10;           // 用户当前VIP状态，可能为null，表示从未购买过
+  VIPConfig vip_config = 11;           // 用户当前VIP状态对应的配置。用户没有VIP则为null
+}
+
+
+// VIP信令
+message Notify {
+  NotifyUserVIPInfo notify_vip_info = 10;
+}
+
+// 用户VIP状态变更
+message NotifyUserVIPInfo {
+  UserVIPInfo vip_info = 10;          // 最新的VIP状态
+  VIPConfig vip_config = 11;          // 对应等级的配置
+}

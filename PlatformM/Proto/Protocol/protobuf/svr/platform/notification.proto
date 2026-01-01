@@ -1,0 +1,69 @@
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/im_notification/handlersvr
+syntax = "proto3";
+
+import "protobuf/api/common/common.proto";
+import "protobuf/mgr/platform/notification.proto";
+import "protobuf/mgr/platform/notification_source.proto";
+
+package comm.srv.platform.notification;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/platform/pbsnotification";
+
+service NotificationSrv {
+  rpc Notify(NotifyReq) returns (NotifyRsp);
+
+  // 撤回消息
+  rpc Revoke(RevokeNotificationReq) returns (RevokeNotificationRsp);
+
+  // 获取人群包
+  rpc GetCrowdTag(GetCrowdTagReq) returns (GetCrowdTagRsp);
+}
+
+message MessageFormat {
+  string title = 10;                                                                // title
+  string body = 11;                                                                 // body
+  string img = 12;                                                                  // 图片url
+  string btn = 13;                                                                  // btn文字，如果有文字，则有按钮
+  string link = 14;                                                                 // 和btn绑定
+  comm.mgr.platform.notification.MessageKind kind = 15;                             // 消息类型: 1- system 2- operation 3- official
+  comm.mgr.platform.notification.JumpType jump_type = 16;                           // 跳转类型
+  string jump_target = 17;                                                          // 跳转目标
+  int32 img_height = 18;                                                            // img 高
+  int32 img_width = 19;                                                             // img 宽
+}
+
+message NotifyReq {
+  comm.mgr.platform.notification.Version  app_version = 10; // app版本
+  comm.mgr.platform.notification.Version  ios_version = 11; // ios版本
+  comm.mgr.platform.notification.Version  android_version = 12; // android 版本选择
+  comm.mgr.platform.notification.UserSelector   user_selector = 13;  // 发给的用户: 1- 所有 2- 白名单用户
+  repeated string uids = 14;  // 白名单用户
+  map<string,MessageFormat> msg = 15; //消息内容,key: 多语言en,zh,ar
+  string sessionid = 16; // 会话id
+}
+message NotifyRsp {
+  repeated string msg_id = 10;                          // 多个消息id，主要是为了做撤回。消息id能否同步返回？
+  string ext = 11;                                      // 消息发送后，需要保留的其他信息，主要为了撤回
+}
+
+message RevokeNotificationReq {
+  string notification_sessionid = 10;                  // 会话id
+  repeated string msg_id = 11;                         // 来自于推送消息后的返回的信息
+  string ext = 12;
+}
+message RevokeNotificationRsp {
+}
+
+message CrowdTag {
+  string id = 1;                                        // 人群包对应的id，根据id，可以直接对应着多个用户
+  string tag = 2;                                       // 人群包对应的tag信息，用于展示
+  string desc = 3;                                      // 人群包的描述
+}
+message GetCrowdTagReq {
+  scommon.Page page = 1;
+}
+message GetCrowdTagRsp {
+  scommon.Page page = 1;
+
+  repeated CrowdTag crowd_tags = 10;          // 人群包列表
+}

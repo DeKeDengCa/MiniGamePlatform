@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package pbrefund;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsrefund";
+option java_package = "com.refund.biz.proto";
+
+service RefundUser {
+  rpc GetUserByUID(GetUserByUIDReq) returns (GetUserByUIDRsp) {}
+}
+
+message User {
+  int64 uid = 1;
+  string show_uid = 2;
+  string nickname = 3;
+  string avatar = 4;
+}
+
+message GetUserByUIDReq {
+  repeated int64 uids = 1;
+}
+
+message GetUserByUIDRsp {
+  repeated User users = 1;
+}

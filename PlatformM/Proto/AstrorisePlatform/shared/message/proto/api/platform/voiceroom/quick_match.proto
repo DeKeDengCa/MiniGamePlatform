@@ -1,0 +1,264 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/quick_match/handle
+syntax = "proto3";
+
+package api.astrorise.voiceroom.quickmatch;
+
+import "protobuf/api/adapter/model.proto";
+
+option java_package = "com.entertain.sns.api.arg.quickmatch";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbquickmatch";
+
+// serviceName: astrorise-voiceroom
+// ================================================= 接口 ===============================================================
+service QuickMatch {
+  // 获取玩法信息
+  rpc GetPlayInfo(GetPlayInfoReq) returns (GetPlayInfoRsp);
+  // 开始速配
+  rpc StartMatch (StartMatchReq) returns (StartMatchRsp);
+  // 报名
+  rpc Enroll(EnrollReq) returns (EnrollRsp);
+  // 亮灯
+  rpc LightUp(LightUpReq) returns (LightUpReq);
+  // 投票
+  rpc Vote(VoteReq) returns (VoteRsp);
+  // 结束自我介绍
+  rpc EndSelfIntro(EndSelfIntroReq) returns (EndSelfIntroRsp);
+  // 介绍交流
+  rpc EndInteraction(EndInteractionReq) returns (EndInteractionRsp);
+}
+
+// =============================================== 枚举 ============================================================================
+
+enum MatchStatus {
+  MATCH_STATUS_NONE = 0;
+  MATCH_STATUS_RECRUITING = 1;  // 报名阶段
+  MATCH_STATUS_START_PLAY = 2;  // 开始玩法阶段
+  MATCH_STATUS_PREPARE_INTRO = 3;
+  MATCH_STATUS_SELF_INTRO = 4;  // 自我介绍阶段
+  MATCH_STATUS_INTRO_WAIT = 5; // 介绍缓冲
+  MATCH_STATUS_INTERACT = 6; // 速配交流阶段
+  MATCH_STATUS_VOTE = 7;  // 投票阶段
+  MATCH_STATUS_RESULT = 8;  // 结果展示
+}
+
+enum Identity {
+  IDENTITY_NONE = 0;
+  IDENTITY_PLAYER = 1;  // 玩家
+  IDENTITY_AUDIENCE = 2;  // 观众
+}
+
+enum MessageType {
+  MESSAGE_TYPE_NONE = 0;
+  MESSAGE_TYPE_START_MATCH = 1;
+  MESSAGE_TYPE_ENROLL = 2;  // 投票请求
+  MESSAGE_TYPE_LIGHT_UP = 3;  // 亮灯
+  MESSAGE_TYPE_VOTE = 4;  // 投票
+  MESSAGE_TYPE_END_SELF_INTRO = 5;  // 结束自我介绍
+  MESSAGE_TYPE_END_INTERACT = 6;  // 结束交流
+}
+
+// ================================================== 结构体 ======================================================================
+message PlayInfo {
+  repeated PlayerInfo male_user_infos = 1; // 报名男性队列
+  repeated PlayerInfo female_user_infos = 2; // 报名女性队列
+  int32 max_male_player_cnt = 3; // 最高玩家人数
+  int32 max_female_player_cnt = 4;
+  MatchStatus status = 5; // 当前状态
+  Identity identity = 6;  // 身份
+  // 如果是自我介绍阶段/介绍缓冲/速配交流阶段，有亮灯的队列
+  repeated ChatSeatInfo chat_seat_infos = 7;  // 交流席信息
+
+  int64 state_remain_sec = 8; // 当前状态剩余秒数
+}
+
+message PlayerInfo {
+  int64 uid = 1;
+  comm.api.adapter.UserInfo user_info = 2;
+  // 其余的权益啥的，往下写
+}
+
+// 交流席用户
+message ChatSeatInfo {
+  int64 uid = 1;  // 用户uid，不返回整个userInfo
+  bool is_light_up = 2; // 是否亮灯
+  bool is_chat = 3; // 是否交流完毕
+}
+
+
+message MatchPair {
+  int64 male_uid = 1;           // 男嘉宾 UID
+  int64 female_uid = 2;         // 女嘉宾 UID
+  int32 match_score = 3;        // 缘分值/默契度 (可选玩法字段)
+  // 如果客户端没有缓存用户信息，可能需要这里带上简略的 UserInfo，
+  // 但一般建议只传 ID，客户端去查本地缓存。
+}
+
+message EventMsg {
+  MessageType msg_type = 1;
+  bytes datas = 2;
+  int64 room_id = 3;
+  int64 uid = 4;
+}
+
+message GetPlayInfoReq {
+  int64 room_id = 1;
+}
+
+message GetPlayInfoRsp {
+    PlayInfo play_info = 1;
+}
+
+message StartMatchReq {
+  int64 room_id = 1;
+}
+
+message StartMatchRsp {
+
+}
+
+message EnrollReq {
+  int64 room_id = 1;
+}
+
+message EnrollRsp {}
+
+message LightUpReq {
+  int64 room_id = 1;
+  int64 intro_uid = 2;  // 自我介绍者uid，用来给服务端校准数据
+}
+
+message LightUpRsp {}
+
+message VoteReq {
+  int64 room_id = 1;
+  int64 target_uid = 2; // 对方uid
+}
+
+message VoteRsp {}
+
+// EndSelfIntroReq 结束自我介绍请求
+message EndSelfIntroReq {
+  int64 room_id = 1;
+  int64 operator_uid = 2; // 操作人 UID，用于权限校验
+}
+
+// EndSelfIntroRsp 结束自我介绍响应
+message EndSelfIntroRsp {}
+
+// EndQnAReq 结束交流请求
+message EndInteractionReq {
+  int64 room_id = 1;
+  int64 operator_uid = 2; // 操作人 UID，用于权限校验
+}
+
+// EndQnARsp 结束交流响应
+message EndInteractionRsp {}
+
+
+// ============================================= 信令 ===========================================================================
+// 速配信令
+message Notify {
+  NotifyEnroll enroll = 1;  // 用户报名信令
+  NotifyPreStartIntro pre_start_intro = 2;  // 准备开始自我介绍
+  NotifyStartSelfIntro self_intro = 3;  // 开始自我介绍信令
+  NotifyLightUp light_up = 4; // 亮灯信令
+  NotifyEndSelfIntro end_self_intro = 5;  // 介绍自我介绍信令
+  NotifyStarInteraction start_interaction = 6; // 开始交流信令
+  NotifyEndInteraction end_interaction = 7; // 结束交流信令
+  NotifyMatchResult match_result = 8; // 通知匹配结果
+  NotifyStartMatch start_match = 9; // 本轮匹配开始信令
+}
+
+// NotifyEnroll 用户报名信令
+message NotifyEnroll {
+  int32 male_team_cnt = 1;  // 男性队伍数量
+  int32 female_team_cnt = 2;  // 女性队伍数量
+
+  int64 ts = 100;
+}
+
+// NotifyStartPlay 玩法开始信令
+message NotifyStartMatch {
+  int64 ts = 100;
+}
+
+// NotifyPreStartIntro 准备开始自我介绍
+message NotifyPreStartIntro {
+  int64 uid = 1;  // 自我介绍的用户
+  // 这个时候收到这个信令，应该清空下面交流席上的用户
+
+  int64 ts = 100;
+}
+
+// NotifySelfInfo 开始自我介绍信令
+message NotifyStartSelfIntro {
+  int64 uid = 1;  // 自我介绍的用户
+  repeated ChatSeatInfo chat_seat_infos = 2;  // 交流席用户
+
+  int64 duration = 3; // 自我介绍时长
+
+  int64 ts = 100;
+}
+
+// NotifyLightUp 亮灯信令
+message NotifyLightUp {
+  repeated ChatSeatInfo chat_seat_infos = 1;  // 交流席用户
+
+  int64 ts = 100;
+}
+
+// NotifyEndSelfIntro 自我介绍结束信令，这个信令应该不需要什么内容，进入10s的等待期
+message NotifyEndSelfIntro {
+  int64 speaker = 1;  // 自我介绍者
+  int64 end_wait_duration = 2; // 结束等待时长
+
+  bool is_auto_end = 3; // true:自动结束，false:手动结束
+  int64 ts = 100;
+}
+
+// NotifyStarInteraction 开始交流信令，这个信令是为了告诉客户端，不能再亮灯了，同时把异性邀请上mic
+message NotifyStarInteraction {
+  int64 speaker_uid = 1;      // 当前正在自我介绍的主角（被提问者）
+  int64 interactor_uid = 2;   // 当前获得提问权的亮灯用户（提问者）
+  int64 duration = 3;         // 本次交流持续时长（秒），用于客户端倒计时
+
+  int64 ts = 100;
+}
+
+message NotifyEndInteraction {
+  int64 speaker_uid = 1;      // 主角
+  int64 interactor_uid = 2;   // 刚刚结束交流的亮灯用户
+
+  bool is_all_finish = 3;     // 是否所有亮灯者的交流都结束了？
+  repeated ChatSeatInfo chat_seat_infos = 4;  // 交流席
+  // true: 客户端准备接收 NotifyStartSelfIntro (下一个人) 或 NotifyStartVoting
+  // false: 客户端准备接收下一个 NotifyStartChat
+
+  // 是否自动结束
+  bool is_auto_end = 5; // true：自动结束，false，手动结束
+
+  int64 ts = 100;
+}
+
+// 3. 开始投票信令 (Start Voting)
+// 场景：所有人的自我介绍流程都结束了，进入最终投票环节。
+message NotifyStartVoting {
+  int64 duration = 1; // 投票倒计时时长
+  repeated int64 candidate_uids = 2; // 可投票的候选人名单 (可选，客户端也可以根据之前的状态推断)
+
+  int64 ts = 100;
+}
+
+// 4. 匹配结果信令 (Match Result)
+// 场景：投票结束，公布互选成功的 CP。
+message NotifyMatchResult {
+  repeated MatchPair success_pairs = 1; // 互选成功的 CP 对
+  // 可选：包含未匹配成功的用户，或者谁投了谁的详情（看产品需求是否公开）
+  // repeated VoteDetail vote_details = 2;
+
+  int64 ts = 100;
+}
+
+
+
+

@@ -1,0 +1,208 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/room/
+syntax = "proto3";
+
+package api.astrorise.voiceroom;
+
+import "api/platform/voiceroom/comm.proto";
+import "api/platform/voiceroom/room_msg.proto";
+import "protobuf/api/privilege/v2/bag.proto";
+import "protobuf/api/cp/cp-comm.proto";
+import "api/platform/voiceroom/user_level.proto";
+import "api/platform/notify.proto";
+
+option java_package = "com.entertain.sns.api.gene";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbnotify";
+
+
+// 通知消息
+// serviceName: astrorise-voiceroom
+message Notify {
+  NotifyRoomMessage message = 1;            // 公屏消息
+  NotifyUserEnter user_enter = 20;
+  NotifyUserLeave user_leave = 21;
+  NotifyOnlineUsers online_users = 22;
+  NotifyRoomInfoModify room_info_modify = 23;         // 房间基础信息变更
+  NotifyRoomLevelModify room_level_modify = 24;       // 房间等级变更
+  NotifyRoomSettingsModify room_settings_modify = 25; // 房间配置变更
+  NotifyUserRoleModify user_role_modify = 26;   // 用户角色变更
+  NotifyKickUser kick_user = 27;                // 用户被踢
+  NotifySeatListChange seat_list_change = 28;// 麦位-麦位列表变更(通知对象:所有用户)
+  NotifySeatInvitation seat_invitation = 29;// 麦位-邀请用户上麦(通知对象:被邀请用户)
+  NotifyKickSeat kick_seat = 30;// 麦位-用户被踢下麦(通知对象:被踢用户)
+  NotifyApplyEnterSeat apply_enter_seat = 31;// 麦位-用户申请上麦(通知对象:所有管理员)
+  NotifyApproveApplyEnterSeat approve_apply_enter_seat = 32;// 麦位-用户上麦申请通过(通知对象:申请上麦用户)
+  NotifyMuteMic mute_mic = 33;// 麦位-禁音(通知对象:禁音用户)
+  NotifyLiveEnd live_end = 34;// 直播结束，客户端处理退房逻辑，无需调用LiveRoom.Leave接口
+
+  NotifyUserScoreSwitchChange user_score_switch_change = 39;// 麦位用户积分开关
+  NotifyUserScoreListChange user_score_list_change = 40;// 麦上用户数值变化
+  NotifyRoomModeModify room_mode_modify = 41; // 房间模式变更
+
+  NotifyRechargeBalanceSuccess recharge_balance_success = 42; // 充值余额成功到账通知
+
+  NotifyApmLogUpload apm_log_upload = 50; // 日志回捞指令
+  NotifyApmScreenRecordingUpload apm_screen_recording_upload = 51; // 录屏回捞指令
+
+  api.astrorise.platform.NotifyFloatWindow float_window = 60;  // 飘窗信令
+
+  NotifyCpEvent cp_event = 43;  // cp事件
+
+  NotifyUserLevelChange user_level_change = 70; // 用户等级变更
+
+  NotifyUserIntimacyChange user_intimacy_change = 71; // 用户亲密度变更
+
+  NotifyEnterRoomApplicationChange enter_room_application_change = 80; // 用户申请进入房间(通知对象:所有管理员)
+}
+
+// 用户进房
+message NotifyUserEnter {
+  int64 timestamp = 1;                        // 时间戳 毫秒
+  api.astrorise.voiceroom.RoomUserInfo user = 10;            // 进入房间用户信息
+
+  api.privilege.v2.UsingPrivilege privilege = 30; // 用户特权
+}
+
+// 用户退房
+message NotifyUserLeave {
+  int64 timestamp = 1;                        // 时间戳 毫秒
+  api.astrorise.voiceroom.RoomUserInfo user = 10;               // 离开房间用户信息
+}
+
+// 在线用户列表
+message NotifyOnlineUsers {
+  int64 timestamp = 1;                        // 时间戳 毫秒
+  int64 oneline_count = 10;               // 总在线用户人数
+  repeated RoomUserInfo users = 11;      // 在线用户用户列表，top n
+}
+
+
+// 房间信息修改
+message NotifyRoomInfoModify {
+  int64 timestamp = 1;                        // 时间戳 毫秒
+  api.astrorise.voiceroom.RoomInfo room_info = 10;              // 房间信息
+}
+
+message NotifyRoomLevelModify {
+  int64 timestamp = 1;                        // 时间戳 毫秒
+  api.astrorise.voiceroom.RoomLevel room_level = 10;             // 房间等级变更
+}
+
+message NotifyRoomSettingsModify {
+  int64 timestamp = 1;                        // 时间戳 毫秒
+  RoomSettings room_settings = 10;                 // 房间配置管更
+}
+
+// 用户角色变更
+message NotifyUserRoleModify {
+  int64 timestamp = 1;                        // 时间戳 毫秒
+  api.astrorise.voiceroom.RoomUserRole old_role = 10;           // 修改之前的角色
+  api.astrorise.voiceroom.RoomUserInfo user = 11;               // 用户信息
+}
+
+// 用户被踢
+message NotifyKickUser {
+  int64 timestamp = 1;                           // 时间戳 毫秒
+  int64 room_id = 2;                             // 房间ID
+  api.astrorise.voiceroom.RoomUserInfo kick_user = 10;          // 被踢用户信息
+}
+
+// 公屏消息
+message NotifyRoomMessage {
+  int64 room_id = 1;    // 房间ID
+  api.astrorise.voiceroom.Message message = 2;  // 公屏消息
+}
+
+// 麦位-麦位列表变更(通知对象:所有用户)
+message NotifySeatListChange {
+  api.astrorise.voiceroom.SeatList seat_list = 1;// 麦位列表
+}
+
+// 麦位-邀请用户上麦(通知对象:被邀请用户)
+message NotifySeatInvitation {
+  int64 seat_index = 1;// 座位序号;用户同意或者拒绝需要带上此参数
+  api.astrorise.voiceroom.RoomUserInfo inviter = 2;// 邀请人
+  api.astrorise.voiceroom.RoomUserInfo invitee = 3;// 被邀请人
+}
+
+// 麦位-用户被踢下麦(通知对象:被踢用户)
+message NotifyKickSeat {
+  api.astrorise.voiceroom.RoomUserInfo operator = 1;// 操作人
+  api.astrorise.voiceroom.RoomUserInfo target_user = 2;// 被踢用户
+}
+
+// 麦位-用户申请上麦(通知对象:所有管理员)
+message NotifyApplyEnterSeat {
+  int64 apply_count = 1;// 上麦申请数量
+}
+
+// 麦位-用户上麦申请通过(通知对象:申请上麦用户)
+message NotifyApproveApplyEnterSeat {
+  int64 seat_index = 1;// 座位序号
+}
+
+// 麦位-禁音(通知对象:禁音用户)
+message NotifyMuteMic {
+  api.astrorise.voiceroom.RoomUserInfo operator = 1;// 操作人
+  api.astrorise.voiceroom.RoomUserInfo target_user = 2;// 禁音用户
+  bool mic_disabled = 3;//麦克风是否禁用
+}
+
+message NotifyLiveEnd {
+  int64 timestamp = 1;                        // 时间戳 毫秒
+  int64 room_id = 10;                         // 房间ID
+  int64 owner_uid = 11;                       // 房主uid
+}
+
+
+message NotifyRoomModeModify{
+  RoomStateInfo room_state_info = 1;
+}
+
+// 麦位-用户计数变更(通知对象:所有用户)
+message NotifyUserScoreListChange {
+  api.astrorise.voiceroom.UserScoreList user_score_list = 1;// 用户礼物计数列表
+}
+
+message NotifyUserScoreSwitchChange {
+  int64 timestamp = 1;        // 时间戳 毫秒
+  SeatScoreSwitch switch = 2; // 开关状态
+}
+
+message NotifyRechargeBalanceSuccess {
+  int64 coin = 1; // 当前余额
+}
+
+// 日志回捞指令
+message NotifyApmLogUpload {
+  string req_data = 1; // 中台请求参数(透传)
+}
+
+// 录屏回捞指令
+message NotifyApmScreenRecordingUpload {
+  string req_data = 1; // 中台请求参数(透传)
+}
+
+
+// cp事件
+message NotifyCpEvent {
+  comm.api.cp.CPInviteMessageType event_type = 10; // 事件类型
+}
+
+message NotifyUserLevelChange {
+  int64 uid = 1;
+  api.astrorise.voiceroom.UserLevelType level_type = 2; // 用户等级类型
+  int64 total_growth_value = 3; // 当前用户总成长值
+  int32 current_level = 21; // 当前等级的等级数值
+}
+
+message NotifyUserIntimacyChange{
+  int64 uid = 1;
+  int64 target_uid = 2;
+  int64 incr_intimacy = 3; // 增加值
+  int64 current_intimacy = 4; // 当前值
+}
+
+// 用户申请进入房间(通知对象:所有管理员)
+message NotifyEnterRoomApplicationChange {
+  int64 pending_count = 1; // 当前待处理申请数量
+}

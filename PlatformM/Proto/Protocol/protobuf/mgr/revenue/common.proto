@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package mgr.pbrevenue;
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmrevenue";
+
+// 时间范围
+message TimeRange {
+  int64 start = 1;
+  int64 end = 2;
+}

@@ -1,0 +1,127 @@
+syntax = "proto3";
+
+package mgr.pbrevenue;
+
+import "protobuf/api/revenue/common.proto";
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmrevenue";
+
+service GoodsMgr {
+  // 新增、修改，id 不为空标识修改
+  rpc SaveGoods(SaveGoodsReq) returns (SaveGoodsRsp);
+
+  // 上下架、删除
+  rpc UpdateGoodsStatus(UpdateGoodsStatusReq) returns (UpdateGoodsStatusRsp);
+
+  // 分页查询
+  rpc GoodsPageQuery(GoodsPageQueryReq) returns (GoodsPageQueryRsp);
+}
+
+message SaveGoodsReq {
+  GoodsInfoMgr goods_info = 1;
+  repeated PayType del_pay_types = 11;        // 删除的支付渠道
+  repeated PayTypeSub del_pay_type_subs = 12; // 删除的支付子渠道
+}
+
+message SaveGoodsRsp{
+  int64 goods_id = 1;    // 新增的商品ID
+}
+
+
+message UpdateGoodsStatusReq {
+  int64 goods_id = 1;                 // 商品ID
+  string status = 2;                  // 更新状态
+  repeated int64 goods_ids = 3;       // 支持批量操作，兼容单个id的协议，这里用了另外一个字段
+  string operator = 4;                // 操作人
+}
+
+message UpdateGoodsStatusRsp{}
+
+
+message GoodsPageQueryReq {
+  scommon.Page page = 1;        // 分页参数
+  string goods_id = 2;          // 商品id，支持模糊搜索
+  string pay_type = 3;          // 支付方式
+  .pbrevenue.GoodsType goods_type = 4; // 商品类型，如：虚拟币，包裹
+  string sku_id = 5;            // 根据sku_id查询
+  string status = 6;            // disable-下架，normal-上架
+  repeated string pkgs = 7;     // 包名
+  repeated .pbrevenue.GoodsLimitType limit_types = 8;    // 限制购买类型
+  map<string, .pbrevenue.StringList> param_filter = 60;  // 过滤参数配置，多个参数是与的关系
+}
+
+message GoodsPageQueryRsp {
+  scommon.Page page = 1;            // 分页参数
+  repeated GoodsInfoMgr list = 2;   // 数据列表
+}
+
+message GoodsInfoMgr {
+  int64 goods_id = 1; // 商品ID
+  .pbrevenue.GoodsType goods_type = 2; // 商品类型，如：虚拟币，包裹
+  // deprecated
+  string cou = 3;           // 非必须，支持的国家编码
+  // deprecated
+  .pbrevenue.ClientType client_type = 4;   // 非必须，客户端类型
+  // deprecated
+  string pay_type = 5;      // 支付方式，google_pay apple_pay quarkpay 等
+  // deprecated
+  string pay_code = 6;      // CARD（银行卡），STCPAY（钱包），中台支付接口定义，参考：https://nemo.yuque.com/be/mmszip/mb0hzzhhgr1zhy98#qqPCn
+  // deprecated
+  string sku_id = 7;        // 必须，支付渠道定义的 sku_id，需要产品在支付平台配置的sku一致
+  map<string, string> name_lang = 8; // 商品名称，多语言
+  map<string, string> desc_lang = 9; // 商品描述，多语言
+  string images = 10;          // 必须，商品图片
+  string tag_images = 11;      // 非必须，角标图片
+  map<string, string> tag_lang = 12;  // 非必须，角标
+  int64 price = 13;               // 必须，支付金额（分，美元就是美分），注意坐下换算
+  .pbrevenue.Unit unit = 14;             // 支付金额单位，如：美元（USD），印尼盾(IDR)，新的单位需要增加对应枚举
+  int64 amount = 15;          // 获得虚拟币金额
+  .pbrevenue.CurrencyType currency_type = 16; // 获得金额货币类型
+  string remark = 17;          // 非必须，备注
+  string status = 18;         // 状态：normal disable del
+  int64 create_at = 19;          // 创建时间，查询数据时返回，新增修改不用传
+  string create_by = 20;          // 创建人，查询数据时返回，新增修改不用传
+  int64 update_at = 21;          // 更新时间，查询数据时返回，新增修改不用传
+  string update_by = 22;          // 更新人，查询数据时返回，新增修改不用传
+  int32 discount_rate = 23;        // 折扣百分比，eg: 10 即 10%，即1折，等于0为无折扣，非 0%
+  string package_id = 24;          // 奖励包ID
+  .pbrevenue.GoodsLimitType limit_type = 25; // 限制购买类型
+  .pbrevenue.GoodsStyle style = 26;     // 显示样式
+  .pbrevenue.PackageItem package_item = 27;  // 礼包信息
+  int64 additional_num = 28; // 额外赠送数量
+  // deprecated
+  int64 target_price = 29;               // 非必须，支付金额（分，美元就是美分），实际发起支付的金额，如果没有配置，会使用 price
+  // deprecated
+  .pbrevenue.Unit target_unit = 30;      // 非必须，实际支付的币种，如果配置了 target_price，则此项必传
+
+  repeated PayType pay_types = 31;  // 支付渠道配置
+  repeated int64 white_list = 32;   // 白名单，指定用户可见
+  bool white_list_switch = 33;      // 白名单开关, 0:关, 1:开
+  repeated int32 agency_levels = 34;// 币商等级列表
+  string pkg = 35;                  // 过滤包名，空表示都可见
+  string limit_group = 36;          // 如果存在限制购买，那么将按组限制
+
+  // e.g. key: scene, values: ["vip1", "vip2"]
+  map<string, .pbrevenue.StringList> param_filter = 60;  // 过滤参数配置，多个参数是与的关系
+
+}
+
+message PayType {
+  int64 id = 1;                           // id为空表征新增，不为空表征修改
+  .pbrevenue.ClientType client_type = 2;  // 客户端类型
+  string pay_type = 3;                    // 支付渠道枚举，google_pay apple_pay quarkpay 等
+  string sku_id = 4;                      // 必须，支付渠道定义的 sku_id，需要产品在支付平台配置的sku一致
+  repeated PayTypeSub pay_type_subs = 5;  // 支付子渠道，用来配置某个支付渠道下属的子渠道信息
+  int32 sort = 10;                        // 排序，权重的概念，大值优先
+}
+
+message PayTypeSub {
+  int64 id = 1;               // id为空表征新增，不为空表征修改
+  string cou = 2;             // 国家
+  string pay_code = 3;        // 支付子渠道，e.g. CARD（银行卡），STCPAY（钱包），中台支付接口定义，参考：https://nemo.yuque.com/be/mmszip/mb0hzzhhgr1zhy98#qqPCn
+  .pbrevenue.Unit target_unit = 4;   // 实际付款金额单位
+  int64 target_price = 5;            // 实际付款金额，如果配置了则使用该值，否则使用 GoodsInfo.Price
+  string icon = 6;            // 角标
+  int32 sort = 10;            // 排序，权重的概念，大值优先
+}

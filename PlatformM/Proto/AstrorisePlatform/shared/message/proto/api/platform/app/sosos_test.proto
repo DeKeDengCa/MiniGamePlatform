@@ -1,0 +1,112 @@
+syntax="proto3";
+
+package app.config.gene.fqa;
+
+// options.proto 定义了一些options，options用于描述schema。必须import
+import "protobuf/api/sconfig/options.proto";
+
+import "protobuf/api/sconfig/model.proto";
+
+
+// model.proto 会定义一些公共的配置。按需import
+// 比如 sconfig.model.Time 会生成一个时间选择框
+// sconfig.model.File 会生成一个文件上传按钮
+// import "common/sconfig/model.proto";
+
+option (sconfig.schema.biz_name)="测试配置";
+
+message nConfig {
+    option (sconfig.schema.cfg_name) = "普通配置";
+
+    string iString = 1 [(sconfig.schema.input) = {
+        name:"输入字符"
+    }];
+    int64 iNumber = 2 [(sconfig.schema.input) = {
+        name:"输入整型"
+    }];
+    bool iBool = 3 [(sconfig.schema.input) = {
+        name:"开关"
+    }];
+}
+
+message dConfig {
+    option (sconfig.schema.cfg_name) = "额外配置";
+
+    string helfString = 1 [(sconfig.schema.input) = {
+        name:"帮助说明"
+        help:"这只是1个测试而已"
+    }];
+
+    int64 dNumner = 2 [(sconfig.schema.input) = {
+        name:"区间限制(9-100)"
+        max:"100"
+        min:"9"
+    }];
+    
+    string mlString = 3 [(sconfig.schema.input) = {
+        name:"多行输入"
+        ml: true
+        help:"支持多行输入"
+    }];
+
+    string optString = 4 [(sconfig.schema.input) = {
+        name:"可选输入"
+        opt: true
+    }];
+
+}
+
+
+message tConfig {
+        option (sconfig.schema.cfg_name) = "时间配置";
+        sconfig.model.Time begin = 1 [(sconfig.schema.input) = {
+            name:"选择时间"
+        }];
+}
+
+
+message fConfig {
+        option (sconfig.schema.cfg_name) = "文件配置";
+        sconfig.model.File no1 = 1 [(sconfig.schema.input) = {
+            name:"第1个文件"
+        }];
+        sconfig.model.File no2 = 2 [(sconfig.schema.input) = {
+            name:"第2个文件"
+        }];
+    
+}
+
+
+message eConfig {
+        option (sconfig.schema.cfg_name) = "枚举配置";
+        EvnType evn_type = 1 [(sconfig.schema.input) = {
+            name:"环境类型"
+        }];
+}
+
+message vConfig {
+        option (sconfig.schema.cfg_name) = "增加配置";
+        sconfig.model.File no1 = 1 [(sconfig.schema.input) = {
+            name:"第1个文件"
+        }];
+        sconfig.model.File no2 = 2 [(sconfig.schema.input) = {
+            name:"第2个文件"
+        }];
+    
+}
+
+
+enum EvnType {
+  EVN_TYPE_NONE = 0; // 0值枚举不要定义 (sconfig.schema.enum)
+  // 非0值枚举需要定义 (sconfig.schema.enum)
+  // name 下拉框展示的名字
+  EVN_TYPE_TEST = 1 [(sconfig.schema.enum) = {
+    name:"测试环境"
+  }];
+  EVN_TYPE_PRE = 2 [(sconfig.schema.enum) = {
+    name:"预发环境"
+  }];
+  EVN_TYPE_PRO = 31 [(sconfig.schema.enum) = {
+    name:"生产环境"
+  }];
+}

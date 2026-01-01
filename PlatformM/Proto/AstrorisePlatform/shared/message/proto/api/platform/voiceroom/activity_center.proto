@@ -1,0 +1,42 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/activity/handler/
+syntax = "proto3";
+
+package api.astrorise.voiceroom;
+
+import "api/platform/voiceroom/comm.proto";
+
+option java_package="com.entertain.sns.api.gene";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbactivitycenter";
+
+// 相册
+// serviceName: astrorise-voiceroom
+service ActivityCenter {
+  // 查询活动栏目
+  rpc ListActivities(ListActivitiesReq) returns (ListActivitiesRsp);
+}
+
+message ListActivitiesReq {
+}
+
+message ListActivitiesRsp {
+  repeated Activity banners = 10;
+  repeated ActivityColumn columns = 11;
+}
+
+message ActivityColumn {
+  int64 id = 10;                // 唯一id，add不填
+  repeated api.astrorise.voiceroom.I18n name_i18n = 11; // 栏目名称多语言
+
+  repeated Activity activities = 50;
+}
+
+message Activity {
+  int64 id = 10;                // 唯一id
+  int64 column_id = 11;         // 所属栏目id
+  repeated api.astrorise.voiceroom.I18n name_i18n = 12;//名称-多语言
+  repeated api.astrorise.voiceroom.I18n desc_i18n = 13;              // 描述-多语言
+  int64 begin_time = 14;        // 活动开始时间，秒级时间戳
+  int64 end_time = 15;          // 活动结束时间，秒级时间戳
+  string image_url = 16;        // 图地址
+  string jump_url = 17;         // 跳转链接
+}

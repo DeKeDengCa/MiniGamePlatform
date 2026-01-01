@@ -1,0 +1,932 @@
+syntax = "proto3";
+
+package comm.mgr.activity;
+
+import "protobuf/mgr/activity/common.proto";
+import "protobuf/mgr/activity/biz.proto";
+import "protobuf/api/common/common.proto";
+import "protobuf/api/activity/common.proto";
+import "protobuf/api/activity/crank.proto";
+import "protobuf/mgr/activity/activity_management.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmactivity";
+
+// smicro:spath=gitit.cc/social/components-service/social-activity/biz/activity/handlermgr
+service ActivityMgr {
+
+  // 新增、修改活动配置，ID不为空为修改
+  rpc SaveActivity(SaveActivityReq) returns (SaveActivityRsp);
+
+  // 新增、修改榜单配置，ID不为空为修改
+  rpc SaveRank(SaveRankReq) returns (SaveRankRsp);
+
+  // 删除榜单配置
+  rpc DeleteRank(DeleteRankReq) returns (DeleteRankRsp);
+
+  // 根据ID获取榜单
+  rpc GetRankById(GetRankByIdReq) returns (GetRankByIdRsp);
+
+  // 新增、修改任务配置，ID不为空为修改
+  rpc SaveTask(SaveTaskReq) returns (SaveTaskRsp);
+
+  // 删除任务配置
+  rpc DeleteTask(DeleteTaskReq) returns (DeleteTaskRsp);
+
+  // 获取任务配置
+  rpc GetTaskById(GetTaskByIdReq) returns (GetTaskByIdRsp);
+
+  // 批量获取任务配置
+  rpc BatchGetTaskByIds(BatchGetTaskByIdsReq) returns (BatchGetTaskByIdsRsp);
+
+  // 更新配置状态（上下架、删除）
+  rpc UpdateStatus(UpdateStatusReq) returns (UpdateStatusRsp);
+
+  // 分页查询
+  rpc PageQuery(PageQueryReq) returns (PageQueryRsp);
+
+  // 获取奖励分类列表, 由业务决定有多少种奖励类型及其信息.
+  rpc ListRewardCategory(ListRewardCategoryReq) returns (ListRewardCategoryRsp);
+
+  // 获取子分类
+  rpc ListRewardSubCategory(ListRewardSubCategoryReq) returns (ListRewardSubCategoryRsp);
+
+  // 搜索指定奖励分类的奖励配置项, 实际上也是交由业务去实现, 活动中台只是中转这些请求.
+  rpc SearchRewardItem(SearchRewardItemReq) returns (SearchRewardItemRsp);
+
+  // 批量根据ID获取奖励配置项信息
+  rpc ListRewardItemById(ListRewardItemByIdReq) returns (ListRewardItemByIdRsp);
+
+  // 生成奖励包ID
+  rpc GenerateRewardPackageIDs(GenerateRewardPackageIDsReq) returns (GenerateRewardPackageIDsRsp);
+
+  // 保存特殊奖励配置项
+  rpc SaveSpecialRewardItem(SaveSpecialRewardItemReq) returns (SaveSpecialRewardItemRsp);
+
+  // 删除特殊奖励配置项
+  rpc DeleteSpecialRewardItem(DeleteSpecialRewardItemReq) returns (DeleteSpecialRewardItemRsp);
+
+  // 根据活动ID获取活动配置
+  rpc GetActivityByApplicationCode(GetActivityByApplicationCodeReq) returns (GetActivityByApplicationCodeRsp);
+
+  // 批量获取活动配置
+  rpc BatchGetActivity(BatchGetActivityReq) returns (BatchGetActivityRsp);
+
+  // 获取黑白名单配置
+  rpc GetBWListConfig(GetBWListConfigReq) returns (GetBWListConfigRsp) {}
+
+  // 根据ID获取pk配置
+  rpc GetPKConfigById(GetPKConfigByIdReq) returns (GetPKConfigByIdRsp);
+
+  // 保存pk配置
+  rpc SavePKConfig(SavePKConfigReq) returns (SavePKConfigRsp);
+
+  // 删除pk配置
+  rpc DeletePKConfig(DeletePKConfigReq) returns (DeletePKConfigRsp);
+
+  // 根据榜单 id获取晋级列表
+  rpc GetPromotionListByRankId(GetPromotionListByRankIdReq) returns (GetPromotionListByRankIdRsp);
+
+  // 获取标签列表
+  rpc ListLabelConfig(ListLabelConfigReq) returns (ListLabelConfigRsp) {}
+
+  // 批量获取公会信息
+  rpc BatchGetGuildInfo(BatchGetGuildInfoReq) returns (BatchGetGuildInfoRsp) {}
+
+  // 批量获取家族信息
+  rpc BatchGetFamilyInfo(BatchGetFamilyInfoReq) returns (BatchGetFamilyInfoRsp) {}
+
+  // 根据ID获取抽奖配置
+  rpc GetLotteryConfigById(GetLotteryConfigByIdReq) returns (GetLotteryConfigByIdRsp);
+
+  // 保存抽奖配置
+  rpc SaveLotteryConfig(SaveLotteryConfigReq) returns (SaveLotteryConfigRsp);
+
+  // 删除抽奖配置
+  rpc DeleteLotteryConfig(DeleteLotteryConfigReq) returns (DeleteLotteryConfigRsp);
+
+  // 同业务复制活动
+  rpc CopyActivityByApplicationCode(CopyActivityByApplicationCodeReq) returns (CopyActivityByApplicationCodeRsp);
+
+  // 跨业务复制活动
+  rpc CopyActivityToSubAnmByApplicationCode(CopyActivityToSubAnmByApplicationCodeReq) returns (CopyActivityToSubAnmByApplicationCodeRsp);
+
+  // 根据ID获取房间抽奖配置
+  rpc GetRoomRecommendConfigById(GetRoomRecommendConfigByIdReq) returns (GetRoomRecommendConfigByIdRsp);
+
+  // 删除房间抽奖配置
+  rpc DeleteRoomRecommendConfig(DeleteRoomRecommendConfigReq) returns (DeleteRoomRecommendConfigRsp);
+
+  // 保存房间推荐信息
+  rpc SaveRoomRecommendConfig(SaveRoomRecommendConfigReq) returns (SaveRoomRecommendConfigRsp);
+
+  // 批量获取用户房间id
+  rpc BatchGetUserRoomInfos(BatchGetUserRoomInfosReq) returns (BatchGetUserRoomInfosRsp);
+
+  // 分页获取黑白名单用户列表
+  rpc ListBWListItem(ListBWListItemReq) returns (ListBWListItemRsp) {}
+
+  // 根据白名单id批量获取用户房间id列表
+  rpc BatchGetUserRoomInfosByWhiteListId(BatchGetUserRoomInfosByWhiteListIdReq) returns (BatchGetUserRoomInfosByWhiteListIdRsp);
+
+  //批量获取用户信息
+  rpc BatchGetUserInfos(BatchGetUserInfosReq) returns (BatchGetUserInfosRsp);
+
+  //批量获取房间信息
+  rpc BatchGetRoomInfos(BatchGetRoomInfosReq) returns (BatchGetRoomInfosRsp);
+
+  // 根据ID获取展示配置
+  rpc GetPresentationConfigById(GetPresentationConfigByIdReq) returns (GetPresentationConfigByIdRsp);
+
+  // 保存展示配置
+  rpc SavePresentationConfig(SavePresentationConfigReq) returns (SavePresentationConfigRsp);
+
+  // 删除展示配置
+  rpc DeletePresentationConfig(DeletePresentationConfigReq) returns (DeletePresentationConfigRsp);
+
+  // 新增、修改奖池配置，ID不为空为修改
+  rpc SavePrizePool(SavePrizePoolReq) returns (SavePrizePoolRsp);
+
+  // 删除奖池配置
+  rpc DeletePrizePool(DeletePrizePoolReq) returns (DeletePrizePoolRsp);
+
+  // 获取奖池配置
+  rpc GetPrizePoolById(GetPrizePoolByIdReq) returns (GetPrizePoolByIdRsp);
+
+  // 批量获取奖池配置
+  rpc BatchGetPrizePoolByIds(BatchGetPrizePoolByIdsReq) returns (BatchGetPrizePoolByIdsRsp);
+
+  // 获取自定义filters，直接全量返回
+  rpc ListCustomFilters(ListCustomFiltersReq) returns (ListCustomFiltersRsp);
+
+  // 根据榜单ID，任务id，抽奖id获取活动配置
+  rpc GetActivityByRelatedID(GetActivityByRelatedIDReq) returns (GetActivityByRelatedIDRsp);
+
+  // 批量增加榜单分数
+  rpc BatchAddRankScore(BatchAddRankScoreReq) returns (BatchAddRankScoreRsp);
+
+  // 获取用户CP列表, 现在是一夫一妻制，不需要分页获取了
+  rpc ListUserCP(ListUserCPReq) returns (ListUserCPRsp) {}
+
+  // 检查奖励包发放对象是否合法，目前只有hala\ahchat 可以发放给资源管理器，其他业务可以先不实现
+  rpc CheckRewardLegal(CheckRewardLegalReq) returns (CheckRewardLegalRsp);
+
+  // 分页获取周星榜指定礼物列表
+  rpc ListWeeklyStarGiftConfig(ListWeeklyStarGiftConfigReq) returns (ListWeeklyStarGiftConfigRsp) {}
+
+  // 保存周星榜指定礼物列表
+  rpc SaveWeeklyStarGiftConfig(SaveWeeklyStarGiftConfigReq) returns (SaveWeeklyStarGiftConfigRsp) {}
+
+  // 删除周星榜指定礼物配置
+  rpc DeleteWeeklyStarGiftConfig(DeleteWeeklyStarGiftConfigReq) returns (DeleteWeeklyStarGiftConfigRsp);
+
+  // 新增、修改积分兑换配置，ID不为空为修改
+  rpc SavePointsExchangeConfig(SavePointsExchangeConfigReq) returns (SavePointsExchangeConfigRsp);
+
+  // 删除积分兑换配置
+  rpc DeletePointsExchangeConfig(DeletePointsExchangeConfigReq) returns (DeletePointsExchangeConfigRsp);
+
+  // 获取积分兑换配置
+  rpc GetPointsExchangeConfigById(GetPointsExchangeConfigByIdReq) returns (GetPointsExchangeConfigByIdRsp);
+
+  // 获取分服配置
+  rpc GetSubServerConfigs(GetSubServerConfigsReq) returns (GetSubServerConfigsRsp);
+}
+
+message GetSubServerConfigsReq {
+}
+
+message GetSubServerConfigsRsp {
+  repeated SubServerConfig configs = 10;
+}
+
+message SubServerConfig {
+  string sid = 10;
+}
+
+message BatchSavePointsExchangeConfig {
+  repeated SavePointsExchangeConfig exchange_configs = 10;// 兑换配置,id为空表示新增
+  repeated int64 delete_exchange_ids = 11;// 需要删除的兑换Id
+}
+
+message SavePointsExchangeConfig {
+  PointsExchangeConfig exchange_config = 10;                  // 兑换配置;ID为0表示新增,不为0则修改
+
+  repeated PointsExchangePoolConfig exchange_pool_configs = 20;// 兑换奖池配置;ID为0表示新增,不为0则修改
+  repeated int64 delete_pool_ids = 21;// 需要删除的奖池Id
+
+  repeated PointsExchangeRewardConfig exchange_reward_configs = 30;// 兑换奖池配置;ID为0表示新增,不为0则修改
+  repeated int64 delete_reward_ids = 31;// 需要删除的奖池Id
+}
+
+message SavePointsExchangeConfigReq {
+    SavePointsExchangeConfig config = 10;
+}
+
+message SavePointsExchangeConfigRsp {
+  int64 id = 10;
+}
+
+message DeletePointsExchangeConfigReq {
+  repeated int64 exchange_ids = 10; // 任务配置ID
+}
+
+message DeletePointsExchangeConfigRsp {
+}
+
+message GetPointsExchangeConfigByIdReq {
+  int64 exchange_id = 10; // 兑换id
+}
+
+message GetPointsExchangeConfigByIdRsp {
+  PointsExchangeConfigInfo info = 10; // 任务配置
+}
+
+message CheckRewardLegalReq {
+  string reward_category_key = 10; // 奖励分类标识
+  string reward_item_id = 11; // 奖励配置项ID
+  comm.api.activity.RewardTargetType reward_target_type = 12;   // 奖励接收者类型(RewardReceiverType)
+}
+
+message CheckRewardLegalRsp {
+  int32 code = 10;      // 0: 合法，1: 非法
+  string message = 11;  // 原因
+}
+
+message BatchSaveWeeklyStarGiftConfig {
+  repeated SaveWeeklyStarGiftConfig configs = 1;// id为空表示新增
+  repeated int64 delete_config_ids = 2;         // 需要删除的抽奖配置Id
+}
+
+message DeleteWeeklyStarGiftConfigReq {
+  int64 id = 10;
+}
+
+message DeleteWeeklyStarGiftConfigRsp {
+}
+
+message SaveWeeklyStarGiftConfigReq {
+  SaveWeeklyStarGiftConfig config = 10;
+}
+
+message SaveWeeklyStarGiftConfig {
+  WeeklyStarGiftConfig config = 10;
+}
+
+message SaveWeeklyStarGiftConfigRsp {
+  int64 id = 10;
+}
+
+message ListWeeklyStarGiftConfigReq {
+  scommon.Page page = 1;
+  int64 min_start_time = 10;
+  int64 max_start_time = 11;
+}
+
+message ListWeeklyStarGiftConfigRsp {
+  scommon.Page page = 1;
+  repeated WeeklyStarGiftConfig configs = 10;
+}
+
+message BatchGetRoomInfosReq {
+  repeated int64 room_ids = 10;
+}
+
+message BatchGetRoomInfosRsp {
+  repeated comm.api.activity.RoomInfo list = 10;     // 房间信息列表
+}
+
+message ListUserCPReq {
+  int64 uid = 10;
+}
+
+message UserCPItem {
+  int64 uid = 10;
+}
+
+message ListUserCPRsp {
+  repeated UserCPItem list = 10;
+}
+
+message RankScoreItem {
+  string key = 10;
+  int64 score = 11;
+}
+
+message BatchAddRankScoreReq {
+  string sid = 1; // 子服务器code
+
+  int64 rank_id = 10;
+  string seq_id = 11;   // 用来去重
+  int64 cycle_ts = 12; // 周期秒级时间戳, ActivityStatRankInfo 返回的值
+  repeated RankScoreItem score_list = 13;
+}
+
+message BatchAddRankScoreRsp {
+}
+
+message BatchGetActivityReq {
+  repeated string application_codes = 10;
+}
+
+message BatchGetActivityRsp {
+  repeated ActivityInfo activity_infos = 10; // 活动配置
+}
+
+message ListCustomFiltersReq {
+  CustomFilterType filter_type = 10;
+}
+
+message ListCustomFiltersRsp {
+  repeated CustomFilters list = 10;
+}
+
+message PrizePoolInfoSaveConfig {
+  PrizePoolConfig config = 10;
+  RankSaveConfig relate_rank_config = 11;
+}
+
+message SavePrizePoolReq {
+  PrizePoolInfoSaveConfig prize_pool_config = 10;
+}
+
+message SavePrizePoolRsp {
+  int64 id = 10;
+}
+
+message DeletePrizePoolReq {
+  int64 id = 10;
+  int64 relate_rank_id = 11;
+}
+
+message DeletePrizePoolRsp {
+}
+
+message BatchGetPrizePoolByIdsReq {
+  repeated int64 ids = 10;
+}
+
+message BatchGetPrizePoolByIdsRsp {
+  repeated PrizePoolInfo infos = 10; // 奖池配置
+}
+
+message GetPrizePoolByIdReq {
+  int64 id = 10; // 奖池id
+}
+
+message GetPrizePoolByIdRsp {
+  PrizePoolInfo prize_pool_info = 10; // 奖池配置
+}
+
+message BatchSavePrizePoolConfig {
+  repeated PrizePoolInfoSaveConfig configs = 10;      // 奖池配置,id为空表示新增
+  repeated int64 delete_ids = 11;           // 需要删除的奖池配置Id
+}
+
+
+message DeletePresentationConfigReq {
+  repeated int64 config_ids = 10;
+}
+
+message DeletePresentationConfigRsp {
+}
+
+message SavePresentationConfigReq {
+  SavePresentationConfig config = 10;
+}
+
+message SavePresentationConfigRsp {
+  int64 config_id = 10;
+}
+
+message GetPresentationConfigByIdReq {
+  int64 config_id = 10;
+}
+
+message GetPresentationConfigByIdRsp {
+  SavePresentationConfig config = 10;
+}
+
+message BatchSavePresentationConfig {
+  repeated SavePresentationConfig configs = 10;// 展示配置,id为空表示新增
+  repeated int64 delete_config_ids = 11;// 需要删除的展示配置Id
+}
+
+message BatchGetUserInfosReq {
+  repeated int64 uids = 10;
+  repeated string uid_or_show_ids = 11;
+}
+
+message BatchGetUserInfosRsp {
+  repeated comm.api.activity.UserInfo user_infos = 10;
+}
+
+message BatchGetUserRoomInfosByWhiteListIdReq {
+  string white_list_id = 10;              // 黑白名单id
+  string white_list_category = 11;        // 黑白名单分类，USER\ROOM，recommend_type== 1 的时候用
+  repeated RoomIDType room_id_types = 12; // 房间类型
+  int64 limit = 13;                       // 数量限制
+}
+
+message BatchGetUserRoomInfosByWhiteListIdRsp {
+  repeated UserRoomInfo user_room_infos = 10;
+}
+
+message ListBWListItemReq {
+  scommon.Page page = 1;
+  string config_id = 10;
+}
+
+message ListBWListItemRsp {
+  scommon.Page page = 1;
+  repeated string black_list = 10;     // 黑名单列表
+  repeated string white_list = 11;     // 白名单列表
+  BWListType type = 12;                // 是黑名单还是白名单
+}
+
+message BatchGetUserRoomInfosReq {
+  repeated int64 uids = 10;
+  repeated RoomIDType room_id_types = 11;
+  repeated string uid_or_show_ids = 12;    // uid 或者 show ids
+}
+
+message BatchGetUserRoomInfosRsp {
+  repeated UserRoomInfo user_room_infos = 10;
+}
+
+message BatchSaveRecommendRoomConfig {
+  repeated SaveRoomRecommendConfig room_recommend_configs = 10;// 任务配置,id为空表示新增
+  repeated int64 delete_room_recommend_config_ids = 11;// 需要删除的房间推荐配置Id
+}
+
+message DeleteRoomRecommendConfigReq {
+  repeated int64 config_ids = 10;
+}
+
+message DeleteRoomRecommendConfigRsp {
+}
+
+message SaveRoomRecommendConfigReq {
+  SaveRoomRecommendConfig config = 10;
+}
+
+message SaveRoomRecommendConfig {
+  RoomRecommendConfig config = 10;
+}
+
+message SaveRoomRecommendConfigRsp {
+  int64 config_id = 10; // 配置ID
+}
+
+message GetRoomRecommendConfigByIdReq {
+  int64 id = 10;
+}
+
+message GetRoomRecommendConfigByIdRsp {
+  RoomRecommendInfo config = 10;
+}
+
+
+message BatchSaveLotteryConfig {
+  repeated SaveLotteryConfig lottery_configs = 1;// 任务配置,id为空表示新增
+  repeated int64 delete_lottery_config_ids = 2;// 需要删除的抽奖配置Id
+}
+
+message DeleteLotteryConfigReq {
+  int64 lottery_id = 10;
+}
+
+message DeleteLotteryConfigRsp {
+}
+
+message SaveLotteryConfigReq {
+  SaveLotteryConfig config = 10;
+}
+
+message SaveLotteryConfig {
+  LotteryConfig config = 10;
+  repeated LotteryRewardConfig reward_configs = 11;
+  repeated int64 delete_reward_config_ids = 12;
+  BatchSaveTaskConfig batch_save_task_infos = 13;
+}
+
+message SaveLotteryConfigRsp {
+  int64 lottery_id = 10; // 抽奖ID
+}
+
+message GetLotteryConfigByIdReq {
+  int64 id = 10;
+}
+
+message GetLotteryConfigByIdRsp {
+  LotteryInfo lottery_config = 10;
+}
+
+message BatchGetGuildInfoReq {
+  repeated int64 guild_ids = 1;
+}
+
+message BatchGetGuildInfoRsp {
+  repeated GuildInfo list = 1;
+}
+
+message BatchGetFamilyInfoReq {
+  repeated int64 family_ids = 1;
+}
+
+message BatchGetFamilyInfoRsp {
+  repeated FamilyInfo list = 1;
+}
+
+message BatchGetTaskByIdsReq {
+  repeated int64 task_config_id = 10; // 任务id
+}
+
+message BatchGetTaskByIdsRsp {
+  repeated TaskInfo task_info = 10; // 任务配置
+}
+
+message GetTaskByIdReq {
+  int64 task_config_id = 10; // 任务id
+}
+
+message GetTaskByIdRsp {
+  TaskInfo task_info = 10; // 任务配置
+}
+
+message SaveActivityReq {
+  Activity activity = 1;                                // 活动配置。活动ID为空表示新增，不为空则修改
+  RankBatchSaveConfig rank_config = 2;                  // 榜单配置
+  BatchSaveTaskConfig batch_save_task_config = 3;       // 任务配置
+  BatchSavePKConfig batch_save_pk_config = 4;           // pk配置
+  BatchSaveLotteryConfig batch_save_lottery_config = 5; // 抽奖配置
+  BatchSaveRecommendRoomConfig batch_save_recommend_room_config = 6; // 房间推荐配置
+  BatchSavePresentationConfig batch_save_presentation_config = 7;    // 展示配置
+  BatchSavePrizePoolConfig batch_save_prize_pool_config = 8;         // 奖池配置
+  BatchSavePointsExchangeConfig batch_save_points_exchange_config = 9;         // 积分兑换配置
+}
+
+message SaveActivityRsp {}
+
+message SaveTaskReq {
+  SaveTaskConfig task_config = 10;
+}
+
+message SaveTaskRsp {
+  int64 task_config_id = 10; // 任务配置ID
+}
+
+message DeleteTaskReq {
+  repeated int64 task_config_ids = 10; // 任务配置ID
+}
+
+message DeleteTaskRsp {
+}
+
+message SaveRankReq {
+  RankSaveConfig rank_config = 1;          // 榜单配置
+}
+
+message SaveRankRsp{
+  int64 rank_config_id = 1; // 榜单配置ID
+}
+
+
+message DeleteRankReq {
+  int64 rank_config_id = 10; // 榜单配置ID
+}
+
+message DeleteRankRsp {
+
+}
+
+
+message GetRankByIdReq {
+  int64 rank_config_id = 10; // 榜单配置ID
+}
+
+message GetRankByIdRsp {
+  RankInfo rank_info = 10; // 榜单信息
+}
+
+
+message UpdateActivityRsp{}
+
+message UpdateStatusReq {
+  int64 activity_id = 1;    // 活动ID
+  string status = 2;        // 配置状态：normal(上架) disable(下架) del(删除)
+}
+
+message UpdateStatusRsp{}
+
+
+message PageQueryReq {
+  scommon.Page page = 1;
+  string name = 2;       // 活动名称
+}
+
+message PageQueryRsp {
+  scommon.Page page = 1;
+  repeated ActivityInfo list = 2;   // 活动配置
+}
+
+
+message RankRewardConfig {
+  repeated BatchUpdateRankReward batch_update_rank_rewards = 1;// 新增、修改榜单奖励
+  repeated int64 delete_rank_reward_ids = 2;// 删除榜单奖励-榜单奖励Id
+}
+
+message RankSaveConfig {
+  RankConfig rank_config = 1;                         // 榜单配置，id为空表示新增
+  RankRewardConfig rank_reward_config = 2;            // 榜单奖励配置
+  RankRewardConfig supporter_rank_reward_config = 3;  // 贡献榜奖励配置
+}
+
+
+message RankBatchSaveConfig {
+  repeated RankSaveConfig rank_config_list = 1;   // 榜单配置，id为空表示新增
+  repeated int64 delete_rank_ids = 2;             // 需要删除的榜单Id
+}
+
+// 获取奖励分类列表请求
+message ListRewardCategoryReq {
+  // 无需参数, 每次都是获取全部的.
+}
+// 获取奖励分类列表响应
+message ListRewardCategoryRsp {
+  repeated RewardCategory categories = 10; // 业务支持的所有奖励分类列表
+}
+
+// 根据分类来查询子分类，不会太多,无其他查询条件
+message ListRewardSubCategoryReq {
+  string category_key = 10; // 奖励分类标识, 必传.
+}
+message ListRewardSubCategoryRsp {
+  repeated RewardSubCategory data = 10;
+}
+
+// 搜索指定奖励分类的奖励配置项请求
+message SearchRewardItemReq {
+  scommon.Page page = 1; // 分页参数
+  string category_key = 10; // 奖励分类标识, 必传.
+  string item_id = 11; // 根据奖励ID查询, 可选.
+  string item_name = 12; // 根据奖励名称查询, 可选.
+  string keyword = 13; // 关键字模糊查询, 可选.
+  bool is_get_complete_info = 14; // 是否获取完整的信息，true 会返回creator 之类的管理后台用的信息, 默认为false
+  repeated string sub_category_ids = 15; // 根据子分类的id来查
+  repeated int32 currencys = 16; // 按照货币类型筛选
+}
+
+// 搜索指定奖励分类的奖励配置项响应
+message SearchRewardItemRsp {
+  scommon.Page page = 1; // 分页参数
+  repeated RewardItem items = 10; // 奖励配置项列表
+}
+
+message BatchSaveTaskConfig {
+  repeated SaveTaskConfig task_configs = 1;// 任务配置,id为空表示新增
+  repeated int64 delete_task_ids = 2;// 需要删除的任务Id
+}
+
+message SaveTaskConfig {
+  TaskConfig task_config = 1;// 活动任务配置;任务ID为0表示新增,不为0则修改
+  repeated TaskSubConfig task_sub_configs = 2;// 活动子任务配置;子任务ID为0表示新增,不为0则修改
+  repeated TaskRewardConfig task_reward_configs = 3;// 活动任务奖励配置;奖励ID为0表示新增,不为0则修改
+  repeated int64 delete_task_sub_ids = 4;// 需要删除的子任务Id
+  repeated int64 delete_task_reward_ids = 5;// 需要删除的任务奖励Id
+  repeated TaskH5Config task_h5_configs = 6;// H5用到的配置信息
+  repeated int64 delete_task_h5_ids = 7;// 需要删除的配置信息id
+}
+
+// 批量根据ID获取奖励配置项信息请求
+message ListRewardItemByIdReq {
+  string category_key = 10; // 奖励分类标识, 必传.
+  repeated string item_ids = 11; // 根据奖励ID查询, 可选.
+  bool is_get_complete_info = 12; // 是否获取完整的信息， true 会返回creator 之类的管理后台用的信息, 默认为false
+}
+// 批量根据ID获取奖励配置项信息响应
+message ListRewardItemByIdRsp {
+  repeated RewardItem items = 10; // 奖励配置项列表
+}
+
+message SaveSpecialRewardItemReq {
+  string category_key = 10; // 奖励分类标识
+  RewardItem reward_item = 11; // 特殊奖励配置
+}
+
+message SaveSpecialRewardItemRsp {
+  int64 reward_item_id = 10; // 特殊奖励ID
+}
+
+message DeleteSpecialRewardItemReq {
+  string category_key = 10; // 奖励分类标识
+  repeated int64 reward_item_ids = 11; // 特殊奖励ID
+}
+
+message DeleteSpecialRewardItemRsp {
+}
+
+// 根据活动ID获取活动配置
+message GetActivityByApplicationCodeReq {
+  string application_code = 10;      // 积木应用标识
+  int64 reltated_id = 11;           // 榜单id，任务id，抽奖id
+  SearchActivityType type = 12;     // 搜索类型
+}
+
+// 根据活动ID获取活动配置
+message GetActivityByApplicationCodeRsp {
+  ActivityInfo activity_info = 10; // 活动配置
+}
+
+// 黑白名单配置
+message BWListConfig {
+  string id = 1;                      // 配置ID
+  string category = 2;                // 黑白名单分类, USER: 用户的  ROOM: 房间的  FAMILY: 家族的 ...
+  string name = 3;                    // 配置名称
+  map<string, string> i18n_names = 4; // 国际化国家名称
+  repeated string black_list = 5;     // 黑名单列表
+  repeated string white_list = 6;     // 白名单列表
+  BWListType type = 7;                // 是黑名单还是白名单
+}
+
+enum BWListType {
+  BW_LIST_TYPE_NONE = 0;
+  BW_LIST_TYPE_BLACK = 1;           // 黑名单
+  BW_LIST_TYPE_WHITE = 2;           // 白名单
+  BW_LIST_TYPE_BLACK_AND_WHITE = 3; // 黑名单 + 白名单
+}
+
+message GetBWListConfigReq {
+  string category = 10;                // 黑白名单分类, USER: 用户的  ROOM: 房间的  FAMILY: 家族的 ...
+}
+
+message GetBWListConfigRsp {
+  repeated BWListConfig configs = 10;  // 黑白名单配置列表
+}
+
+// 标签配置
+message LabelConfig {
+  string id = 1;                      // 标签id
+  map<string, string> i18n_names = 2; // 国际化标签名称
+}
+
+enum LabelCategory {
+  LABEL_CATEGORY_NONE = 0;
+  LABEL_CATEGORY_USER = 1;  // 用户标签
+  LABEL_CATEGORY_USER_REALTIME = 2;  // 人群，实时的
+}
+
+message ListLabelConfigReq {
+  LabelCategory category = 1;
+}
+
+message ListLabelConfigRsp {
+  repeated LabelConfig configs = 10;
+}
+
+message SavePKConfigReq {
+  SavePKConfig pk_config = 10;
+}
+
+message SavePKConfig {
+  PKConfig pk_config = 10;
+  repeated PKDetail details = 11;// id = 0 新增，id >0 更新
+  repeated int64 delete_pk_detail_ids = 12;
+}
+
+message SavePKConfigRsp {
+  int64 pk_config_id = 10;
+}
+
+message GetPKConfigByIdReq {
+  int64 pk_config_id = 10;
+}
+
+message GetPKConfigByIdRsp {
+  PKInfo pk_info = 10;// 活动任务配置;任务ID为0表示新增,不为0则修改
+}
+
+message DeletePKConfigReq {
+  int64 pk_config_id = 10;
+}
+
+message DeletePKConfigRsp {
+}
+
+message BatchSavePKConfig {
+  repeated SavePKConfig pk_configs = 1;// 任务配置,id为空表示新增
+  repeated int64 delete_pk_config_ids = 2;// 需要删除的pk配置Id
+}
+
+message GetPromotionListByRankIdReq {
+  int64 rank_id = 10;
+}
+
+message GetPromotionListByRankIdRsp {
+  repeated PromotionEntity entities = 10;
+}
+
+message PromotionEntity {
+  string member_id = 10;
+  string nick = 11;
+  string avatar = 12;
+  int64 rank = 13;
+  int64 score = 14;
+
+  // 这里用repeated，用于CP榜之类的场景
+  repeated crank.EntityInfo entities = 20;
+}
+
+message CopyActivityByApplicationCodeReq {
+  string from_application_code = 10; // 源应用
+  string to_application_code = 11;   // 目标应用
+  bool to_template = 12;             // 应用转模板
+  string to_cou = 13;                // 目标时区
+}
+
+message CopyActivityByApplicationCodeRsp {
+  int64 activity_id = 10;         // 复制后的活动id
+  map<int64, int64> rank_id_map = 11;                 // 榜单映射关系
+  map<int64, int64> rank_reward_id_map = 12;          // 榜单奖励映射关系
+  map<int64, int64> rank_reward_detail_id_map = 13;   // 榜单奖励详情映射关系
+  map<int64, int64> supporter_rank_reward_id_map = 14;          // 小头像榜单奖励映射关系
+  map<int64, int64> supporter_rank_reward_detail_id_map = 15;   // 小头像榜单奖励详情映射关系
+
+  map<int64, int64> task_id_map = 20;                 // 父任务映射关系
+  map<int64, int64> task_sub_id_map = 21;             // 子任务映射关系
+  map<int64, int64> task_reward_id_map = 22;          // 任务奖励映射关系
+  map<int64, int64> task_h5_config_id_map = 23;       // 任务h5配置映射关系
+
+  map<int64, int64> pk_id_map = 30;                   // pk映射关系
+  map<int64, int64> pk_config_detail_id_map = 31;     // pk详情映射关系
+
+  map<int64, int64> lottery_id_map = 40;               // 抽奖映射关系
+  map<int64, int64> lottery_reward_id_map = 41;        // 抽奖奖品信息映射关系
+
+  map<int64, int64> recommend_id_map = 50;             // 推荐信息映射关系
+
+  map<int64, int64> presentation_id_map = 60;          // 荣誉推荐组件
+
+  map<int64, int64> prize_pool_id_map = 70;            // 奖池组件
+
+  map<int64, int64> points_exchange_id_map = 80;            // 兑换组件
+  map<int64, int64> points_exchange_pool_id_map = 81;       // 兑换奖池映射关系
+  map<int64, int64> points_exchange_reward_id_map = 82;     // 兑换奖品映射关系
+}
+
+message CopyActivityToSubAnmByApplicationCodeReq {
+  string from_application_code = 10; // 源应用
+  string to_application_code = 11;   // 目标应用
+  bool to_template = 12;             // 应用转模板
+  string to_cou = 13;                // 目标时区
+  string to_sub_anm = 14;            // 目标子业务
+}
+
+message CopyActivityToSubAnmByApplicationCodeRsp {
+  int64 activity_id = 10;         // 复制后的活动id
+  map<int64, int64> rank_id_map = 11;                 // 榜单映射关系
+  map<int64, int64> rank_reward_id_map = 12;          // 榜单奖励映射关系
+  map<int64, int64> rank_reward_detail_id_map = 13;   // 榜单奖励详情映射关系
+  map<int64, int64> supporter_rank_reward_id_map = 14;          // 小头像榜单奖励映射关系
+  map<int64, int64> supporter_rank_reward_detail_id_map = 15;   // 小头像榜单奖励详情映射关系
+
+  map<int64, int64> task_id_map = 20;                 // 父任务映射关系
+  map<int64, int64> task_sub_id_map = 21;             // 子任务映射关系
+  map<int64, int64> task_reward_id_map = 22;          // 任务奖励映射关系
+  map<int64, int64> task_h5_config_id_map = 23;       // 任务h5配置映射关系
+
+  map<int64, int64> pk_id_map = 30;                   // pk映射关系
+  map<int64, int64> pk_config_detail_id_map = 31;     // pk详情映射关系
+
+  map<int64, int64> lottery_id_map = 40;               // 抽奖映射关系
+  map<int64, int64> lottery_reward_id_map = 41;        // 抽奖奖品信息映射关系
+
+  map<int64, int64> recommend_id_map = 50;             // 推荐信息映射关系
+
+  map<int64, int64> presentation_id_map = 60;          // 荣誉推荐组件
+
+  map<int64, int64> prize_pool_id_map = 70;            // 奖池组件
+
+  map<int64, int64> points_exchange_id_map = 80;            // 兑换组件
+  map<int64, int64> points_exchange_pool_id_map = 81;       // 兑换奖池映射关系
+  map<int64, int64> points_exchange_reward_id_map = 82;     // 兑换奖品映射关系
+}
+
+enum SearchActivityType {
+  SEARCH_ACTIVITY_TYPE_NONE = 0;
+  SEARCH_ACTIVITY_TYPE_RANK = 1;                       // 搜索榜单
+  SEARCH_ACTIVITY_TYPE_TASK = 2;                       // 搜索任务
+  SEARCH_ACTIVITY_TYPE_LOTTERY = 3;                    // 搜索抽奖
+  SEARCH_ACTIVITY_TYPE_PRIZEPOOL = 4;                  // 搜索奖池
+  SEARCH_ACTIVITY_TYPE_PACKAGE = 5;                    // 搜索奖励包id
+  SEARCH_ACTIVITY_TYPE_POINTS_EXCHANGE = 6;            // 搜索积分兑换id
+}
+
+message GetActivityByRelatedIDReq {
+  int64 related_id = 10;                               // 榜单id，任务id，抽奖id
+  SearchActivityType type = 11;                        // 搜索类型
+}
+
+message GetActivityByRelatedIDRsp{
+  Activity activity = 10;                              // 仅为活动配置，不包含榜单/任务/抽奖信息, 废弃
+  repeated Activity activities = 11;                   // 仅为活动配置，不包含榜单/任务/抽奖信息
+}

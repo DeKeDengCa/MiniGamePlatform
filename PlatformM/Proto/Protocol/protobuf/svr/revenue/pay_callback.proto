@@ -1,0 +1,39 @@
+
+syntax = "proto3";
+
+package pbsrevenue;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsrevenue";
+option java_package = "com.revenue.biz.proto";
+
+import "protobuf/api/pay/pay.proto";
+import "protobuf/api/common/common-net.proto";
+
+// 支付相关 中台回调业务的协议
+service SpayCallbackSvr {
+  // 获取sku列表的请求参数
+  rpc GetSkuReqParam(GetSkuReqParamReq) returns (GetSkuReqParamRsp);
+  // 获取sku列表的返回结果
+  rpc GetListSkuResult(GetListSkuResultReq) returns (GetListSkuResultRsp);
+}
+
+message GetSkuReqParamReq {
+  // C端请求sku列表的参数
+  pbspay.ListSkuReq base_req = 1;
+}
+
+message GetSkuReqParamRsp {
+  // 业务后端修改后的请求参数，无需修改则原封不动带回来
+  pbspay.ListSkuReq base_req = 1;
+}
+
+
+message GetListSkuResultReq {
+  int64 uid = 1;
+  pbspay.ListSkuRsp base_rsp = 10;
+}
+
+message GetListSkuResultRsp {
+  // 业务后端过滤、整理后的结果
+  pbspay.ListSkuRsp base_rsp = 1;
+}

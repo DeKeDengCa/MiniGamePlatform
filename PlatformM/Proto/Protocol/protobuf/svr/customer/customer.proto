@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package svrcustomer;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbscustomer";
+
+// 定义 gRPC 服务接口
+service SvrCustomer {
+  // 批量获取用户信息
+  rpc BatchGetUserInfo(BatchGetUserInfoReq) returns (BatchGetUserInfoRsp);
+  // 同步客服账号
+  rpc SyncCustomer(SyncCustomerReq) returns (SyncCustomerRsp);
+  // 发送im消息
+  rpc SengMsg(SengMsgReq) returns (SengMsgRsp);
+}
+
+// 请求：批量获取用户信息
+message BatchGetUserInfoReq {
+  repeated string batch_uid = 1; // uid列表
+  bool is_show_uid = 2;          // 是否是show uid
+}
+
+// 响应：批量获取用户信息
+message BatchGetUserInfoRsp {
+  repeated UserInfoOld list = 1; // 用户信息列表
+}
+
+// 用户信息结构体
+message UserInfoOld {
+  string area = 1;              // 地区
+  string birthday = 2;          // 生日 (2000-01-01)
+  string head_img_url = 3;      // 头像URL
+  bool is_online = 4;           // 是否在线
+  bool is_recharge = 5;         // 是否充值
+  string language = 6;          // 用户客户端语言 en, ar, tr, hi, hl
+  int64 last_pay_time = 7;      // 最后一次支付时间（Unix时间戳）
+  string nickname = 8;          // 昵称
+  int64 reg_time = 9;           // 注册时间（Unix时间戳）
+  int32 sex = 10;               // 性别（1男 2女）
+  string show_uid = 11;         // 展示用户ID
+  int64 uid = 12;               // 用户ID
+  string verc = 13;             // 客户端版本
+}
+
+// 请求：同步客户信息（新增或删除）
+message SyncCustomerReq {
+  int64 uid = 1;                // 用户uid
+  int32 opt_type = 2;           // 操作类型 1-新增 2-删除
+}
+
+// 响应：同步客户信息
+message SyncCustomerRsp {
+}
+
+// 请求：发送消息
+message SengMsgReq {
+  int64 from_uid = 1;            // 发送者uid
+  int64 to_uid = 2;              // 接收者uid
+  string msg_type = 3;           // 融云消息类型，例：RC:TxtMsg
+  string msg = 4;                // 文本内容
+  int32 is_include_sender = 5;   // 是否包含发送者，默认0
+}
+
+// 响应：发送消息
+message SengMsgRsp {
+}

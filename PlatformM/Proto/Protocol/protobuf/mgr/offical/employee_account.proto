@@ -1,0 +1,64 @@
+// smicro:spath=gitit.cc/social/components-service/social-offical/handler-mgr/employeeaccount
+syntax = "proto3";
+
+package comm.mgr.offical;
+
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/offical/pbmemployeeaccount";
+
+message EmployeeAccount  {
+  int64 id = 1;// id
+  EmployeeAccountAccountType account_type = 2;// 账号类型
+  string account_id = 3;// 账号标识
+  string nick_name = 4;// 员工昵称
+  string email = 5;// 员工邮箱
+  string dingtalk_union_id = 6;// 钉钉unionId
+  string dingtalk_user_id = 7;// 钉钉userId
+  int64 created_at = 8;// 创建时间
+  string created_by = 9;// 创建人
+}
+
+// 账号类型
+enum EmployeeAccountAccountType {
+  ACCOUNT_ACCOUNT_ACCOUNT_TYPE_NONE = 0;// 无账号类型
+  ACCOUNT_ACCOUNT_ACCOUNT_TYPE_PHONE_NUM = 1;// 手机号码（包含国家代码，例如：+8613912345678）
+  ACCOUNT_ACCOUNT_ACCOUNT_TYPE_EMAIL = 2;  // 邮箱
+  ACCOUNT_ACCOUNT_ACCOUNT_TYPE_DID = 3;  // 设备Id
+}
+
+// 错误码
+enum ErrCodeEmployeeAccount {
+  ERR_CODE_EMPLOYEE_ACCOUNT_NONE = 0;
+  ERR_CODE_EMPLOYEE_ACCOUNT_ACCOUNT_ID_ALREADY_BINDED = 200000;// 账号已经被绑定了
+}
+
+// EmployeeAccountMgr 员工账号管理
+// serviceName: social.offical
+service EmployeeAccountMgr {
+  // 绑定账号
+  rpc BindAccountId(BindAccountIdReq) returns (BindAccountIdRsp);
+
+  // 列表
+  rpc ListEmployeeAccount(ListEmployeeAccountReq) returns (ListEmployeeAccountRsp);
+}
+
+message BindAccountIdReq {
+  EmployeeAccountAccountType account_type = 1;// 账号类型
+  string account_id = 2;// 账号id(手机号码/第三方账号)
+}
+message BindAccountIdRsp {
+}
+
+message ListEmployeeAccountReq {
+  scommon.Page page = 1;
+
+  EmployeeAccountAccountType account_type = 10;// 账号类型
+  string account_id = 11;// 账号标识
+  string nick_name = 12;// 员工昵称
+  string email = 13;// 员工邮箱
+}
+message ListEmployeeAccountRsp {
+  scommon.Page page = 1;
+  repeated EmployeeAccount employee_accounts = 10;
+}

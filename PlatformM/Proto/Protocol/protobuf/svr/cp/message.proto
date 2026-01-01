@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package comm.svr.cp;
+
+import "protobuf/api/cp/cp-comm.proto";
+import "protobuf/api/cp/cp-api.proto";
+
+option java_package = "com.entertain.sns.comm.svr.cp";
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbscp";
+
+// CpEventMessage cp事件相关kafka消息
+message CpEventMessage {
+  comm.api.cp.CPEventType event_type = 1; // 事件类型
+  comm.api.cp.CPInfo base_info = 2; // cp基础信息
+  int64 cp_id = 3; // cpID
+  map<string, string> extra = 100; // 扩展参数,预留透传
+}

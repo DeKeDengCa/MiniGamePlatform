@@ -1,0 +1,238 @@
+syntax = "proto3";
+
+package comm.svr.activity;
+
+import "protobuf/svr/activity/message.proto";
+import "protobuf/svr/guild/mq.proto";
+import "protobuf/svr/adapter/family_mq.proto";
+import "protobuf/svr/refund/risk_common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsactivity";
+
+// smicro:spath=gitit.cc/social/components-service/social-activity/biz/activity/handlersvr
+service ActivityMockSvr {
+
+  // 模拟发送礼物消息
+  rpc SendGiftMsg(SendGiftMsgReq) returns (SendGiftMsgRsp);
+
+  // 去到某个时刻，时间继续往下走
+  rpc GoToTime(GoToTimeReq) returns (MockTimeRsp);
+
+  // 时间偏移，offset 偏移时间（秒），大于0向未来偏移，小于0向过去偏移
+  rpc OffsetTime(OffsetTimeReq) returns (MockTimeRsp);
+
+  // 设置一个时间，然后时间停止不动，永远是这个时刻
+  rpc SetTime(SetTimeReq) returns (MockTimeRsp);
+
+  // 清空某个时区的时间偏移
+  rpc ClearTime(ClearTimeReq) returns (MockTimeRsp);
+
+  // 清空所以时间偏移
+  rpc ClearAllTime(ClearAllTimeReq) returns (MockTimeRsp);
+
+  // 查询所以mock的时间
+  rpc NowTime(NowTimeReq) returns (NowTimeRsp);
+
+  // 模拟公会主播事件
+  rpc GuildAnchorMessage(GuildAnchorMessageReq) returns (GuildAnchorMessageRsp);
+
+  // 模拟公会变动消息
+  rpc GuildMessage(GuildMessageReq) returns (GuildMessageRsp);
+
+  // 家族变动消息
+  rpc FamilyChangeMessage(FamilyChangeMessageReq) returns (FamilyChangeMessageRsp);
+
+  // 直播消息
+  rpc UserLiveMessage(UserLiveMessageReq) returns (UserLiveMessageRsp);
+
+  // 充值消息
+  rpc RechargeMessage(RechargeMessageReq) returns (RechargeMessageRsp);
+
+  // 充值消息
+  rpc OfflineRechargeMessage(OfflineRechargeMessageReq) returns (OfflineRechargeMessageRsp);
+
+  // 任务消息
+  rpc DoTaskMessage(DoTaskMessageReq) returns (DoTaskMessageRsp);
+
+  // 用户心跳消息
+  rpc UserHeartbeatMessage(UserHeartbeatMessageReq) returns (UserHeartbeatMessageRsp);
+
+  // 业务事件
+  rpc BizEventMessage(BizEventMessageReq) returns (BizEventMessageRsp);
+
+  // 刷新缓存
+  rpc RefreshAllCache(RefreshAllCacheReq) returns (RefreshAllCacheRsp);
+
+  // 模拟游戏消息
+  rpc BatchGameMessage(BatchGameMessageReq) returns (BatchGameMessageRsp);
+
+  // 模拟榜单操作消息
+  rpc RankOperationMessage(RankOperationMessageReq) returns (RankOperationMessageRsp);
+
+  // 模拟商品消息
+  rpc GoodsMessage(GoodsMessageReq) returns (GoodsMessageRsp);
+
+  // 查询失败原因
+  rpc TellMeWhy(TellMeWhyReq) returns (TellMeWhyRsp);
+}
+
+message GoodsMessageReq {
+  GoodsMessage msg = 10;
+}
+
+message GoodsMessageRsp{
+}
+
+message TellMeWhyReq {
+  int64 rank_id = 10;
+  int64 task_id = 11;
+  int64 pk_id = 12;
+  int32 forward_times = 20; // 跳转了多少次，做一个最大限制
+}
+
+message EventFailReason {
+  string time = 10; // 时间，2006-01-2 15:04:05 格式
+  string trace_id = 11;
+  string topic = 12;
+  string event = 13;
+  repeated string reasons = 14;
+}
+
+message TellMeWhyRsp {
+  repeated EventFailReason list = 10;
+}
+
+message RankOperationMessageReq {
+  RankOperationMessage msg = 10;
+}
+
+message RankOperationMessageRsp {
+}
+
+message BatchGameMessageReq {
+  BatchGameMessage msg = 1;
+}
+
+message BatchGameMessageRsp {
+}
+
+message RefreshAllCacheReq {
+}
+
+message RefreshAllCacheRsp{
+}
+
+message RechargeMessageReq {
+  pbrefund.RechargeMsg msg = 10;
+}
+
+message RechargeMessageRsp{
+}
+
+message OfflineRechargeMessageReq {
+  pbrefund.OfflineRechargeMsg msg = 10;
+}
+
+message OfflineRechargeMessageRsp{
+}
+
+message DoTaskMessageReq {
+  DoTaskMessage msg = 10;
+}
+
+message DoTaskMessageRsp {
+}
+
+message UserHeartbeatMessageReq {
+  UserHeartbeatMessage msg = 10;
+}
+
+message UserHeartbeatMessageRsp {
+}
+
+message UserLiveMessageReq {
+  UserLiveMessage msg = 10;
+}
+
+message UserLiveMessageRsp {
+}
+
+message BizEventMessageReq {
+  BizEventMessage msg = 10;
+}
+
+message BizEventMessageRsp {
+}
+
+message FamilyChangeMessageReq {
+  pbsadapter.FamilyChangeMessage msg = 1;
+}
+
+message FamilyChangeMessageRsp {
+}
+
+message GuildMessageReq {
+  comm.svr.guild.GuildMessage msg = 1;
+}
+
+message GuildMessageRsp {
+}
+
+message GuildAnchorMessageReq {
+  comm.svr.guild.AnchorMessage msg = 1;
+}
+
+message GuildAnchorMessageRsp {
+}
+
+message SendGiftMsgReq {
+  SendGiftMessage msg = 1;
+}
+
+message SendGiftMsgRsp {
+}
+
+
+message GoToTimeReq {
+  string cou = 1;        // 要偏移时间的国家编码，不能为空
+  int64 to = 2;          // 去到某个时刻（时间戳，单位秒），时间继续往下走，
+  string activity_code = 3; // 按照活动code设置偏移
+  int32  forward_times = 4; // 跳转了多少次，做一个最大限制
+}
+
+message OffsetTimeReq {
+  string cou = 1;        // 要偏移时间的国家编码，不能为空
+  int64 offset = 2;      // 偏移时间（秒），大于0向未来偏移，小于0向过去偏移
+  string activity_code = 3; // 按照活动code设置偏移
+  int32  forward_times = 4; // 跳转了多少次，做一个最大限制
+}
+
+message SetTimeReq {
+  string cou = 1;         // 要偏移时间的国家编码，不能为空
+  int64 now_sec = 2;      // 对应时刻的时间戳（秒）
+  string activity_code = 3; // 按照活动code设置偏移
+  int32  forward_times = 4; // 跳转了多少次，做一个最大限制
+}
+
+message ClearTimeReq {
+  string cou = 1;         // 要清除偏移时间的国家编码，不能为空
+  string activity_code = 2; // 按照活动code设置偏移
+  int32  forward_times = 3; // 跳转了多少次，做一个最大限制
+}
+
+message ClearAllTimeReq {
+  int32  forward_times = 1; // 跳转了多少次，做一个最大限制
+}
+
+message MockTimeRsp {
+  int64 now = 1;         // 时间偏移后的当前时间
+}
+
+message NowTimeReq {
+}
+
+message NowTimeRsp {
+  map<string, int64> time_map = 1;
+}
+
+

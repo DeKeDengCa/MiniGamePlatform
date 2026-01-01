@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package api.astrorise.voiceroom;
+
+option java_package = "com.entertain.sns.api.gene.user.level";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbuserlevel";
+
+// 用户等级
+// serviceName: astrorise-voiceroom
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/userlevel/handler
+service UserLevel {
+  // 查询用户等级详情
+  rpc GetUserLevelDetail(GetUserLevelDetailReq) returns (GetUserLevelDetailRsp);
+}
+
+// 用户等级类型
+enum UserLevelType {
+  USER_LEVEL_TYPE_NONE = 0;
+  USER_LEVEL_TYPE_WEALTH = 1; // 财富等级
+  USER_LEVEL_TYPE_CHARM = 2; // 魅力等级
+}
+
+// 用户等级奖励类型
+enum UserLevelRewardType{
+  USER_LEVEL_REWARD_TYPE_NONE = 0;
+  USER_LEVEL_REWARD_TYPE_COIN = 1; // 金币
+  USER_LEVEL_REWARD_TYPE_LEVEL_NAMEPLATE = 2; // 等级铭牌
+  USER_LEVEL_REWARD_TYPE_HEADWEAR = 3; // 头像框
+  USER_LEVEL_REWARD_TYPE_SCREEN_BUBBLE = 4; // 聊天气泡
+  USER_LEVEL_REWARD_TYPE_MIC_APERTURE = 5; // 麦位光圈
+  USER_LEVEL_REWARD_TYPE_VEHICLE = 6; // 座驾
+  USER_LEVEL_REWARD_TYPE_BAY_WINDOW = 7; // 进房特效(进房飘窗)
+}
+
+message GetUserLevelDetailReq{
+  int64 uid = 1;
+  UserLevelType type = 2;
+}
+message GetUserLevelDetailRsp {
+  UserLevelDetail level_detail = 1;
+}
+
+message UserLevelDetail {
+  int64 uid = 1;
+  int64 total_growth_value = 2; // 当前用户总成长值
+
+  int32 current_level = 21; // 当前等级的等级数值
+  int64 current_level_start = 22; // 当前等级的起点成长值
+
+  int32 next_level = 31; // 下一等级的等级数值
+  int64 next_level_start = 32; // 下一等级的起点成长值
+
+  float progress_percent = 41; // 当前等级升级百分比（0~100）
+  int64 upgraded_value = 42;  // 当前等级区间已获得值（total_growth_value - current_level_start）
+  int64 remaining_value = 43;  // 当前等级区间还差多少（next_level_start - total_growth_value）
+
+  bool is_max_level = 50; //是否达到最大等级
+}

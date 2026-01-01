@@ -1,0 +1,164 @@
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/im/handler
+
+syntax = "proto3";
+
+package api.astrorise.voiceroom;
+
+import "protobuf/api/revenue/gift.proto";
+import "protobuf/api/family/family-comm.proto";
+import "api/platform/voiceroom/room_msg.proto";
+import "protobuf/api/cp/cp-comm.proto";
+import "protobuf/api/adapter/model.proto";
+import "protobuf/api/privilege/v2/bag.proto";
+
+option java_package="com.entertain.sns.api.gene";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbimmsg";
+
+// serviceName: astrorise-voiceroom
+service IM {
+  // 获取token
+  rpc GetToken(GetTokenReq) returns (GetTokenRsp);
+}
+
+
+message RyTokenInfo {
+  string token = 1; // token
+}
+
+message GetTokenReq {
+
+}
+
+message GetTokenRsp {
+  RyTokenInfo token_info = 1; // 融云token信息
+}
+
+message CustomMessageContent {
+  oneof Content {
+    Activity activity = 1; //活动通知
+    Gift gift = 2; //送礼
+    SystemTxt system_txt = 3; //系统提示-纯文本
+    ShareRoom share_room = 5; //房间分享消息
+    ResourcePackageDistribute resource_package_distribute = 6; //资源包下发消息
+    FamilyInvite family_invite = 7; // 家族邀请信息
+    ShareFamily share_family = 8; // 分享家族
+    CPMessage cp_message = 9;     // CP 信息，结婚邀请、同意、拒绝等 CP 相关的信息
+    GroupMemberChange group_member_change = 10; // 群成员变更消息
+    RoomEntryApproval room_entry_approval = 11; // 进房申请批准消息
+
+    api.astrorise.voiceroom.Message common_message = 100; // 通用IM消息类型
+  }
+
+  // 活动通知
+  message Activity {
+    message ActivityMsg {
+      string title = 1;
+      string content = 2;
+      string image_url = 3;
+      string btn_text = 4;
+      int64 image_width = 5; // 图片宽度 px
+      int64 image_height = 6; // 图片高度 px
+    }
+    string deep_link = 5;
+    map<string, ActivityMsg> map_msg = 2;  // 多语言消息
+  }
+
+  // 礼物
+  message Gift {
+    pbrevenue.GiftInfo gift_info = 1; //对应营收的礼物信息
+    int32 quantity = 2; //礼物数量
+    int64 sender_uid = 3;
+    comm.api.adapter.UserInfo receiver_userinfo = 4;
+  }
+
+  // 系统通知-纯文本
+  message SystemTxt {
+    map<string, string> map_msg = 2;  // 多语言消息
+    string jump_link = 3; // 跳转链接
+  }
+
+  // 分享房间消息
+  message ShareRoom {
+    int64 room_id = 1; //房间id
+    string cover = 2; //房间封面
+    string name = 3; //房间名称
+    int64 owner_uid = 4; //房主uid
+    string owner_nick = 5; //房主昵称
+    string invite_token = 6; //邀请进房token，针对处理免密进房
+  }
+
+  // 资源包下发
+  message ResourcePackageDistribute {
+    message ResourceInfo {
+      string resource_type = 1;  // 资源类型
+      string icon_url = 2;       // 资源图片url
+      string effective_time_show = 3; // 有效时间-展示
+    }
+
+    map<string, string> title_i18n = 1;//标题-多语言
+    map<string, string> content_i18n = 2;//内容-多语言
+    repeated ResourceInfo resource_infos = 3;//资源信息
+  }
+
+  // FamilyInvite 家族邀请
+  message FamilyInvite {
+    comm.api.family.FamilyBaseInfo family_base_info = 1; // 家族基本信息
+    string invite_token = 2;  // 邀请token
+    int64 inviter = 3; // 邀请人
+    api.privilege.v2.UsingPrivilege family_using_privilege = 10; // 家族佩戴中权益
+  }
+
+  // ShareFamily 家族基本信息
+  message ShareFamily {
+    comm.api.family.FamilyBaseInfo family_base_info = 1;
+    api.privilege.v2.UsingPrivilege family_using_privilege = 10; // 家族佩戴中权益
+  }
+
+  message CPMessage {
+    comm.api.adapter.UserInfo from_user_info = 10;                // 邀请结婚的人的用户信息
+    comm.api.cp.CPInviteMessageType cp_message_type = 11; // CP消息类型
+    CPTokenInfo cp_token_info = 12;                       // 邀请or离婚申请token信息
+    string invite_message = 13; // 邀请信息（详情里面的内容，纯文本），cp_message_type == CP_INVITE_TYPE_INVITE 的时候，弹窗里面的内容
+    string text_message = 14; // 文本消息
+    int64 popup_countdown_secs = 15; // 弹窗倒计时-秒
+  }
+
+  message CPTokenInfo {
+    string cp_token = 1;       // 邀请or离婚申请token
+    int64 expire_time = 2;     // 消息有效时间
+  }
+
+  message GroupMemberChange {
+    GroupEventType event_type = 1;
+    int64 uid = 2; // 事件uid
+    string nickname = 3;
+    UnknownMsgStrategy unknown_msg_st = 4;
+    map<string, string> msgs = 5;  // 多语言消息，不一定每个事件都有文案
+  }
+}
+
+// GroupEventType 群聊事件定义
+enum GroupEventType {
+  GROUP_EVENT_TYPE_NONE = 0;
+  GROUP_EVENT_TYPE_CREATE = 1; // 创建群聊
+  GROUP_EVENT_TYPE_JOIN = 2;   // 加入群聊
+  GROUP_EVENT_TYPE_QUIT = 3; // 退出群聊
+  GROUP_EVENT_TYPE_DISBAND = 4;  // 解散群聊
+  GROUP_EVENT_TYPE_KICK = 5; // 踢出群聊
+}
+
+enum UnknownMsgStrategy {
+  UNKNOWN_MSG_STRATEGY_NONE = 0;
+  UNKNOWN_MSG_STRATEGY_DROP = 1; // 不认识的类型，消息丢弃
+  UNKNOWN_MSG_STRATEGY_TEXT = 2; // 不认识的类型，消息用通用文案代替
+}
+
+// 进房申请审批通过后的通知消息
+message RoomEntryApproval {
+  int64 room_id = 1; //房间id
+  string cover = 2; //房间封面
+  string name = 3; //房间名称
+  int64 owner_uid = 4; //房主uid
+  string owner_nick = 5; //房主昵称
+  string entry_token = 6; //进房token
+}

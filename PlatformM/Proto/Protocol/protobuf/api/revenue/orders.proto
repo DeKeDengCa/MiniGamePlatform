@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package pbrevenue;
+
+import "protobuf/api/revenue/common.proto";
+
+option java_package = "com.entertain.sns.pbrevenue";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbrevenue";
+
+service Orders {
+  // 查询某用户近30日的充值订单
+  rpc GetOrdersByUid(GetOrdersByUidReq) returns (GetOrdersByUidRsp);
+}
+
+message GetOrdersByUidReq {
+  int64 uid = 1;          // uid
+}
+
+message GetOrdersByUidRsp {
+  repeated OrderShowInfo order_list = 1; //订单列表
+}
+
+// 客户端展示订单信息
+message OrderShowInfo {
+  string order_no = 1;       // 充值订单订单号
+  int64  uid = 5;            // 充值到账用户ID
+  int64  goods_id = 7;       // 商品ID
+  int32  num = 8;            // 购买数量
+  int64  pay_amount = 10;     // 支付金额：分（美分）
+  string unit = 11;           // 货币单位：USD
+  CurrencyType currency_type = 12; // 获得金额货币类型
+  int64  amount = 13;         // 或的虚拟币金额
+  string pay_type = 14;       // 支付方式
+  PayStatus status = 19;         // 支付状态
+  int64  pay_time = 21;       // 支付时间
+  string goods_name = 23;           // 购买商品名称
+  string pay_amount_dollar = 25;   // pay_amount换算成元单位
+}
+
+// 充值类型
+enum RechargeType {
+  RECHARGE_TYPE_NOME = 0;
+  RECHARGE_TYPE_ALL = 1;            // 所有
+  RECHARGE_TYPE_GOODS = 2;          // 商品
+  RECHARGE_TYPE_SUBSCRIPTION = 3;   // 订阅
+}
+
+// 充值统计
+message RechargeStat {
+  RechargeType type = 3;             // 充值类型
+  int64 earliest_recharged_at = 4;   // 首次充值时间
+  int64 latest_recharged_at = 5;     // 最后充值时间
+  int64 total_recharge_amount = 6;   // 总充值金额
+  int32 total_recharge_count = 7;    // 总充值次数
+  int64 min_recharge_amount = 8;     // 最小充值金额
+  int64 max_recharge_amount = 9;     // 最大充值金额
+}

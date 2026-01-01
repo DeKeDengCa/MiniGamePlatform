@@ -1,0 +1,46 @@
+// smicro:spath=gitit.cc/social/components-service/social-offical/handler-svr/pbofficalSvr
+syntax = "proto3";
+
+package comm.svr.offical;
+
+option java_package = "com.offical.biz.account";
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsoffical";
+
+// serviceName: social.offical
+service OfficalSvr {
+  // 批量查询账号信息
+  rpc BatchGetAccountInfo(BatchGetAccountInfoReq) returns (BatchGetAccountInfoRsp);
+
+  // 获取指定类型的全部账号信息, 因为内部账号不会非常多所以一次性返回, 方便业务侧进行本地缓存提升拦截效率.
+  rpc GetAllAccount(GetAllAccountReq) returns (GetAllAccountRsp);
+}
+
+// 账号类型
+enum AccountType {
+  ACCOUNT_TYPE_NONE = 0; // 无
+  ACCOUNT_TYPE_TESTER = 1; // 测试人员
+  ACCOUNT_TYPE_OPERATOR = 2; // 运营人员
+  ACCOUNT_TYPE_EXPERIENCER =3; // 体验人员
+}
+
+message Account {
+  int64 uid = 1; // 用户id
+  string email =2; // 邮箱
+  AccountType account_type =3;
+}
+
+message BatchGetAccountInfoReq{
+  repeated int64 uid =1 ;// 用户ID
+}
+
+message BatchGetAccountInfoRsp{
+  map<int64, Account> data = 1;
+}
+
+message GetAllAccountReq {
+  repeated AccountType account_types = 10; // 账号类型, 如果不传则返回全部类型的内部账号数据.
+}
+
+message GetAllAccountRsp {
+  repeated Account accounts = 10; // 内部账号列表, 调用方需要根据 account_type 字段区分账号是属于什么类型的.
+}

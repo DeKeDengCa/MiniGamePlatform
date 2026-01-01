@@ -1,0 +1,181 @@
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/apm/handlermgr/apm.go
+syntax = "proto3";
+
+import "protobuf/api/common/common.proto";
+
+package comm.mgr.platform.apm;
+
+option go_package = "gitit.cc/social/components-service/social-platform/proto/pbmgrapm";
+
+service ApmMgr {
+  rpc ListLogRetrieval(ListLogRetrievalReq) returns (ListLogRetrievalRsp); // 回捞日志列表
+  rpc AddLogRetrieval(AddLogRetrievalReq) returns (AddLogRetrievalRsp);// 写入并且通知业务回捞日志
+  rpc DeleteRetrievalById(DeleteRetrievalByIdReq) returns (DeleteRetrievalByIdRsp);// 删除回捞日志
+  rpc ListApmLogs(ListApmLogsReq) returns (ListApmLogsRsp);// apm日志列表
+  rpc UpdateApmLogRemark(UpdateApmLogRemarkReq) returns (UpdateApmLogRemarkRsp);// 更新apm日志备注
+
+  rpc ListOperateLog(ListOperateLogReq) returns (ListOperateLogRsp); // oms操作日志
+  rpc ListOperator(ListOperatorReq) returns (ListOperatorRsp); // 获取操作人列表
+}
+
+// 日志回捞类型
+enum LogRetrievalType {
+  LOG_RETRIEVAL_TYPE_NONE = 0;
+  LOG_RETRIEVAL_TYPE_LOG = 1; // 日志回捞
+  LOG_RETRIEVAL_TYPE_SCREEN_RECORDING = 2; // 录屏回捞
+}
+
+message ListOperatorReq {
+  scommon.Page page = 1;
+}
+
+message ListOperatorRsp {
+  scommon.Page page = 1;
+  repeated Operator list = 10;
+}
+
+message Operator {
+  string nickname = 10;
+}
+
+
+message DeleteRetrievalByIdReq {
+  int64 task_id = 10;
+}
+
+message DeleteRetrievalByIdRsp {
+}
+
+message ListApmLogsReq {
+  scommon.Page page = 1;
+  int64 task_id = 10;
+  string msg = 11;
+  int64 feedback_id = 12;
+}
+
+message ListApmLogsRsp {
+  scommon.Page page = 1;
+  repeated ApmLog list = 10;
+}
+
+message UpdateApmLogRemarkReq {
+  int64 id = 1;
+  string remark = 2; // 备注
+}
+
+message UpdateApmLogRemarkRsp {
+}
+
+message ApmLog {
+  int64 id = 10;
+  string uid = 11;
+  string did = 12;
+  string feedback_id = 13;
+  string sid = 14;
+  string ver = 15;
+  string verc = 16;
+  string msg = 17;
+  string content = 18;
+  string cou = 19;
+  string lan = 20;
+  int32 ctime = 21;
+  string mod = 22;
+  string os = 23;
+  string pf = 24;
+  int32 status = 25;
+  string proc_status = 26;
+  string aid = 27;
+  string pkg = 28;
+  string slan = 29;
+  string net = 30;
+  string brd = 31;
+  string anm = 32;
+  string remark = 34; // 备注
+  ApmLog report = 33;
+}
+
+message AddLogRetrievalReq {
+  LogRetrieval data = 10;
+}
+
+message AddLogRetrievalRsp {
+
+}
+
+message ListLogRetrievalReq {
+  scommon.Page page = 1;
+  repeated string plats = 10;// 平台
+  string name = 11;// 任务名，模糊搜索
+  int64 id = 12;// 任务id
+  string creator = 13;// 创建人
+  int64 start_time = 14;
+  int64 end_time = 15;
+  string remark = 16;
+  string send_uids = 17;
+  LogRetrievalType retrieval_type = 18; // 日志回捞类型
+}
+message ListLogRetrievalRsp {
+  scommon.Page page = 1;
+  repeated LogRetrieval list = 10;
+}
+
+message LogRetrieval {
+  int64 id = 10;
+  string plat = 11;
+  string name = 12;
+  string creator = 13;
+  string progress = 14;
+  string remark = 15;
+  string send_uids = 16;
+  int64 start_time = 17;//回捞开始时间
+  int64 end_time = 18;//回捞结束时间
+  string anm = 19;
+  string extend = 20; // LogRetrievalExtend 的 json
+  string file_name_list = 21;// 添加的时候
+  int64 ctime = 22;
+  int64 utime = 23;
+  repeated ClientFeedback feedback_list = 24;// 查询列表的时候返回
+  LogRetrievalType retrieval_type = 25;// 日志回捞类型
+}
+
+message ClientFeedback {
+  int64 uid = 10;
+  string status = 11;
+  string info = 12;     //透传客户端的值
+}
+
+message LogRetrievalExtend {
+  repeated string file_name_list = 1;
+}
+
+
+message ListOperateLogReq {
+  scommon.Page page = 1;
+  int64 item_id = 10;
+  string operator = 11;
+  string action = 12;
+  int64 start_time = 13;
+  int64 end_time = 14;
+  int64 id = 15;
+  string pathname = 16; //页面路径
+}
+
+message ListOperateLogRsp {
+  scommon.Page page = 1;
+  repeated OperateLog list = 10;
+}
+
+message OperateLog {
+  int64 id = 10;
+  int64 item_id = 11;
+  string action = 12;
+  string record = 13;
+  string old_record = 14;
+  string table_name = 15;
+  string uid = 16;
+  string operator = 17;
+  int64 ctime = 18;//时间戳，秒级别
+  string url = 19; //调用api
+  string pathname = 20; //页面路径
+  string ip = 21;
+}

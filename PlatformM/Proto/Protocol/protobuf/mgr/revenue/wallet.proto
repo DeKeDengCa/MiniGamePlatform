@@ -1,0 +1,193 @@
+syntax = "proto3";
+
+package mgr.pbrevenue;
+
+import "protobuf/api/revenue/common.proto";
+import "protobuf/api/revenue/wallet.proto";
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmrevenue";
+
+// smicro:spath=gitit.cc/social/components-service/social-revenue/walletmgr/wallet.go
+service WalletMgr {
+
+  // 批量获取余额, 支持多个币种同时查询.
+  rpc BatchGetUserBalance(BatchGetUserBalanceReq) returns (BatchGetUserBalanceRsp) {}
+  // 批量账户扣款, 多币种
+  rpc BatchDeductBalance(BatchDeductBalanceReq) returns (BatchDeductBalanceRsp) {}
+
+  // 查询交易流水记录
+  rpc ListTransactionRecord(ListTransactionRecordReq) returns (ListTransactionRecordRsp) {}
+  // 批量操作账户余额
+  rpc BatchBalanceOperate(BatchBalanceOperateReq) returns (BatchBalanceOperateRsp) {}
+
+  // 获取账户余额操作记录
+  rpc ListBalanceOperateRecord(ListBalanceOperateRecordReq) returns (ListBalanceOperateRecordRsp) {}
+
+  // 获取账户余额操作操作人列表
+  rpc ListBalanceOperator(ListBalanceOperatorReq) returns (ListBalanceOperatorRsp) {}
+}
+
+message BatchDeductBalanceReq {
+  repeated DeductBalanceReq deduct_balance = 10;
+}
+
+message BatchDeductBalanceRsp {
+  repeated .pbrevenue.Balance balance = 10;  //账号余额
+}
+
+message DeductBalanceReq {
+  string seq_id = 10; //客户端seq
+  .pbrevenue.CurrencyType currency_type = 11;
+  int64 amount = 12;
+  string business_type_text = 13; //扣费业务类型文案
+  string origin_business_type = 14; //业务类型
+  int64 uid = 15; //用户uid
+}
+
+message BatchGetUserBalanceReq {
+  repeated GetUserBalanceReq get_balance = 10;
+}
+
+message GetUserBalanceReq {
+  int64 uid = 10;
+  repeated .pbrevenue.CurrencyType currency_types = 11;
+}
+
+message BatchGetUserBalanceRsp {
+  repeated GetUserBalanceRsp user_balances = 10;
+}
+
+message GetUserBalanceRsp {
+  int64 uid = 10;
+  repeated .pbrevenue.Balance balances = 11;
+}
+
+message TransactionRecord {
+  int64 id = 1;
+  int64 uid = 2; // UID
+  string room_id = 3; // 房间ID
+  .pbrevenue.TransactionType type = 42; // 交易类型
+  string title = 5; // 交易标题 消费类型文案 对应-business_type
+  .pbrevenue.CurrencyType currency_type = 6; // 币种
+  int64 amount = 7; // 本次交易总变化数量(包括可用余额和保证金)
+  int64 free_amount = 12; // 本次交易免费余额变化数量
+  int64 balance = 8; // 本次交易后总可用余额
+  int64 guarantee_amount = 13; // 本次交易保证金变化数量(用 Amount 减去 GuaranteeAmount 就是可用余额的变化数量)
+  int64 guarantee_balance = 14; // 本次交易后保证金余额
+  int64 time_transacted = 9; // 交易发生的时间戳, unix-timestamp 精确到秒.
+  string origin_business_type = 10; // 业务类型
+  int64 opposite_uid = 11; // 交易对方用户ID
+  .pbrevenue.TransactionSnapshot snapshot = 15; // 快照
+}
+
+message ListTransactionRecordReq {
+  scommon.Page page = 1;                                // 分页参数
+  repeated int64 uids = 10;                             // 用户ID
+  repeated string room_ids = 11;                        // 房间ID
+  repeated .pbrevenue.CurrencyType currency_types = 12; // 货币类型
+  repeated string origin_business_types = 13;           // 流水类型
+  int64 min_time_transacted = 14;
+  int64 max_time_transacted = 15;
+  repeated .pbrevenue.TransactionType types = 16;       // 交易流水类型
+  repeated int64 opposite_uids = 17;                    // 交易对方用户ID
+}
+
+message ListTransactionRecordRsp {
+  scommon.Page page = 1;                                // 分页参数
+  repeated TransactionRecord records = 10;              // 流水记录
+}
+
+// 操作类型
+enum BalanceOperateKind {
+  BALANCE_OPERATE_KIND_NONE = 0;    // 无意义
+  BALANCE_OPERATE_KIND_GRANT = 1;   // 发放
+  BALANCE_OPERATE_KIND_DEDUCT = 2;  // 扣减
+  BALANCE_OPERATE_KIND_FREEZE = 3;  // 冻结
+  BALANCE_OPERATE_KIND_UNFREEZE = 4;// 解冻
+}
+
+// 扣除的用户和金额
+message BatchBalanceOperateItem {
+  int64 uid = 1;
+  int64 amount = 2;
+  int64 paid_amount = 3;
+  double real_dollor = 4; // 实收美金, 实收美金大于 0 表示是付费货币.
+  .pbrevenue.CurrencyType currency_type = 5; // 货币类型, 不传时使用 BatchBalanceOperateReq 的.
+}
+
+message BatchBalanceOperateReq {
+  BalanceOperateKind operate_kind = 10;
+  repeated int64 uids = 11;
+  .pbrevenue.CurrencyType currency_type = 12;
+  int64 amount = 13;
+  string reason = 14;
+  repeated BatchBalanceOperateItem uidAmounts = 15;
+  int64 paid_amount = 16;
+  double real_dollor = 17; // 实收美金, 实收美金大于 0 表示是付费货币.
+}
+
+message BatchBalanceOperateRsp {
+  int64 batch_id = 10;  // 批量操作ID
+}
+
+
+// 审批状态
+enum AuditStatus {
+  AUDIT_STATUS_NONE = 0;      // 无意义
+  AUDIT_STATUS_PENDING = 1;   // 审批中
+  AUDIT_STATUS_APPROVED = 2;  // 已通过
+  AUDIT_STATUS_REJECTED = 3;  // 已驳回
+}
+
+// 余额操作记录
+message BalanceOperateRecord {
+  int64 id = 1;
+  BalanceOperateKind operate_kind = 2;
+
+  int64 uid = 10;
+  string show_uid = 11;
+  string nickname = 12;
+  string avatar = 13;
+
+  .pbrevenue.CurrencyType currency_type = 20;
+  int64 amount = 21;
+  string reason = 22;
+  int64 paid_amount = 23;
+  double real_dollor = 24; // 实收美金, 实收美金大于 0 表示是付费货币.
+
+  AuditStatus audit_status = 30;
+  string audit_reason = 31;
+  int64 audit_at = 32;
+  string audit_by = 33;
+
+  int64 submit_at = 100;
+  string submit_by = 101;
+}
+
+message ListBalanceOperateRecordReq {
+  scommon.Page page = 1;
+  BalanceOperateKind operate_kind = 10;
+  repeated int64 uids = 11;
+  .pbrevenue.CurrencyType currency_type = 12;
+  repeated .pbrevenue.CurrencyType currency_types = 20;
+  int64 submit_at_start = 13;
+  int64 submit_at_end = 14;
+  AuditStatus audit_status = 15;
+  string operator = 16;
+  int64 audit_at_start = 17;
+  int64 audit_at_end = 18;
+}
+
+message ListBalanceOperateRecordRsp {
+  scommon.Page page = 1;
+  repeated BalanceOperateRecord operate_records = 10;
+}
+
+message ListBalanceOperatorReq {
+
+}
+
+message ListBalanceOperatorRsp {
+  repeated string operators = 10;
+}

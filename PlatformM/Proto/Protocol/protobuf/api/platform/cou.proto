@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package comm.api.platform.cou;
+
+option java_package = "com.entertain.sns.comm.api.platform.cou";
+option go_package = "gitit.cc/social/components-service/social-platform/proto/pbmgrcou";
+
+// 国家代码
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/cou/handler
+// serviceName: platform-api
+service Cou {
+
+    // 获取国家代码
+    rpc GetNewCou(GetNewCouReq) returns (GetNewCouRsp);
+}
+
+message GetNewCouReq {
+    string cou = 10;            // 原国家码,格式类似SA
+    string storefront_cou = 11; // APP Store账号对应的国家码，格式类似SA，""表示空
+    string skproduct_cou = 12;  // 获取苹果充值档位对应国家码，格式类似SA，""表示空
+    string sys_cou = 13;        // 当前系统设置的国家码，格式类似SA
+    string sys_lan = 14;        // 当前系统设置的语言信息，格式类似en_US
+    string sys_timezone = 15;   // 当前系统设置的时区信息，格式类似Asia/Riyadh
+    bool vpn = 16;              // 是否链接vpn，bool类型，true表示vpn，false表示非vpn
+}
+
+message GetNewCouRsp {
+    string new_cou = 10;        // 新的国家代码, 基于策略计算出来.
+}

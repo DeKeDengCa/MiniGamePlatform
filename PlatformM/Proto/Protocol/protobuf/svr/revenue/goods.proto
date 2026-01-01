@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package pbsrevenue;
+
+import "protobuf/api/revenue/common.proto";
+import "protobuf/svr/revenue/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsrevenue";
+option java_package = "com.revenue.biz.proto";
+
+service GoodsSvr {
+  // 用户订单查询
+  rpc ListUserOrder(ListUserOrderReq) returns (ListUserOrderRsp);
+  // 获取用户累计充值金额
+  rpc GetUserRechargeAmount(GetUserRechargeAmountReq) returns (GetUserRechargeAmountRsp);
+}
+
+message ListUserOrderReq{
+  int64 uid = 1;             // 用户ID，优先从公参取，服务端内部请求则取该字段
+  int64 start_time = 2;      // 开始时间
+  int64 end_time = 3;        // 结束时间
+  pbrevenue.PayStatus pay_status = 4;  // 支付状态
+  int32 limit = 5;           // 查询多少条，0 则查全部
+}
+
+message ListUserOrderRsp{
+  repeated pbrevenue.GoodsOrderInfo list = 1; // 订单列表
+}
+
+message GetUserRechargeAmountReq {
+  int64 uid = 1;             // 用户ID，优先从公参取，服务端内部请求则取该字段
+  int64 start_time = 2;      // 开始时间
+  int64 end_time = 3;        // 结束时间
+  pbrevenue.CurrencyType currency_type = 4; // 货币类型，如果是none 则返回美元总充值金额
+  CacheCtrl cache_ctrl = 10; // 缓存控制
+}
+
+message GetUserRechargeAmountRsp {
+  pbrevenue.CurrencyType currency_type = 1;
+  pbrevenue.Unit unit = 2;// 货币单位，目前只有美元
+  int64 amount =3;
+}

@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package pbspay;
+
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbspay";
+option java_package = "com.entertain.sns.pbspay";
+
+
+// 支付错误码定义
+// 公共错误码查看：https://gitit.cc/social/protocol/api/net/-/blob/master/common-net.proto?ref_type=heads#L9
+enum SpayCode {
+  SPAY_CODE_NONE = 0;
+
+  // 支付协议号段 >= 60000
+  SPAY_CODE_BASE = 60000;                // 起始值，无意义，用于动态整合支付中台错误码
+  SPAY_CODE_APP_NOT_SUPPORT = 60001;     // 当前 app 不支持
+  SPAY_CODE_GOODS_NOT_FOUND = 60002;     // 商品（sku）不存在
+  SPAY_CODE_ORDER_NOT_FOUND = 60003;     // 订单不存在
+  SPAY_CODE_INVALID_CHECKSUM = 60004;    // 无效签名
+  SPAY_CODE_PAY_DONE_REPEAT = 60005;     // 支付完成重复通知
+  SPAY_CODE_SUBSCRIBE_REPEAT = 60006;    // 重复订阅
+
+  // 验单状态码，60000 + 支付中台返回码（4位）
+  // 支付中台返回码参考：https://nemo.yuque.com/pay_system/interface/haaq01#bQB7v
+  // eg: apply_pay NOT_MATCH 的状态码为：60000 + 1002 = 61002
+  // 为了后续增加一些无需处理逻辑的状态码，不用改动协议，其他状态码动态计算返回
+  SPAY_CODE_APPLE_ORDER_NOT_MATCH = 61002;    // apple_pay 订单票据不匹配，这个时候可以 finish 订单
+
+}
+

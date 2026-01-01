@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package comm.mgr.offical;
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/offical/pbmdingtalkgroupwebhook";
+
+// serviceName: social.offical
+// smicro:spath=gitit.cc/social/components-service/social-offical/handler-mgr/dingtalkgroupwebhook
+service DingtalkGroupWebhook {
+  // 列表
+  rpc ListDingtalkGroupWebhook(ListDingtalkGroupWebhookReq) returns (ListDingtalkGroupWebhookRsp);
+  // 新增
+  rpc CreateDingtalkGroupWebhook(CreateDingtalkGroupWebhookReq) returns (CreateDingtalkGroupWebhookRsp);
+  // 更新
+  rpc UpdateDingtalkGroupWebhook(UpdateDingtalkGroupWebhookReq) returns (UpdateDingtalkGroupWebhookRsp);
+  // 删除
+  rpc DeleteDingtalkGroupWebhook(DeleteDingtalkGroupWebhookReq) returns (DeleteDingtalkGroupWebhookRsp);
+
+  // 获取支持的 app name 列表
+  rpc ListAppName(ListAppNameReq) returns (ListAppNameRsp);
+}
+
+// 钉钉群Webhook配置
+message DingtalkGroupWebhookConfig {
+  int64 id = 1; // id
+  string user_code = 2; // 员工代号
+  string app_name = 3; // app名称
+  string dingtalk_group_webhook = 4; // 钉钉群-Webhook地址
+  string dingtalk_group_secret = 5; // 钉钉群-Webhook密钥
+  int64 created_at = 6; // 创建时间
+  string created_by = 7; // 创建人
+  int64 updated_at = 8; // 修改时间
+  string updated_by = 9; // 修改人
+}
+
+message ListDingtalkGroupWebhookReq {
+  int64 id = 1; // id
+  string user_code = 2; // 员工代号
+  string app_name = 3; // app名称
+}
+
+message ListDingtalkGroupWebhookRsp {
+  repeated DingtalkGroupWebhookConfig items = 1;  // DingtalkGroupWebhookInfo 列表
+}
+
+message CreateDingtalkGroupWebhookReq{
+  string user_code = 1; // 员工代号
+  string app_name = 2; // app名称
+  string dingtalk_group_webhook = 3; // 钉钉群-Webhook地址
+  string dingtalk_group_secret = 4; // 钉钉群-Webhook密钥
+}
+
+message CreateDingtalkGroupWebhookRsp{
+  int64 id = 1; // id
+}
+
+message UpdateDingtalkGroupWebhookReq{
+  int64 id = 1; // id
+  string app_name = 2; // app名称
+  string dingtalk_group_webhook = 3; // 钉钉群-Webhook地址
+  string dingtalk_group_secret = 4; // 钉钉群-Webhook密钥
+}
+message UpdateDingtalkGroupWebhookRsp{
+}
+
+message DeleteDingtalkGroupWebhookReq{
+  int64 id = 1; // id
+}
+
+message DeleteDingtalkGroupWebhookRsp{
+}
+
+
+message ListAppNameReq{
+}
+
+message ListAppNameRsp{
+  repeated string app_names = 1;
+}

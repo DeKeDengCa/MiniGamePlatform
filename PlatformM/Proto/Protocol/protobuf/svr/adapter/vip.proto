@@ -1,0 +1,26 @@
+// smicro:spath=gitit.cc/social/gene/gene-api/biz/vip/handlesvr
+syntax = "proto3";
+
+package pbsadapter;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsadapter";
+
+service CommonVIP {
+  // 批量获取用户VIP信息
+  rpc BatchGetUserVIPInfo(BatchGetUserVIPInfoReq) returns (BatchGetUserVIPInfoRsp);
+}
+
+
+message BatchGetUserVIPInfoReq {
+  repeated int64 uids = 10;
+}
+
+message BatchGetUserVIPInfoRsp {
+  map<int64, UserVIPInfo> vip_info_map = 10;
+}
+
+message UserVIPInfo {
+  int32 level = 1;                    // 等级
+  int64 valid_from = 2;               // 有效期开始时间戳，单位秒
+  int64 valid_until = 3;              // 有效期截止时间戳，单位秒
+}

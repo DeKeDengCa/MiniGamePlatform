@@ -1,0 +1,183 @@
+syntax = "proto3";
+
+package comm.api.moment;
+
+option java_package = "com.entertain.sns.comm.api.moment";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbmoment";
+
+// 动态
+message Moment {
+  int64 moment_id = 1;          // 动态ID
+  int64 publish_at = 2;         // 发布时间戳
+  int64 uid = 3;                // 发布者UID
+  int64 version = 4;            // 客户端维护版本号，如果新版本不兼容旧版本，则递增版本号，渲染时如果当前维护版本小于该版本号则过滤或提示升级
+  AuditResult audit_result = 5; // 审核结果
+  Text text = 10;               // 动态文案
+  repeated Tag tags = 11;       // 标签
+  Location location = 12;       // 位置
+  Attachments attachments = 20; // 动态附件(微信方案, 不允许一个动态里面既包含图片又包含视频.)
+  // repeated Attachment attachments = 30; // 动态附件(微博方案, 允许一个动态里面既包含图片又包含视频, 而且可以随意排列组合)
+  MomentStats stats = 50;       // 统计信息
+  BizData context = 60;         // 透传上下文, 由客户端写入, 用于业务客户端之间或业务客户端和服务端进行能力拓展, 中台只负责存储和传输并不关心其内容及结构.
+  BizData expand = 61;          // 拓展信息, 由业务后端写入, 用于业务后端填充此动态的发布者相关信息, 中台只负责存储和传输并不关心其内容及结构.
+  map<string, string> attribute = 62; // 自定义属性, 因为这块会被中台服务端和 OMS 端读取, 所以定义成 map<string, string> 结构便于使用.
+}
+
+// 审核状态
+enum AuditStatus {
+  AUDIT_STATUS_NONE = 0;      // 待审核
+  AUDIT_STATUS_APPROVED = 1;  // 通过
+  AUDIT_STATUS_REJECTED = 2;  // 拒绝
+}
+
+// 审核结果
+message AuditResult {
+  AuditStatus status = 1;
+  repeated string labels = 5;
+}
+
+// 文本
+message Text {
+  string plain = 1;   // 纯文本
+  string rich = 2;    // 富文本（Markdown等）
+  int64 version = 3;  // 客户端维护版本号，如果新版本不兼容旧版本，则递增版本号，渲染时如果当前维护版本小于该版本号则展示纯文本
+}
+
+// 标签
+message Tag {
+  string tag = 1;
+}
+
+// 附件(微信方案)
+message Attachments {
+  AttachmentType type = 1;    // 附件类型, 不同的内容类型决定着下面的字段是否有值, 例如 "图片" 的时候就只有 images 两字段有值.
+  repeated Image images = 10; // 图片列表, 客户端根据图片数量决定排列布局形式.
+  repeated Video videos = 20; // 视频, 设计为列表是方便后续拓展成多视频的情况.
+  repeated Link links = 30;   // 链接, 设计为列表是方便后续拓展成多链接的情况.
+}
+
+// 附件(微博方案)
+message Attachment {
+  AttachmentType type = 1; // 附件类型
+
+  oneof Media {
+    Image image = 10;  // 图片
+    Video video = 20;  // 视频
+    Link link = 30;    // 链接
+    // 更多附件类型
+  }
+}
+
+// 动态附件类型
+enum AttachmentType {
+  CONTENT_TYPE_NONE = 0;          // 纯文本(没有附件)
+  CONTENT_TYPE_TEXT_IMAGE = 10;   // 纯图片
+  CONTENT_TYPE_TEXT_VIDEO = 20;   // 纯视频
+  CONTENT_TYPE_TEXT_LINK = 30;    // 纯链接
+  // 更多拓展类型
+}
+
+// 图片类型
+enum ImageType {
+  IMAGE_TYPE_NONE = 0;
+  IMAGE_TYPE_GENERAL = 10; // 一般图片: jpg / png / webp / ...
+  IMAGE_TYPE_GIF = 20;     // gif图片
+  IMAGE_TYPE_LIVE = 30;    // 实况图片
+  // 更多拓展类型
+}
+
+// 图片
+message Image {
+  ImageType type = 1; // 图片类型
+  string url = 2;     // 图片地址
+  int32 width = 3;    // 图片宽(像素)
+  int32 height = 4;   // 图片高(像素)
+}
+
+// 视频类型
+enum VideoType {
+  VIDEO_TYPE_NONE = 0;
+  VIDEO_TYPE_MP4 = 10;   // MP4
+  // 更多拓展类型
+}
+
+// 视频
+message Video {
+  VideoType type = 1;       // 视频类型
+  string url = 2;           // 视频地址
+  string preview_url = 3;   // 预览图片地址
+  int32 duration = 4;       // 视频时长(秒)
+}
+
+// 链接类型
+enum LinkType {
+  LINK_TYPE_NONE = 0;
+  LINK_TYPE_GENERAL = 10; // 一般链接: http / 应用内跳转 / ...
+  // 更多拓展类型
+}
+
+// 链接
+message Link {
+  LinkType type = 1;  // 链接类型
+  string icon = 2;    // 图标
+  string title = 3;   // 标题
+  string url = 4;     // 链接地址
+}
+
+// 统计数据
+message MomentStats {
+  int64 views = 1;      // 浏览量
+  int64 comments = 2;   // 评论数
+  int64 likes = 3;      // 点赞数
+  int64 favorites = 4;  // 收藏数
+  int64 shares = 5;     // 分享数
+}
+
+// 动态评论类型
+enum CommentType {
+  COMMENT_TYPE_NONE = 0;
+  COMMENT_TYPE_TEXT = 10;    // 纯文本
+  // 更多拓展类型
+}
+
+// 动态评论
+message Comment {
+  int64 comment_id = 1;         // 评论ID
+  int64 comment_at = 2;         // 评论时间戳
+  int64 uid = 3;                // 评论者UID
+  int64 moment_id = 4;          // 动态ID
+  int64 root_comment_id = 5;    // 根评论ID，大于0表示这是在一条评论下的评论
+  int64 refer_comment_id = 7;   // 对评论的回复也是一条评论, 不过这条评论有一个引用评论ID, 也就是说此值大于0表示这是一条对评论的回复.
+  int64 refer_uid = 8;          // 回复某个评论者的UID, 也就是@人.
+  int64 version = 9;            // 客户端维护版本号，如果新版本不兼容旧版本，则递增版本号，渲染时如果当前维护版本小于该版本号则过滤或提示升级
+  Text text = 10;               // 评论内容
+  CommentStats stats = 50;      // 统计信息
+  BizData context = 60;         // 透传上下文, 由客户端写入, 用于业务客户端之间或业务客户端和服务端进行能力拓展, 中台只负责存储和传输并不关心其内容及结构.
+  BizData expand = 61;          // 拓展信息, 由业务后端写入, 用于业务后端填充此动态的发布者相关信息, 中台只负责存储和传输并不关心其内容及结构.
+}
+
+message CommentStats {
+  int64 replies = 1;    // 回复数
+  int64 likes = 2;      // 点赞数
+}
+
+// 业务数据
+message BizData {
+  // 数据类型
+  enum Type {
+    BIZ_DATA_TYPE_NONE = 0;
+    BIZ_DATA_TYPE_JSON = 10;     // JSON
+    BIZ_DATA_TYPE_PROTOBUF = 20; // Protobuf
+    // 更多类型
+  }
+
+  Type type = 1;  // 数据类型
+  bytes data = 2; // 数据内容
+}
+
+// 位置
+message Location {
+  string country_code = 1;  // 国家代码，例如 CN
+  string country = 2;       // 外显国家名
+  string city = 6;          // 外显城市名
+}

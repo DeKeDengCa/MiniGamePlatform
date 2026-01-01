@@ -1,0 +1,107 @@
+// smicro:spath=gitit.cc/social/components-service/social-relation/biz/relation/handler/userfollow
+syntax = "proto3";
+
+package comm.api.relation;
+
+import "protobuf/api/common/common.proto";
+import "protobuf/api/relation/extension.proto";
+import "protobuf/api/relation/user_relation.proto";
+
+option java_package = "com.entertain.sns.comm.api.relation";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbrelation";
+
+// 用户关注
+service UserFollow {
+  // 关注
+  rpc Follow(FollowReq) returns (FollowRsp);
+  // 取消关注
+  rpc UnFollow(UnFollowReq) returns (UnFollowRsp);
+  // 关注列表
+  rpc GetFollowUIDs(GetFollowUIDsReq) returns (GetFollowUIDsRsp);
+  // 粉丝列表
+  rpc GetFansIDs(GetFansUIDsReq) returns (GetFansUIDsRsp);
+  // 是否关注
+  rpc CheckIsFollow(CheckIsFollowReq) returns (CheckIsFollowRsp);
+  // 批量关注
+  rpc BatchFollow(BatchFollowReq) returns (BatchFollowRsp);
+  // 置顶关注
+  rpc PinToTop(PinToTopReq) returns (PinToTopRsp);
+}
+
+// 关注用户时的场景
+enum UserFollowScene {
+  User_FOLLOW_SCENE_NONE = 0;
+  User_FOLLOW_SCENE_ROOM = 10;      // 语音房内，用户之间关注
+  User_FOLLOW_SCENE_IM = 20;        // 私聊，用户之间关注
+  User_FOLLOW_SCENE_FANS_LIST = 30; // 粉丝列表回关
+}
+
+// 关注用户
+message FollowReq {
+  int64 followUid = 2;            // 被关注用户ID
+  UserFollowScene scene = 3;      // 场景
+  string biz_ext = 4;             // 业务拓展参数, 最大长度: 240 个字符
+}
+
+message FollowRsp {
+  Relation final_relation = 10;   // 关注后最终关系
+}
+
+// 取消关注
+message UnFollowReq {
+  int64 unFollowUid = 2;          // 取消关注用户ID
+}
+
+message UnFollowRsp {
+  Relation final_relation = 10;   // 取关后最终关系
+}
+
+// 获取关注用户ID列表
+message GetFollowUIDsReq {
+  scommon.Page page = 1;          // 分页
+}
+
+message GetFollowUIDsRsp {
+  scommon.Page page = 1;          // 分页
+  repeated int64 followUIDs = 2;  // 关注用户ID列表
+  map<int64, Ext> exts = 10;      // 拓展信息, key 为 关注用户UID
+}
+
+// 获取粉丝ID列表
+message GetFansUIDsReq {
+  scommon.Page page = 1;          // 分页
+}
+
+message GetFansUIDsRsp {
+  scommon.Page page = 1;          // 分页
+  repeated int64 fansUIDs = 2;    // 粉丝ID列表
+  map<int64, Ext> exts = 10;      // 拓展信息, key 为 粉丝用户UID
+}
+
+message CheckIsFollowReq {
+  int64 targetUid = 1;            // 目标用户ID
+}
+
+message CheckIsFollowRsp {
+  bool isFollow = 1;              // 是否关注
+}
+
+// 批量关注用户
+message BatchFollowReq {
+  repeated int64 follow_uids = 2; // 被关注用户ID
+  UserFollowScene scene = 3;      // 场景
+  string biz_ext = 4;             // 业务拓展参数, 最大长度: 240 个字符
+}
+
+message BatchFollowRsp {}
+
+// 置顶关注
+message PinToTopReq {
+  int64 target_uid = 10;          // 目标用户ID
+  bool cancel = 20;               // 取消置顶
+}
+
+// 置顶关注
+message PinToTopRsp {
+
+}

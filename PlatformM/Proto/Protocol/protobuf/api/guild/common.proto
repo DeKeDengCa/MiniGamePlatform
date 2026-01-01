@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package comm.api.guild;
+
+option java_package = "com.entertain.sns.comm.api.guild";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pbguild";
+
+// 国家信息
+message Country {
+  int64 country_id = 1;                 // 国家ID
+  string country_abbr = 2;              // 国家简码
+  string image = 4;                     // 国旗图片
+  map<string, string> country_name = 3; // 国家名称, 国际化, 目前包含 AR, EN
+}
+

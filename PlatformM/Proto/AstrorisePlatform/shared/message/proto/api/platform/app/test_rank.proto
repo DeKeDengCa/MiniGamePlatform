@@ -1,0 +1,92 @@
+syntax="proto3";
+
+// package 必须要定义，配置的key之前会拼接这个package name，比如
+// message Base对应的key，前面会拼接package变成：app.config.ui.base
+// schema配置界面的proto文件，不同proto文件的package不允许一样，重名会编译不过
+package app.config.gene.rank;
+
+// options.proto 定义了一些options，options用于描述schema。必须import
+import "protobuf/api/sconfig/options.proto";
+
+// model.proto 会定义一些公共的配置。按需import
+// 比如 sconfig.model.Time 会生成一个时间选择框
+// sconfig.model.File 会生成一个文件上传按钮
+import "protobuf/api/sconfig/model.proto";
+
+// 配置大类的名称。【必填】
+option (sconfig.schema.biz_name)="榜单配置";
+
+// 不允许定义java_package和swift_prefix，定义了会编译不过
+
+// 基础配置
+message Base {
+  // 有这个option则表示这个message要作为一个配置项，表示配置项的名字
+  // 这里最终配置的key就是{{package}}.{{message}}:app.config.ui.Base
+  option (sconfig.schema.cfg_name) = "基础配置";
+
+  // 需要出现在配置界面的每个field需要配置 (sconfig.schema.input) 用来控制一些schema信息
+  // name string类型，配置项的名称，界面上展示为输入框前的名字，必填。
+  // help string类型，配置项旁会生成一个?按钮，点击展示帮助信息。
+  // min  string类型，最小值，对于整型表示最小值，对于字符串表示最小长度。这里用string的原因是int类型的0会被忽略掉
+  // max  string类型，最大值，对于整型表示最大值，对于字符串表示最大长度
+  // opt  bool类型，可选输入，如果为true表示配置项不填也可以
+  // ml   bool类型，如果是true表示支持多行输入，仅对string有效
+  sconfig.model.Time begin = 1 [(sconfig.schema.input) = {
+    name:"开始时间"
+  }];
+  sconfig.model.Time end = 2 [(sconfig.schema.input) = {
+    name:"结束时间"
+  }];
+
+  Timeout timeout = 3 [(sconfig.schema.input) = {
+    name:"超时配置"
+  }];
+}
+
+// Timeout 不会单独作为一个配置项出现，只是作为Base的一部分，所以
+// 不需要配置 option (sconfig.schema.cfg_key)
+message Timeout {
+  int64 call = 1 [(sconfig.schema.input) = {
+    name:"呼叫超时(秒)"
+    help:"用于配置呼叫超时时间"
+  }];
+  int64 game_invite = 2 [(sconfig.schema.input) = {
+    name:"游戏邀请超时(秒)"
+    help:"用于配置游戏邀请超时时间"
+  }];
+}
+
+// 榜单配置
+message Rank {
+  option (sconfig.schema.cfg_name) = "榜单配置";
+
+  RankType rank_type = 1 [(sconfig.schema.input) = {
+    name:"榜单类型"
+  }];
+
+  sconfig.model.File no1 = 10 [(sconfig.schema.input) = {
+    name:"第一名图片样式"
+  }];
+  sconfig.model.File no2 = 11 [(sconfig.schema.input) = {
+    name:"第二名图片样式"
+  }];
+  sconfig.model.File no3 = 12 [(sconfig.schema.input) = {
+    name:"第三名图片样式"
+  }];
+}
+
+// 枚举定义
+enum RankType {
+  RANK_TYPE_NONE = 0; // 0值枚举不要定义 (sconfig.schema.enum)
+  // 非0值枚举需要定义 (sconfig.schema.enum)
+  // name 下拉框展示的名字
+  RANK_TYPE_ROOM = 1 [(sconfig.schema.enum) = {
+    name:"房间榜"
+  }];
+  RANK_TYPE_GUILD = 2 [(sconfig.schema.enum) = {
+    name:"公会榜"
+  }];
+  RANK_TYPE_FAMILY = 31 [(sconfig.schema.enum) = {
+    name:"家族榜"
+  }];
+}

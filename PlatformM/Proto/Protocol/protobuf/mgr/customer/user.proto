@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package comm.mgr.customer;
+
+import "protobuf/api/adapter/model.proto";
+
+option go_package = "gitit.cc/social/components-service/social-customersvc/proto/customer/pbmuser";
+
+// smicro:spath=gitit.cc/social/components-service/social-customersvc/biz/customer/handlermgr
+
+// serviceName: social-customersvc
+service UserMgr {
+  // 批量检查用户是否存在
+  rpc BatchCheckUserExist(BatchCheckUserExistReq) returns (BatchCheckUserExistRsp);
+
+  // 批量获取用户身份
+  rpc BatchGetUserIdentity(BatchGetUserIdentityReq) returns (BatchGetUserIdentityRsp);
+}
+
+message BatchCheckUserExistReq {
+  repeated int64 uids = 1 ;           // 用户uid
+}
+
+message BatchCheckUserExistRsp {
+  repeated int64 existingUIDs = 1;    //存在的ID列表
+  repeated int64 nonExistingUIDs = 2; //不存在的ID列表
+}
+
+message BatchGetUserIdentityReq {
+  repeated int64 uids = 10 ;          // 用户uid
+}
+
+message BatchGetUserIdentityRsp {
+  map<int64, comm.api.adapter.UserIdentity> user_identity = 10;  // 用户身份
+}

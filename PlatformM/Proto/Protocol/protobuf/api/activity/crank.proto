@@ -1,0 +1,102 @@
+syntax = "proto3";
+
+package crank;
+
+import "protobuf/api/common/common.proto";
+
+//smicro:spath=gitit.cc/social/components/crank/get_handler.go
+
+option java_package="com.entertain.sns.crank";
+option go_package="gitit.cc/social/protobuf/gencode/api/pbcrank";
+
+// 获取榜单需要的数据
+message GetPara {
+  scommon.Page page = 1;  // 这个必须填，如果不填服务端会初始化一个默认的分页，limit为20
+
+  // 榜单的模板和key，服务端告诉前端
+  string template = 10;
+  string key = 11;
+  // member非空，则表示获取member这个子榜
+  string member = 12;
+  // 周期偏移。0表示当前周期，-n表示前N个周期。比如日榜，0表示今天的榜单，-1表示昨天的榜单
+  int32 cycle_offset = 13;
+  // 指定cycle key，而不是用time 和cycle offset来计算，具体计算方法要和服务端确认
+  string cycle_key = 14;
+
+  // 很多榜单要展示自己的分数和排名，如果me非空，则获取me的分数和排名。建议是第一页获取，其他页不要获取。
+  // 这里也不一定要是自己的分数和排名，me可以指定任意一个主体
+  string me = 20;
+
+  // 用于每个榜单item都需要获取子榜的情况
+  int32 top_n_need_sub = 30; // 表示前N名需要顺带获取子榜。比如有时候是前三名要展示贡献榜，那么 top_n_need_sub 就是3
+  int32 sub_len = 31;        // 子榜的长度。比如只需要展示贡献榜前两名，那么sub_len就是2
+
+  // 是否需要返回距离上一名分数差
+  bool need_score_gap = 40;
+
+  string extend = 100;       // 各个服务自行和客户端协商增加的信息
+  bool pb_extend = 101;      // 是否采用 PB + Base64 形式来传递 extend 信息.
+}
+
+// 主体基本信息（人、语音房等）
+message EntityInfo {
+  string id = 1;     // 用string更加通用一些，用oneof处理比较复杂
+  string avatar = 2; // 头像
+  string nick = 3;   // 昵称
+
+  string extend = 100;// 扩展信息，各个服务自定义
+}
+
+// 一个榜单元素
+message Item {
+  int64 score = 1;  // 分数
+  int32 rank = 2;   // 排名
+  int64 score_gap = 3;  // 距离上一名分数差，第一名或相同分数时为0
+
+  // 这里用repeated，用于CP榜之类的场景
+  repeated EntityInfo entitys = 20;
+
+  repeated Item subs = 50; // 子榜信息
+
+  string extend = 100;
+}
+
+// 一个榜单
+message Rank {
+  scommon.Page page = 1;
+  // 下面这几个原样透传回去，用于标识是哪个榜单
+  string template = 2;
+  string key = 3;
+  string member = 4;
+
+  repeated Item items = 10;
+  Item me = 11;
+
+  // 当前榜单的开始结束时间，unix timestamp, seconds
+  int64 begin = 40;
+  int64 end = 41;
+  State state = 43; // 当前榜单阶段
+
+  string extend = 100;
+}
+
+enum State {
+  STATE_NONE = 0;
+  STATE_NOT_BEGIN = 1; // 未开始
+  STATE_ING = 2;       // 进行中
+  STATE_REST = 3;      // 中间休息阶段
+  STATE_END = 10;      // 已结束
+}
+
+message GetRankReq {
+  string name = 1;            // 服务端提供，就是NewResource里面的name
+  repeated GetPara paras = 2; // 支持一次获取多个榜单，必须是同一个name内的
+}
+
+message GetRankRsp {
+  repeated Rank ranks = 1;    // 这里的顺序和请求的顺序一致
+}
+
+service CRank {
+  rpc GetRank(GetRankReq) returns (GetRankRsp);
+}

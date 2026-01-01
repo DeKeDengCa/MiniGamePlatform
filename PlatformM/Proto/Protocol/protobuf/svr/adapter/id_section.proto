@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package pbsadapter;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/pbsadapter";
+
+// 中台回调业务获取ID段接口
+service IDSectionCallback {
+
+  // 中台回调业务获取下一个 ID 段, 业务实现时需要注意的是中台会在上一个ID段差不多用完之前提前去获取下一段, 业务需要保证每个ID段之间不能有重合的ID.
+  rpc GetNextIDSection(GetNextIDSectionReq) returns (GetNextIDSectionRsp);
+}
+
+// ID 类型
+enum IDType {
+  ID_TYPE_NONE = 0;
+  ID_TYPE_ACCOUNT = 10; // 账号ID, 也就是 UID.
+}
+
+message GetNextIDSectionReq {
+  IDType id_type = 1;
+}
+
+message IDSection {
+  int64 start = 1;  // ID 段起始值(包含)
+  int64 end = 2;    // ID 段结束值(包含)
+  int64 step = 3;   // 步进, 默认就是 1.
+}
+
+message GetNextIDSectionRsp {
+  IDSection section = 1;
+}
+

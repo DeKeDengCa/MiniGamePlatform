@@ -1,0 +1,73 @@
+// smicro:spath=gitit.cc/social/components-service/social-offical/handler-api/oaccountapi
+syntax = "proto3";
+
+package comm.api.offical;
+
+option java_package="com.entertain.sns.comm.api.offical";
+option go_package = "gitit.cc/social/protobuf/gencode/api/pboffical";
+
+// 错误码
+enum ErrCode {
+  ERR_CODE_API_NONE = 0;
+
+  ERR_CODE_ACCOUNT_TYPE_ALREADY_BINDED = 200000;   // 账号类型已被绑定
+  ERR_CODE_ACCOUNT_TYPE_NOT_BINDED = 200001;   // 账号类型未绑定
+}
+
+// 账号类型
+enum AccountType {
+  ACCOUNT_TYPE_NONE = 0;
+  ACCOUNT_TYPE_TEST = 1;    // 测试账号
+  ACCOUNT_TYPE_OPERATE = 2; // 运营账号
+  ACCOUNT_TYPE_EXP = 3;     // 体验账号
+}
+
+// OAccount 内部账号管理
+// serviceName: social.offical
+service OAccountApi {
+  // 绑定账号类型，没有解绑功能
+  rpc SetAccountType(SetAccountTypeReq) returns (SetAccountTypeRsp);
+
+  // 查询账号类型
+  rpc QuerySetAccountType(QueryAccountTypeReq) returns (QueryAccountTypeRsp);
+
+  // 申请货币
+  rpc ApplyMoney(ApplyMoneyReq) returns (ApplyMoneyRsp);
+
+  // 查询货币类型列表
+  rpc ListCurrencyType(ListCurrencyTypeReq) returns (ListCurrencyTypeRsp);
+}
+
+message SetAccountTypeReq {
+  AccountType accountType = 1;  // 账号类型
+  string email = 2;  // 邮箱
+}
+message SetAccountTypeRsp {
+}
+
+message QueryAccountTypeReq {
+}
+message QueryAccountTypeRsp {
+  int32 accountType = 1;  // 账号类型
+  string email = 2;  // 邮箱
+}
+
+message ApplyMoneyReq {
+  int64 amount = 1;
+  int32 currency_type = 2;// 货币类型(1:结算,2:消费,3:币商,4:美分)
+  string currency_name = 3;// 货币名称;仅展示用
+}
+message ApplyMoneyRsp {
+}
+
+message ListCurrencyTypeReq {
+  string anm = 1;// 业务
+}
+message ListCurrencyTypeRsp {
+  repeated CurrencyType items = 1;
+}
+message CurrencyType {
+  int32 currency_type = 1;// 货币类型(1:结算,2:消费,3:币商,4:美分)
+  string currency_name = 2;// 货币名称
+}
+

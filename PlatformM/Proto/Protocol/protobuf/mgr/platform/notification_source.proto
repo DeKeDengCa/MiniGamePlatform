@@ -1,0 +1,93 @@
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/notification/handlermgr/notification_source.go
+syntax = "proto3";
+
+import "protobuf/api/common/common.proto";
+
+package comm.mgr.platform.notification;
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/platform/pbmnotification";
+
+service NotificationSourceMgr {
+    rpc AddSource(AddSourceReq) returns (AddSourceRsp);
+    rpc DelSource(DelSourceReq) returns (DelSourceRsp);
+    rpc UpdateSource(UpdateSourceReq) returns (UpdateSourceRsp);
+    rpc GetSource(GetSourceReq) returns (GetSourceRsp);
+    rpc ListSource(ListSourceReq) returns (ListSourceRsp);
+  }
+  
+  enum JumpType {
+    JUMP_TYPE_NONE = 0; // 不跳转
+    JUMP_TYPE_ROUTE = 1; // 路由跳转
+    JUMP_TYPE_H5 = 2; // H5跳转
+    JUMP_TYPE_ROOM = 3; // 房间跳转
+  }
+
+  message Source {
+    bool has_img = 10; // 是否有大图
+    map<string,string> img = 11; // en: 英文图, zh: 中文图 ar: 阿拉伯图
+    map<string,string> btn = 12; // en: 英文按钮, zh: 中文按钮 ar: 阿拉伯按钮
+    JumpType jump_type = 13; // 跳转类型
+    string jump_link = 14; // 跳转链接
+    string comment = 15; // 备注
+    string operator = 16; // 操作者
+    bool has_btn = 17; // 是否有跳转按钮
+    
+    int64 id = 50;
+    int64 create_time = 51;
+    int64 update_time = 52;
+    bool deleted = 53;
+}
+
+message AddSourceReq {
+    bool has_img = 10; // 是否有大图
+    map<string,string> img = 11; // en: 英文图, zh: 中文图 ar: 阿拉伯图
+    map<string,string> btn = 12; // en: 英文按钮, zh: 中文按钮 ar: 阿拉伯按钮
+    JumpType jump_type = 13; // 跳转类型
+    string jump_link = 14; // 跳转链接
+    string comment = 15; // 备注
+    string operator = 16; // 操作者
+    bool has_btn = 17; // 是否有跳转按钮
+}
+
+message AddSourceRsp {
+    int64 id = 10;
+}
+
+message DelSourceReq {
+    repeated int64 ids = 10;
+    string operator = 11;
+}
+
+message DelSourceRsp {
+    int64 count = 10;
+}
+
+message UpdateSourceReq {
+    Source req = 10;
+    string operator = 11;
+}
+
+message UpdateSourceRsp {
+    Source rsp = 10;
+}
+
+message GetSourceReq {
+    int64 id = 10;
+}
+
+message GetSourceRsp {
+    Source resp = 10;
+}
+
+message ListSourceReq {
+    scommon.Page page = 1;
+    int64 id = 10;
+    string operator = 11;
+    int64 begin = 12;
+    int64 end = 13;       
+}
+
+message ListSourceRsp {
+    scommon.Page page = 1;
+    repeated Source list = 10;
+}

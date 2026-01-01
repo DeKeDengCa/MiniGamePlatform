@@ -1,0 +1,283 @@
+syntax = "proto3";
+
+package api.astrorise.voiceroom.level;
+
+import "api/platform/voiceroom/comm.proto";
+
+option java_package = "com.entertain.sns.api.gene.room.level";
+option go_package = "gitit.cc/social/astrorise/arvoiceroom/proto/pbroomlevel";
+
+// 房间等级
+// serviceName: astrorise-voiceroomi
+// smicro:spath=gitit.cc/social/astrorise/arvoiceroom/biz/roomlevel/handler
+service RoomLevel {
+  // 查询房间所有等级权益
+  rpc GetLevelRangePrivileges(GetLevelRangePrivilegesReq) returns (GetLevelRangePrivilegesRsp);
+
+  // 查询房间等级
+  rpc GetLevelDetails(GetLevelDetailsReq) returns (GetLevelDetailsRsp);
+
+  // 查询房间任务进度
+  rpc GetTaskProgress(GetTaskProgressReq) returns (GetTaskProgressRsp);
+
+  // 签到
+  rpc SignIn(SignInReq) returns (SignInRsp);
+}
+
+// 房间等级权益类型
+enum PrivilegeType{
+  PRIVILEGE_TYPE_NONE = 0;
+  PRIVILEGE_TYPE_MAX_ADMIN_NUMBER = 1; // 房管数量
+  PRIVILEGE_TYPE_MAX_ONLINE_USER_NUMBER = 2; // 房间最大在线人数
+  PRIVILEGE_TYPE_MIC_NUMBER = 3; // 麦位数量
+
+  PRIVILEGE_TYPE_FUNCTION_PK = 10; // 房间工具-PK
+  PRIVILEGE_TYPE_FUNCTION_LUCKY_BAG = 11; // 房间工具-红包
+
+  PRIVILEGE_TYPE_ROOM_BACKGROUND = 20; // 房间背景
+  PRIVILEGE_TYPE_ROOM_BADGE = 21; // 房间勋章
+  PRIVILEGE_TYPE_HEADWEAR = 22; // 头像框
+  PRIVILEGE_TYPE_VEHICLE = 23; // 座驾
+  PRIVILEGE_TYPE_MIC_APERTURE = 24; // 麦位光圈
+  PRIVILEGE_TYPE_MINI_CARD_BACKGROUND = 25; // 资料卡
+  PRIVILEGE_TYPE_SCREEN_BUBBLE = 26; // 聊天气泡
+
+  PRIVILEGE_TYPE_COIN = 30; // 金币
+  PRIVILEGE_TYPE_DIAMOND = 31; // 钻石
+}
+
+// 房间权益
+message RoomPrivilege {
+  oneof Item {
+    RoomMaxAdminNumber max_admin_number = 1; // 房管数量
+    RoomMaxOnlineUserNumber max_online_user_number = 2; // 房间最大在线人数
+    RoomMicNumber mic_number = 3; // 麦位数量
+    RoomFunction room_function = 4; // 房间工具
+    RoomCoinDiamond coin_diamond = 5; //  金币、钻石
+    RoomBackground room_background = 6; // 房间背景
+    RoomBadge room_badge = 7; // 房间勋章
+    RoomHeadwear headwear = 8; // 头像框
+    RoomVehicle vehicle = 9; // 座驾
+    RoomMicAperture mic_aperture = 10; // 麦位光圈
+    RoomMiniCardBackground mini_card_background = 11; // 资料卡
+    RoomScreenBubble screen_bubble = 12; // 聊天气泡
+  }
+}
+
+message TextSection {
+  string content = 1; // 内容
+  string font_color = 2; // 字体颜色
+  FontWeightType font_weight = 5; // 字体
+}
+
+enum FontWeightType{
+  FONT_WEIGHT_TYPE_NONE = 0;
+  FONT_WEIGHT_TYPE_REGULAR = 1;
+  FONT_WEIGHT_TYPE_MEDIUM = 2;
+  FONT_WEIGHT_TYPE_BOLD = 3;
+}
+
+message RoomMaxAdminNumber {
+  string image = 1; // 效果图
+  int64 max_admin_number = 2; // 房管数量
+
+  message Asset {
+    string name = 1; // 权益名称
+    repeated TextSection descriptions = 2; // 权益描述
+    string label = 3; // 权益标签
+  }
+  Asset asset = 11; // 用户语言对应的资源
+  map<string, Asset> assets = 12;  // 国际化资源
+}
+
+message RoomMaxOnlineUserNumber {
+  string image = 1; // 效果图
+  int64 max_online_user_number = 2; // 房间最大在线人数
+
+  message Asset {
+    string name = 1; // 权益名称
+    repeated TextSection descriptions = 2; // 权益描述
+    string label = 3; // 权益标签
+  }
+  Asset asset = 11; // 用户语言对应的资源
+  map<string, Asset> assets = 12; // 国际化资源
+}
+
+message RoomMicNumber {
+  string image = 1; // 效果图
+
+  message Asset {
+    string name = 1; // 权益名称
+    repeated TextSection descriptions = 2; // 权益描述
+    string label = 3; // 权益标签
+  }
+  Asset asset = 11; // 用户语言对应的资源
+  map<string, Asset> assets = 12; // 国际化资源
+
+  message MicLayout {
+    string room_layout_code = 1; // 房间麦位布局code;eg:chat_10,partner_9,partner_10,cp
+    string room_layout_name = 2; // 房间麦位布局名称
+    int64 mic_number = 3; // 麦位数量
+    bool is_locked = 4; // 是否锁定
+  }
+  repeated MicLayout mic_layouts = 13;
+}
+
+message RoomFunction {
+  string image = 1; // 效果图
+  bool pk_allowed = 2; // 是否允许PK
+  bool lucky_bag_allowed = 3; // 是否允许红包
+
+  message Asset {
+    string name = 1; // 权益名称
+    repeated TextSection descriptions = 2; // 权益描述
+    string label = 3; // 权益标签
+  }
+  Asset asset = 11; // 用户语言对应的资源
+  map<string, Asset> assets = 12; // 国际化资源
+}
+
+message RoomBackground {
+  string image = 1; // 效果图
+
+  message Asset {
+    string name = 1; // 权益名称
+    repeated TextSection descriptions = 2; // 权益描述
+    string label = 3; // 权益标签
+  }
+  Asset asset = 11; // 用户语言对应的资源
+  map<string, Asset> assets = 12; // 国际化资源
+}
+
+message RoomBadge {
+  string image = 1; // 效果图
+
+  message Asset {
+    string name = 1; // 权益名称
+    repeated TextSection descriptions = 2; // 权益描述
+    string label = 3; // 权益标签
+  }
+  Asset asset = 11; // 用户语言对应的资源
+  map<string, Asset> assets = 12; // 国际化资源
+}
+
+message RoomHeadwear {
+  string image = 1; // 效果图
+
+  message Asset {
+    string name = 1; // 权益名称
+    repeated TextSection descriptions = 2; // 权益描述
+    string label = 3; // 权益标签
+  }
+  Asset asset = 11; // 用户语言对应的资源
+  map<string, Asset> assets = 12; // 国际化资源
+}
+
+message RoomVehicle {
+  string image = 1; // 效果图
+
+  message Asset {
+    string name = 1; // 权益名称
+    repeated TextSection descriptions = 2; // 权益描述
+    string label = 3; // 权益标签
+  }
+  Asset asset = 11; // 用户语言对应的资源
+  map<string, Asset> assets = 12; // 国际化资源
+}
+
+message RoomMicAperture {
+  string image = 1; // 效果图
+
+  message Asset {
+    string name = 1; // 权益名称
+    repeated TextSection descriptions = 2; // 权益描述
+    string label = 3; // 权益标签
+  }
+  Asset asset = 11; // 用户语言对应的资源
+  map<string, Asset> assets = 12; // 国际化资源
+}
+
+message RoomMiniCardBackground {
+  string image = 1; // 效果图
+
+  message Asset {
+    string name = 1; // 权益名称
+    repeated TextSection descriptions = 2; // 权益描述
+    string label = 3; // 权益标签
+  }
+  Asset asset = 11; // 用户语言对应的资源
+  map<string, Asset> assets = 12; // 国际化资源
+}
+
+message RoomScreenBubble {
+  string image = 1; // 效果图
+
+  message Asset {
+    string name = 1; // 权益名称
+    repeated TextSection descriptions = 2; // 权益描述
+    string label = 3; // 权益标签
+  }
+  Asset asset = 11; // 用户语言对应的资源
+  map<string, Asset> assets = 12; // 国际化资源
+}
+
+message RoomCoinDiamond {
+  string image = 1; // 效果图
+  int64 coin_quantity = 2; // 金币数量
+  int64 diamond_quantity = 3; // 钻石数量
+
+  message Asset {
+    string name = 1; // 权益名称
+    repeated TextSection descriptions = 2; // 权益描述
+    string label = 3; // 权益标签
+  }
+  Asset asset = 11; // 用户语言对应的资源
+  map<string, Asset> assets = 12; // 国际化资源
+}
+
+message GetLevelRangePrivilegesReq{
+}
+message GetLevelRangePrivilegesRsp{
+  repeated RoomPrivilege all_privileges = 1; // 所有权益
+  repeated LevelRangePrivilege level_ranges = 2;
+}
+
+// 等级区间及对应的所有权益 (对应一个 Tab 的内容)
+message LevelRangePrivilege {
+  int32 index = 1;
+  int32 min_level = 2; // 区间最低等级
+  int32 max_level = 3; // 区间最高等级
+  repeated RoomPrivilege privileges = 4; // 该等级区间下的所有权益
+}
+
+message GetLevelDetailsReq{
+  int64 room_id = 1;
+}
+message GetLevelDetailsRsp {
+  api.astrorise.voiceroom.RoomLevel level_detail = 1;
+}
+
+
+message GetTaskProgressReq {
+  int64 room_id = 1;
+}
+
+message GetTaskProgressRsp{
+  repeated Task task_list = 1;
+}
+
+message Task {
+  string name = 1;  // 任务名称
+  int64 award_exp = 2; // 任务完成可领取经验
+  int64 current_value = 3;  //当前进度值
+  string event_type = 4; // 任务类型: 登录、上麦、挂房
+  string task_category = 5; // 任务分类: 日/周
+  int64 current_percentage = 6; //任务百分比
+  string describe = 7; //任务说明
+}
+
+message SignInReq{
+  int64 room_id = 1;
+}
+
+message SignInRsp{}

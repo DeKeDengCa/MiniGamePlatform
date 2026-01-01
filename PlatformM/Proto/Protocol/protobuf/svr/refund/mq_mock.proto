@@ -1,0 +1,22 @@
+// smicro:spath=gitit.cc/social/components-service/social-refund/mq/pbmock/
+syntax = "proto3";
+
+package pbrefund;
+
+import "protobuf/svr/refund/risk_common.proto";
+
+option go_package = "gitit.cc/social/components-service/social-refund/mq/pbmock/pbmq";
+option java_package = "com.refund.biz.proto";
+
+service MqMock {
+  // 模拟充值事件
+  rpc SendRechargeMsg (SendRechargeMsgReq) returns (SendRechargeMsgRsp);
+}
+
+message SendRechargeMsgReq {
+  pbrefund.RechargeMsg event_msg = 1;
+}
+
+message SendRechargeMsgRsp{
+}
+

@@ -1,0 +1,255 @@
+syntax = "proto3";
+
+package comm.mgr.activity;
+
+import "protobuf/api/sconfig/model.proto";
+import "protobuf/api/activity/activity_management.proto";
+import "protobuf/mgr/activity/reward.proto";
+import "protobuf/mgr/activity/lottery.proto";
+import "protobuf/api/common/common.proto";
+
+option go_package = "gitit.cc/social/protobuf/gencode/mgr/pbmactivity";
+
+// 活动管理平台协议
+// ServiceName: 一般是各个业务的主服务名，具体咨询业务
+// smicro:spath=gitit.cc/social/components/abase/abasemgr-handler.go
+service ABaseMgr {
+    // 获取活动列表
+    rpc GetActivityList(GetActivityListReq) returns (GetActivityListRsp);
+
+    // 根据 code 获取活动配置
+    rpc GetActivityByCode(GetActivityByCodeReq) returns (GetActivityByCodeRsp);
+
+    // 生成奖励包ID
+    rpc GenerateRewardPackageIDs(GenerateRewardPackageIDsReq) returns (GenerateRewardPackageIDsRsp);
+
+    // --------------------调试相关接口----------------------------
+
+    // 设置、获取时间偏移
+    rpc DebugSetTimeOffset(DebugSetTimeOffsetReq) returns (DebugSetTimeOffsetRsp);
+    rpc DebugGetTimeOffset(DebugGetTimeOffsetReq) returns (DebugGetTimeOffsetRsp);
+
+    // 设置、获取机器账号
+    rpc DebugSetRobots(DebugSetRobotsReq) returns (DebugSetRobotsRsp);
+    rpc DebugGetRobots(DebugGetRobotsReq) returns (DebugGetRobotsRsp);
+
+    // 构造榜单数据，先调用DebugMockRankMeta，返回一个基本信息，然后调用DebugMockRank，提交一个完整的榜单数据
+    rpc DebugMockRankMeta(DebugMockRankMetaReq) returns (DebugMockRankMetaRsp);
+    rpc DebugMockRank(DebugMockRankReq) returns (DebugMockRankRsp);
+
+    // 构造任务数据
+    //rpc DebugMockTask(DebugMockTaskReq) returns (DebugMockTaskRsp);
+    // 构造抽奖数据，比如必中某个奖品之类的
+    //rpc DebugMockLottery(DebugMockLotteryReq) returns (DebugMockLotteryRsp);
+
+    // 获取榜单元数据
+    rpc GetRankMeta(GetRankMetaReq) returns (GetRankMetaRsp);
+    // 榜单数据列表
+    rpc ListRankData(ListRankDataReq) returns (ListRankDataRsp);
+
+    // 生成奖池
+    rpc GenerateLotteryDetail(GenerateLotteryDetailReq) returns (GenerateLotteryDetailRsp);
+    // 奖池轮次列表
+    rpc ListLotteryRound(ListLotteryRoundReq) returns (ListLotteryRoundRsp);
+}
+
+// 获取活动列表请求
+message GetActivityListReq {
+}
+
+// 获取活动列表响应
+message GetActivityListRsp {
+    repeated comm.api.activity.ActivityConfig activities = 1;   // 活动列表
+}
+
+// 根据 code 获取活动配置
+message GetActivityByCodeReq {
+    string code = 1; // 活动 code
+}
+
+// 根据 code 获取活动配置
+message GetActivityByCodeRsp {
+    comm.api.activity.ActivityConfig activity = 1; // 活动配置
+}
+
+// 榜单容器配置，这些可能要挪到API去，或者复用现在的api定义
+message RankContainerConfig {
+    sconfig.model.Langs title = 1; // 节点(赛程)的名称
+
+    sconfig.model.Time start_time = 10;
+    sconfig.model.Time end_time = 11;
+}
+// 定制化开发活动的榜单配置，这里需要和积木活动的RankConfig区分开来
+// 起一个别扭的名字，先编过去
+message RankLeafConfig {
+    sconfig.model.Langs title = 1; // 榜单的名称
+
+    repeated RankReward rewards = 20 ; // 榜单奖励
+
+    string ext = 99 ;
+}
+message RankReward {
+  sconfig.model.Langs title = 1; // 奖励区间的名称，比如Top1
+
+  int64 start_rank = 10;     // 开始过滤名次，0代表不过滤
+  int64 stop_rank = 11;      // 结束过滤名次，0代表不过滤
+  int64 start_score = 12;    // 限制开始分数，0代表不过滤
+  int64 end_score = 13;      // 限制结束分数，0代表不过滤
+  RewardPkg reward = 14;     // 奖励
+  repeated ScoreReward rewards = 20; // 部分奖励要区分不同的分数，则放到这里来。
+
+  repeated RankReward sub_rewards = 30; // 支持者榜单奖励
+
+  string ext = 99 ;
+}
+
+message ScoreReward {
+  int64 start_score = 1;    // 限制开始分数，0代表不过滤
+  int64 end_score = 2;      // 限制结束分数，0代表不过滤
+  RewardPkg reward_pkg = 3; // 对应的奖励包配置
+}
+
+//  IM notify的配置
+message IMNotifyConfig {
+  string text = 1; // 目前只有这个要配置
+}
+
+
+// 生成奖励包ID请求
+message GenerateRewardPackageIDsReq {
+    string activity_code = 1;     // 活动code
+    repeated RewardPkg pkgs = 10;
+    string source = 11;           // 来源 oms or appnow or 自定义
+}
+// 生成奖励包ID响应，信息原样返回
+message GenerateRewardPackageIDsRsp {
+    string activity_code = 1;
+    repeated RewardPkg pkgs = 10;
+}
+
+message DebugSetTimeOffsetReq {
+    string activity_code = 1;
+    int64  ts = 2;   // unix timestamp, seconds，0表示清除时间偏移
+}
+message DebugSetTimeOffsetRsp {
+    int64 ts = 1;  // 加上时间偏移之后当前的时间
+}
+
+message DebugGetTimeOffsetReq {
+    string activity_code = 1;
+}
+message DebugGetTimeOffsetRsp {
+    int64 ts = 1;
+}
+
+// 设置机器账号ID，用来造数据的时候作为数据主体
+// 覆盖式设置
+message DebugSetRobotsReq {
+    repeated string uids = 1;       // 机器人UID
+    repeated string room_ids = 2;   // 房间ID
+    repeated string family_ids = 3; // 家族ID
+}
+message DebugSetRobotsRsp {
+}
+message DebugGetRobotsReq {
+}
+message DebugGetRobotsRsp {
+    repeated string uids = 1;       // 机器人UID
+    repeated string room_ids = 2;   // 房间ID
+    repeated string family_ids = 3; // 家族ID
+}
+
+message DebugMockRankMetaReq {
+    string activity_code = 1;
+    string rank_key = 2;
+
+    int32 main_cnt = 10;   // 构造主榜前N名的分数
+    int32 main_delta = 11; // 主榜前N名分数差异，
+    int32 sub_cnt = 20;    // 每个子榜构造前N名的分数，0表示不构造子榜分数
+    int32 sub_delta = 21;  // 子榜前N名分数差异
+    int64 start_limit = 22; // 限制开始分数，0代表不限制
+    int64 end_limit = 23;   // 限制结束分数，0代表不限制
+}
+message DebugMockRankMetaRsp {
+    repeated MockRankItem items = 1;
+}
+message MockRankItem {
+    string member = 1;
+    int64  score = 2;
+    repeated MockRankItem sub_items = 10;
+}
+
+message DebugMockRankReq {
+    string activity_code = 1;
+    string rank_key = 2;
+
+    repeated MockRankItem items = 10;
+}
+message DebugMockRankRsp {
+}
+
+message GetRankMetaReq {
+    string activity_code = 1;
+    string rank_key = 2;
+}
+
+message GetRankMetaRsp {
+    repeated RankMetaExpandHead expand_head = 1;
+}
+
+message RankMetaExpandHead {
+    string key = 1;
+    string title = 2;
+}
+
+message ListRankDataReq {
+    string activity_code = 1;
+    string rank_key = 2;
+    int64 start = 3; // 开始名次，从1开始
+    int64 end = 4;  // 结束名次
+    int64 start_limit = 5; // 限制开始分数，0代表不限制
+    int64 end_limit = 6;   // 限制结束分数，0代表不限制
+    string stage = 8; // 赛段，可选
+    int64 offset = 9; // 时间周期，可选，例如查看昨日日榜，填-1
+    string target = 10; // 目标成员，可选，传入代表查该成员的子榜
+    scommon.Page page = 11;  // 分页参数
+}
+
+message ListRankDataRsp {
+    repeated RankData items = 1;
+    scommon.Page page = 2;  // 分页参数
+    int64 begin_ts = 3; // 开始时间
+    string begin_format = 4; // 开始时间，yyyy-MM-dd HH:mm:ss
+    int64 end_ts = 5; // 结束时间，yyyy-MM-dd
+    string end_format = 6; // 结束时间，yyyy-MM-dd HH:mm:ss
+}
+
+message RankData {
+    string member = 1;
+    int64 rank = 2;
+    int64 score = 3;
+    map<string, string> expand_data = 4;
+}
+
+message GenerateLotteryDetailReq {
+    string activity_code = 1; // 活动code
+    repeated LotteryDetail item = 2; // 奖池配置
+}
+
+message GenerateLotteryDetailRsp {
+    repeated LotteryDetail item = 1; // 奖池配置回显
+}
+
+message ListLotteryRoundReq {
+    string activity_code = 1; // 活动code
+    string lottery_code = 2; // 抽奖code
+}
+
+message ListLotteryRoundRsp {
+    LotteryDetail item = 1; // 奖池配置
+    map<string, LotteryRoundStatus> round_status = 2; // 轮次状态
+}
+
+message LotteryRoundStatus {
+    bool can_update = 1; // 能否更新
+}

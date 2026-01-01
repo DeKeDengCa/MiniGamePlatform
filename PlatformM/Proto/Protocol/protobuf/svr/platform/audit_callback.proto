@@ -1,0 +1,48 @@
+// smicro:spath=gitit.cc/social/components-service/social-platform/biz/audit/handlersvr
+syntax = "proto3";
+
+package comm.svr.platform.audit;
+
+option go_package = "gitit.cc/social/protobuf/gencode/svr/platform/pbsaudit";
+
+
+service AuditCallbackSvr {
+
+  // 审批回调接收
+  rpc OnAuditCallback(OnAuditCallbackReq) returns (OnAuditCallbackRsp) {}
+}
+
+enum AuditorType {
+  AUDITOR_TYPE_NONE = 0;
+  AUDITOR_TYPE_ADMIN = 10;  // 运营人员
+  AUDITOR_TYPE_STAFF = 20;  // 钉钉用户
+}
+
+enum AuditResult {
+  AUDIT_RESULT_NONE = 0;
+  AUDIT_RESULT_APPROVED = 20;        // 已通过
+  AUDIT_RESULT_REJECTED = 30;        // 已拒绝
+  AUDIT_RESULT_REVOKED = 40;         // 已撤回
+}
+
+message AuditTrack {
+  AuditorType auditor_type = 1;
+  string auditor_id = 2;
+  string auditor_name = 3;
+  AuditResult audit_result = 4;
+  string audit_reason = 5;              // 审批理由
+  int64 audit_at = 6;                   // 审批时间
+}
+
+message OnAuditCallbackReq {
+  string task_id = 10;                    // 审批任务ID
+  string category = 11;                   // 审批工单分类
+  string context = 12;                    // 上下文
+  repeated AuditTrack audit_tracks = 13;  // 审批轨迹
+  AuditResult audit_result = 14;          // 审批任务整体审批结果
+}
+
+message OnAuditCallbackRsp {
+  bool already_audited = 10;              // 已经被审核过
+  AuditResult audit_result = 11;          // 之前的审批结果
+}
